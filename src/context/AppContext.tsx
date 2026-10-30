@@ -969,7 +969,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         loginAs('super_admin', cleanEmail, 'Super Administrator');
         return { success: true };
       }
-      if (cleanEmail.startsWith('rashmae')) {
+      if (cleanEmail.includes('rashmae') || cleanEmail.startsWith('ansay')) {
         loginAs('super_admin', cleanEmail, 'Rashmae');
         return { success: true };
       }
