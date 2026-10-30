@@ -1,0 +1,6 @@
+{
+  "name": "SmartSpace",
+  "description": "SmartSpace is a multi-university facility booking and resource management SaaS platform. Book It, Track It, Use It.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
