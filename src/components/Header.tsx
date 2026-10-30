@@ -17,7 +17,8 @@ import {
   Home,
   CheckCircle2,
   Layers,
-  Sparkles
+  Sparkles,
+  Cloud
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -44,6 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
     logout,
     openAuthPortal,
     setIsDemoModalOpen,
+    cloudSyncStatus,
   } = useApp();
 
   const pendingCount = institutionBookings.filter((b) => b.status === 'pending').length;
@@ -468,8 +470,14 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </nav>
 
-          {/* Current Workspace Tag & Pilot Notice */}
+          {/* Current Workspace Tag, Pilot Notice & Firestore Cloud Badge */}
           <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-[10px] font-medium">
+              <Cloud className="w-3 h-3 text-indigo-600" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>{cloudSyncStatus === 'syncing' ? 'Syncing Cloud...' : cloudSyncStatus === 'offline' ? 'Local Store' : 'Firestore Cloud'}</span>
+            </div>
+
             {currentRole === 'super_admin' ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>

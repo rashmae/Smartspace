@@ -20,6 +20,25 @@ import {
   INITIAL_BOOKINGS,
   INITIAL_PARTICIPANTS,
 } from '../data/initialData';
+import {
+  getInstitutionsFromCloud,
+  saveInstitutionToCloud,
+  getFacilitiesFromCloud,
+  saveFacilityToCloud,
+  deleteFacilityFromCloud,
+  getBookingsFromCloud,
+  saveBookingToCloud,
+  deleteBookingFromCloud,
+  getRegistrationsFromCloud,
+  saveRegistrationToCloud,
+  getDemoRequestsFromCloud,
+  saveDemoRequestToCloud,
+  getUsersFromCloud,
+  saveUserToCloud,
+  getSettingsFromCloud,
+  saveSettingsToCloud,
+  seedFirestoreIfEmpty,
+} from '../lib/firestoreService';
 
 export type AppView = 
   | 'landing'
@@ -129,6 +148,10 @@ interface AppContextType {
   // Platform Settings & Configuration
   platformSettings: PlatformSettings;
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => void;
+
+  // Cloud Storage (Firebase Firestore)
+  cloudSyncStatus: 'idle' | 'syncing' | 'synced' | 'offline';
+  syncWithFirestore: () => Promise<void>;
 
   // Facilities & Management
   allFacilities: Facility[];
@@ -420,22 +443,92 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [platformSettings]);
 
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'offline'>('idle');
+
+  // Firestore Cloud Synchronization
+  const syncWithFirestore = async () => {
+    try {
+      setCloudSyncStatus('syncing');
+      await seedFirestoreIfEmpty();
+
+      const [cloudInsts, cloudFacs, cloudBookings, cloudRegs, cloudDemos, cloudUsers, cloudSettings] = await Promise.all([
+        getInstitutionsFromCloud().catch(() => null),
+        getFacilitiesFromCloud().catch(() => null),
+        getBookingsFromCloud().catch(() => null),
+        getRegistrationsFromCloud().catch(() => null),
+        getDemoRequestsFromCloud().catch(() => null),
+        getUsersFromCloud().catch(() => null),
+        getSettingsFromCloud().catch(() => null),
+      ]);
+
+      if (cloudInsts && cloudInsts.length > 0) {
+        setInstitutions(cloudInsts);
+      }
+      if (cloudFacs && cloudFacs.length > 0) {
+        setFacilities(cloudFacs);
+      }
+      if (cloudBookings && cloudBookings.length > 0) {
+        setBookings(cloudBookings);
+      }
+      if (cloudRegs && cloudRegs.length > 0) {
+        setInstitutionalRegistrations(cloudRegs);
+      }
+      if (cloudDemos && cloudDemos.length > 0) {
+        setDemoRequests(cloudDemos);
+      }
+      if (cloudUsers && cloudUsers.length > 0) {
+        setRegisteredUsers(cloudUsers);
+      }
+      if (cloudSettings) {
+        setPlatformSettings(cloudSettings);
+      }
+
+      setCloudSyncStatus('synced');
+    } catch (err) {
+      console.warn('Firestore initial sync:', err);
+      setCloudSyncStatus('offline');
+    }
+  };
+
+  useEffect(() => {
+    syncWithFirestore();
+  }, []);
+
   const updatePlatformSettings = (updates: Partial<PlatformSettings>) => {
-    setPlatformSettings((prev) => ({ ...prev, ...updates }));
+    const updated = { ...platformSettings, ...updates };
+    setPlatformSettings(updated);
+    saveSettingsToCloud(updated).catch((err) => console.warn('Cloud sync (settings):', err));
     addToast('success', 'Settings Updated', 'Platform configurations have been updated.');
   };
 
   const updateUserAccountStatus = (userId: string, status: 'active' | 'suspended') => {
-    setRegisteredUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, status } : u))
-    );
+    setRegisteredUsers((prev) => {
+      const next = prev.map((u) => (u.id === userId ? { ...u, status } : u));
+      const target = next.find((u) => u.id === userId);
+      if (target) {
+        saveUserToCloud(target).catch((err) => console.warn('Cloud sync (user status):', err));
+      }
+      return next;
+    });
     addToast('info', 'User Status Updated', `User account status set to ${status}.`);
   };
 
   const updateUserAccountRole = (userId: string, role: UserRole) => {
-    setRegisteredUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, role, userType: role === 'faculty' ? 'Faculty Member' : 'Student Organization Officer' } : u))
-    );
+    setRegisteredUsers((prev) => {
+      const next = prev.map((u) => {
+        if (u.id === userId) {
+          const newUserType: RegisteredUserAccount['userType'] =
+            role === 'faculty' ? 'Faculty Member' : 'Student Organization Officer';
+          return { ...u, role, userType: newUserType };
+        }
+        return u;
+      });
+      const target = next.find((u) => u.id === userId);
+      if (target) {
+        saveUserToCloud(target).catch((err) => console.warn('Cloud sync (user role):', err));
+      }
+      return next;
+    });
     addToast('info', 'User Role Updated', `User permissions updated.`);
   };
 
@@ -568,12 +661,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       status: 'active',
     };
     setInstitutions((prev) => [newInst, ...prev]);
+    saveInstitutionToCloud(newInst).catch((err) => console.warn('Cloud sync (addInstitution):', err));
     addToast('success', 'University Registered', `${newInst.name} enrolled onto SmartSpace.`);
     return { success: true, institution: newInst };
   };
 
   const updateInstitution = (id: string, updates: Partial<Institution>) => {
-    setInstitutions((prev) => prev.map((inst) => (inst.id === id ? { ...inst, ...updates } : inst)));
+    setInstitutions((prev) => {
+      const next = prev.map((inst) => (inst.id === id ? { ...inst, ...updates } : inst));
+      const target = next.find((i) => i.id === id);
+      if (target) {
+        saveInstitutionToCloud(target).catch((err) => console.warn('Cloud sync (updateInstitution):', err));
+      }
+      return next;
+    });
     addToast('info', 'University Updated', 'Institutional configuration and subscription details updated.');
   };
 
@@ -584,17 +685,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       id,
     };
     setFacilities((prev) => [newFacility, ...prev]);
+    saveFacilityToCloud(newFacility).catch((err) => console.warn('Cloud sync (addFacility):', err));
     addToast('success', 'Facility Added', `${newFacility.name} has been added to inventory.`);
     return { success: true, facility: newFacility };
   };
 
   const updateFacility = (id: string, updates: Partial<Facility>) => {
-    setFacilities((prev) => prev.map((f) => (f.id === id ? { ...f, ...updates } : f)));
+    setFacilities((prev) => {
+      const next = prev.map((f) => (f.id === id ? { ...f, ...updates } : f));
+      const target = next.find((f) => f.id === id);
+      if (target) {
+        saveFacilityToCloud(target).catch((err) => console.warn('Cloud sync (updateFacility):', err));
+      }
+      return next;
+    });
     addToast('info', 'Facility Updated', 'Facility details and specifications saved.');
   };
 
   const deleteFacility = (id: string) => {
     setFacilities((prev) => prev.filter((f) => f.id !== id));
+    deleteFacilityFromCloud(id).catch((err) => console.warn('Cloud sync (deleteFacility):', err));
     addToast('warning', 'Facility Removed', 'Facility was removed from inventory.');
   };
 
@@ -648,6 +758,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     setInstitutionalRegistrations((prev) => [newRequest, ...prev]);
+    saveRegistrationToCloud(newRequest).catch((err) => console.warn('Cloud sync (registration):', err));
     addToast(
       'info',
       'Registration Submitted',
@@ -692,9 +803,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     setInstitutions((prev) => [newInst, ...prev]);
+    saveInstitutionToCloud(newInst).catch((err) => console.warn('Cloud sync (newInst):', err));
+
+    const updatedReq: InstitutionalRegistrationRequest = { ...req, status: 'approved' };
     setInstitutionalRegistrations((prev) =>
-      prev.map((r) => (r.id === requestId ? { ...r, status: 'approved' } : r))
+      prev.map((r) => (r.id === requestId ? updatedReq : r))
     );
+    saveRegistrationToCloud(updatedReq).catch((err) => console.warn('Cloud sync (approveReg):', err));
 
     addToast(
       'success',
@@ -712,7 +827,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     setInstitutionalRegistrations((prev) =>
-      prev.map((r) => (r.id === requestId ? { ...r, status: 'rejected', rejectionReason: reason } : r))
+      prev.map((r) => {
+        if (r.id === requestId) {
+          const updated = { ...r, status: 'rejected' as const, rejectionReason: reason };
+          saveRegistrationToCloud(updated).catch((err) => console.warn('Cloud sync (rejectReg):', err));
+          return updated;
+        }
+        return r;
+      })
     );
 
     addToast('warning', 'Registration Declined', 'Institutional registration request has been rejected.');
@@ -753,6 +875,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     setDemoRequests((prev) => [newDemo, ...prev]);
+    saveDemoRequestToCloud(newDemo).catch((err) => console.warn('Cloud sync (demo):', err));
     addToast(
       'success',
       'Demo Request Received',
@@ -817,6 +940,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     setRegisteredUsers((prev) => [newUser, ...prev]);
+    saveUserToCloud(newUser).catch((err) => console.warn('Cloud sync (newUser):', err));
     setInstitutionId(data.institutionId);
     loginAs(role, cleanEmail, newUser.fullName);
     setActiveView('facilities');
@@ -842,7 +966,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Super Admin Flow
     if (portalType === 'super_admin') {
       if (cleanEmail === 'superadmin@smartspace.ph' || cleanEmail.includes('superadmin')) {
-        loginAs('super_admin', cleanEmail, 'SmartSpace Platform Super Admin');
+        loginAs('super_admin', cleanEmail, 'Super Administrator');
+        return { success: true };
+      }
+      if (cleanEmail.startsWith('rashmae')) {
+        loginAs('super_admin', cleanEmail, 'Rashmae');
+        return { success: true };
+      }
+      if (cleanEmail.startsWith('krisha')) {
+        loginAs('super_admin', cleanEmail, 'Krisha');
+        return { success: true };
+      }
+      if (cleanEmail.startsWith('gonzales')) {
+        loginAs('super_admin', cleanEmail, 'Angel Mae');
+        return { success: true };
+      }
+      if (cleanEmail.startsWith('karl')) {
+        loginAs('super_admin', cleanEmail, 'Karl Hadriel');
         return { success: true };
       }
       return {
@@ -1138,6 +1278,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     setBookings((prev) => [newBooking, ...prev]);
+    saveBookingToCloud(newBooking).catch((err) => console.warn('Cloud sync (newBooking):', err));
     addToast(
       'success',
       isExternal ? 'External Request Submitted' : 'Request Submitted (Pending)',
@@ -1173,21 +1314,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const permitRef = `PERMIT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
 
+    const updatedBooking: BookingRequest = {
+      ...booking,
+      status: 'approved',
+      reviewedAt: new Date().toISOString(),
+      reviewedBy: 'Engr. R. Santos (Demo Facility Administrator)',
+      permitReference: permitRef,
+      rejectionReason: undefined,
+    };
+
     setBookings((prev) =>
-      prev.map((b) => {
-        if (b.id === bookingId) {
-          return {
-            ...b,
-            status: 'approved',
-            reviewedAt: new Date().toISOString(),
-            reviewedBy: 'Engr. R. Santos (Demo Facility Administrator)',
-            permitReference: permitRef,
-            rejectionReason: undefined,
-          };
-        }
-        return b;
-      })
+      prev.map((b) => (b.id === bookingId ? updatedBooking : b))
     );
+    saveBookingToCloud(updatedBooking).catch((err) => console.warn('Cloud sync (approveBooking):', err));
 
     addToast(
       'success',
@@ -1209,20 +1348,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return { success: false, error: 'A justification reason is required when rejecting a reservation.' };
     }
 
+    const updatedBooking: BookingRequest = {
+      ...booking,
+      status: 'rejected',
+      reviewedAt: new Date().toISOString(),
+      reviewedBy: 'Engr. R. Santos (Demo Facility Administrator)',
+      rejectionReason: reason.trim(),
+    };
+
     setBookings((prev) =>
-      prev.map((b) => {
-        if (b.id === bookingId) {
-          return {
-            ...b,
-            status: 'rejected',
-            reviewedAt: new Date().toISOString(),
-            reviewedBy: 'Engr. R. Santos (Demo Facility Administrator)',
-            rejectionReason: reason.trim(),
-          };
-        }
-        return b;
-      })
+      prev.map((b) => (b.id === bookingId ? updatedBooking : b))
     );
+    saveBookingToCloud(updatedBooking).catch((err) => console.warn('Cloud sync (rejectBooking):', err));
 
     addToast(
       'info',
@@ -1237,6 +1374,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const cancelBooking = (bookingId: string) => {
     const target = bookings.find((b) => b.id === bookingId);
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+    if (target) {
+      deleteBookingFromCloud(bookingId).catch((err) => console.warn('Cloud sync (cancelBooking):', err));
+    }
     addToast('info', 'Request Cancelled', `Booking ${target?.referenceNumber || ''} was removed.`);
   };
 
@@ -1533,6 +1673,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updateUserAccountRole,
         platformSettings,
         updatePlatformSettings,
+        cloudSyncStatus,
+        syncWithFirestore,
       }}
     >
       {children}

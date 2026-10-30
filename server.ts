@@ -11,7 +11,7 @@ const SUPER_ADMIN_ALLOWLIST = [
   'rashmae26@gmail.com',
   'krishapminoza@gmail.com',
   'gonzalesangelmae279@gmail.com',
-  'karlhadriel@gmail.com',
+  'karlhadrielc@gmail.com',
   'superadmin@smartspace.ph', // platform root
 ];
 
@@ -26,11 +26,11 @@ interface SuperAdminUser {
 
 const provisionedSuperAdmins: Map<string, SuperAdminUser> = new Map(
   SUPER_ADMIN_ALLOWLIST.map((email) => {
-    let name = 'Platform Super Administrator';
-    if (email.startsWith('rashmae')) name = 'Rashmae (Lead Platform Admin)';
-    else if (email.startsWith('krisha')) name = 'Krisha (Platform Security Admin)';
-    else if (email.startsWith('gonzales')) name = 'Angel Mae (Operations Admin)';
-    else if (email.startsWith('karl')) name = 'Karl Hadriel (Infrastructure Admin)';
+    let name = 'Super Administrator';
+    if (email.startsWith('rashmae')) name = 'Rashmae';
+    else if (email.startsWith('krisha')) name = 'Krisha';
+    else if (email.startsWith('gonzales')) name = 'Angel Mae';
+    else if (email.startsWith('karl')) name = 'Karl Hadriel';
 
     return [
       email.toLowerCase(),

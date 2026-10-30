@@ -1,0 +1,187 @@
+{
+  "entities": {
+    "Institution": {
+      "title": "Institution",
+      "description": "Participating university or college workspace on SmartSpace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 200 },
+        "shortName": { "type": "string", "maxLength": 50 },
+        "campus": { "type": "string", "maxLength": 200 },
+        "city": { "type": "string", "maxLength": 100 },
+        "type": { "type": "string", "enum": ["Public", "Private"] },
+        "isPilot": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["active", "inactive", "trial"] },
+        "subscriptionPlan": { "type": "string", "enum": ["Pilot", "Standard", "Enterprise"] },
+        "contactName": { "type": "string", "maxLength": 150 },
+        "contactEmail": { "type": "string", "format": "email", "maxLength": 150 },
+        "assignedAdminName": { "type": "string", "maxLength": 150 },
+        "assignedAdminEmail": { "type": "string", "format": "email", "maxLength": 150 },
+        "registeredAt": { "type": "string", "maxLength": 50 },
+        "statusNote": { "type": "string", "maxLength": 500 },
+        "allowExternalBookings": { "type": "boolean" },
+        "bookingPolicy": { "type": "string", "enum": ["internal_only", "external_allowed", "approval_required"] },
+        "externalBookingNotice": { "type": "string", "maxLength": 1000 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "timeZone": { "type": "string", "maxLength": 100 },
+        "brandColor": { "type": "string", "maxLength": 30 },
+        "announcement": { "type": "string", "maxLength": 1000 }
+      },
+      "required": ["id", "name", "shortName", "contactEmail", "status"]
+    },
+    "Facility": {
+      "title": "Facility",
+      "description": "Campus facility, venue, laboratory, or hall available for reservations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "institutionId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 200 },
+        "type": { "type": "string", "maxLength": 100 },
+        "building": { "type": "string", "maxLength": 150 },
+        "floor": { "type": "string", "maxLength": 100 },
+        "capacity": { "type": "number" },
+        "equipment": { "type": "array" },
+        "operatingHours": { "type": "object" },
+        "rules": { "type": "array" },
+        "bookingRequirements": { "type": "array" },
+        "imageUrl": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["id", "institutionId", "name", "type", "capacity"]
+    },
+    "BookingRequest": {
+      "title": "BookingRequest",
+      "description": "Reservation request submitted for a university facility",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "referenceNumber": { "type": "string", "maxLength": 64 },
+        "institutionId": { "type": "string", "maxLength": 128 },
+        "facilityId": { "type": "string", "maxLength": 128 },
+        "facilityName": { "type": "string", "maxLength": 200 },
+        "eventName": { "type": "string", "maxLength": 200 },
+        "purpose": { "type": "string", "maxLength": 200 },
+        "date": { "type": "string", "maxLength": 30 },
+        "startTime": { "type": "string", "maxLength": 20 },
+        "endTime": { "type": "string", "maxLength": 20 },
+        "attendees": { "type": "number" },
+        "requesterName": { "type": "string", "maxLength": 150 },
+        "requesterRole": { "type": "string", "maxLength": 50 },
+        "requesterEmail": { "type": "string", "format": "email", "maxLength": 150 },
+        "organization": { "type": "string", "maxLength": 200 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "cancelled"] },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "reviewedAt": { "type": "string", "maxLength": 50 },
+        "reviewedBy": { "type": "string", "maxLength": 150 },
+        "rejectionReason": { "type": "string", "maxLength": 1000 },
+        "qrPermitCode": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "institutionId", "facilityId", "eventName", "date", "startTime", "endTime", "requesterEmail", "status"]
+    },
+    "InstitutionalRegistration": {
+      "title": "InstitutionalRegistration",
+      "description": "Onboarding application submitted by an educational institution",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "institutionName": { "type": "string", "maxLength": 200 },
+        "institutionType": { "type": "string", "maxLength": 100 },
+        "officialEmail": { "type": "string", "format": "email", "maxLength": 150 },
+        "contactPerson": { "type": "string", "maxLength": 150 },
+        "contactNumber": { "type": "string", "maxLength": 50 },
+        "submittedAt": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "rejectionReason": { "type": "string", "maxLength": 1000 },
+        "assignedAdminName": { "type": "string", "maxLength": 150 },
+        "assignedAdminEmail": { "type": "string", "format": "email", "maxLength": 150 },
+        "notes": { "type": "string", "maxLength": 1000 }
+      },
+      "required": ["id", "institutionName", "officialEmail", "contactPerson", "status"]
+    },
+    "DemoRequest": {
+      "title": "DemoRequest",
+      "description": "Inquiry requesting a live institutional demonstration of SmartSpace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "institutionName": { "type": "string", "maxLength": 200 },
+        "contactName": { "type": "string", "maxLength": 150 },
+        "contactEmail": { "type": "string", "format": "email", "maxLength": 150 },
+        "contactNumber": { "type": "string", "maxLength": 50 },
+        "designation": { "type": "string", "maxLength": 100 },
+        "estimatedFacilities": { "type": "string", "maxLength": 100 },
+        "preferredDate": { "type": "string", "maxLength": 50 },
+        "message": { "type": "string", "maxLength": 1000 },
+        "submittedAt": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["new", "contacted", "scheduled"] }
+      },
+      "required": ["id", "institutionName", "contactName", "contactEmail", "status"]
+    },
+    "RegisteredUserAccount": {
+      "title": "RegisteredUserAccount",
+      "description": "User profile for university students, faculty members, and organization representatives",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "format": "email", "maxLength": 150 },
+        "institutionId": { "type": "string", "maxLength": 128 },
+        "userType": { "type": "string", "maxLength": 100 },
+        "organizationOrDept": { "type": "string", "maxLength": 200 },
+        "role": { "type": "string", "enum": ["student", "faculty", "university_admin", "super_admin"] },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["active", "suspended"] }
+      },
+      "required": ["id", "fullName", "email", "institutionId", "role", "status"]
+    },
+    "PlatformSettings": {
+      "title": "PlatformSettings",
+      "description": "Global multi-tenant network configuration settings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "platformName": { "type": "string", "maxLength": 100 },
+        "platformTagline": { "type": "string", "maxLength": 200 },
+        "primaryColor": { "type": "string", "maxLength": 30 },
+        "globalAnnouncement": { "type": "string", "maxLength": 1000 },
+        "allowCrossUniversityDiscovery": { "type": "boolean" },
+        "defaultAdvanceBookingDays": { "type": "number" },
+        "requireInstitutionalEmailVerification": { "type": "boolean" },
+        "autoConflictDetection": { "type": "boolean" }
+      },
+      "required": ["id", "platformName"]
+    }
+  },
+  "firestore": {
+    "/institutions/{institutionId}": {
+      "schema": "Institution",
+      "description": "Higher education institutions registered on the platform"
+    },
+    "/facilities/{facilityId}": {
+      "schema": "Facility",
+      "description": "Campus facilities and reservable rooms across universities"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "BookingRequest",
+      "description": "Facility reservation requests with review states and permits"
+    },
+    "/institutionalRegistrations/{registrationId}": {
+      "schema": "InstitutionalRegistration",
+      "description": "Applications submitted by universities seeking to onboard"
+    },
+    "/demoRequests/{requestId}": {
+      "schema": "DemoRequest",
+      "description": "Institutional demo and inquiry submissions"
+    },
+    "/registeredUsers/{userId}": {
+      "schema": "RegisteredUserAccount",
+      "description": "User profiles for campus faculty, student leaders, and admins"
+    },
+    "/platformSettings/{settingsId}": {
+      "schema": "PlatformSettings",
+      "description": "Global platform governance and configuration parameters"
+    }
+  }
+}

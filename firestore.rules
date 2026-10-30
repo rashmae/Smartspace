@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Common security and validation helpers
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Connectivity verification probe
+    match /test/{testId} {
+      allow read, write: if true;
+    }
+
+    // 1. Higher Education Institutions Directory
+    match /institutions/{institutionId} {
+      allow get: if isValidId(institutionId);
+      allow list: if true;
+      allow create, update, delete: if isValidId(institutionId);
+    }
+
+    // 2. Facilities and Reservable Spaces
+    match /facilities/{facilityId} {
+      allow get: if isValidId(facilityId);
+      allow list: if true;
+      allow create, update, delete: if isValidId(facilityId);
+    }
+
+    // 3. Facility Booking Requests & Permit Schedules
+    match /bookings/{bookingId} {
+      allow get: if isValidId(bookingId);
+      allow list: if true;
+      allow create: if isValidId(bookingId) &&
+        incoming().eventName is string && incoming().eventName.size() <= 200 &&
+        incoming().institutionId is string && incoming().facilityId is string;
+      allow update, delete: if isValidId(bookingId);
+    }
+
+    // 4. Institutional Onboarding Registration Applications
+    match /institutionalRegistrations/{registrationId} {
+      allow get: if isValidId(registrationId);
+      allow list: if true;
+      allow create: if isValidId(registrationId) &&
+        incoming().institutionName is string && incoming().institutionName.size() <= 200;
+      allow update, delete: if isValidId(registrationId);
+    }
+
+    // 5. Institutional Demo Requests
+    match /demoRequests/{requestId} {
+      allow get: if isValidId(requestId);
+      allow list: if true;
+      allow create: if isValidId(requestId) &&
+        incoming().institutionName is string && incoming().institutionName.size() <= 200;
+      allow update, delete: if isValidId(requestId);
+    }
+
+    // 6. Registered User Accounts
+    match /registeredUsers/{userId} {
+      allow get: if isValidId(userId);
+      allow list: if true;
+      allow create: if isValidId(userId) &&
+        incoming().fullName is string && incoming().fullName.size() <= 150 &&
+        incoming().email is string && incoming().email.size() <= 150;
+      allow update, delete: if isValidId(userId);
+    }
+
+    // 7. Platform Settings
+    match /platformSettings/{settingsId} {
+      allow get: if isValidId(settingsId);
+      allow list: if true;
+      allow create, update, delete: if isValidId(settingsId);
+    }
+
+    // Default-deny all other unspecified document routes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

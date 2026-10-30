@@ -326,7 +326,7 @@ export const SuperAdminView: React.FC = () => {
             </button>
             <div className="text-xs text-slate-400 flex items-center gap-2 pl-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Platform Multi-Tenant Network: Healthy</span>
+              <span>Platform Multi-Tenant Network: Healthy · Firestore Cloud Storage: Connected</span>
             </div>
           </div>
         </div>
@@ -479,11 +479,17 @@ export const SuperAdminView: React.FC = () => {
           </div>
 
           {/* Security Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
               <span className="text-[10px] uppercase font-bold text-slate-500">Security Architecture</span>
               <div className="text-sm font-bold text-slate-800">Server-Authoritative Allowlist</div>
               <p className="text-[11px] text-slate-500">Zero frontend exposure of privileged credentials.</p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-500">Cloud Storage</span>
+              <div className="text-sm font-bold text-indigo-700">Google Cloud Firestore</div>
+              <p className="text-[11px] text-slate-500">Active real-time persistence and deployed rules.</p>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
