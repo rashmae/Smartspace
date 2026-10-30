@@ -267,39 +267,13 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ initialSubRo
                 </button>
               </form>
 
-              {/* Fast-Fill Authorized Super Admin Accounts */}
-              <div className="pt-3 border-t border-slate-100 space-y-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Quick Select Super Admin:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    { name: 'Rashmae', email: 'rashmae26@gmail.com' },
-                    { name: 'Rashmae (AI Studio)', email: 'ansayrashmae05@gmail.com' },
-                    { name: 'Krisha', email: 'krishapminoza@gmail.com' },
-                    { name: 'Angel Mae', email: 'gonzalesangelmae279@gmail.com' },
-                    { name: 'Karl Hadriel', email: 'karlhadrielc@gmail.com' },
-                    { name: 'Platform Admin', email: 'superadmin@smartspace.ph' },
-                  ].map((adm) => (
-                    <button
-                      key={adm.email}
-                      type="button"
-                      onClick={() => {
-                        setAdminEmail(adm.email);
-                        setAdminPassword('admin1234');
-                        setAuthError(null);
-                      }}
-                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 transition-colors border border-slate-200 cursor-pointer"
-                    >
-                      {adm.name}
-                    </button>
-                  ))}
+              {/* Protected Platform Security Notice */}
+              <div className="pt-4 border-t border-slate-100">
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-center">
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    <span className="font-semibold text-slate-700">Protected Console:</span> Unauthorized access attempts are prohibited and recorded in the platform security audit log. Enter your verified platform administrator credentials to proceed.
+                  </p>
                 </div>
-              </div>
-
-              <div className="pt-1 text-center text-xs text-slate-500">
-                <span className="text-slate-500">Authorized platform administrators only. </span>
-                <span className="text-slate-700 font-medium">Password: admin1234</span>
               </div>
             </div>
           </div>
