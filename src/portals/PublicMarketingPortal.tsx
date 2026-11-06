@@ -79,6 +79,24 @@ export const PublicMarketingPortal: React.FC = () => {
   return (
     <div className="min-h-screen bg-white text-slate-800 font-sans antialiased selection:bg-purple-100 selection:text-purple-900">
       {/* ------------------------------------------------------------- */}
+      {/* 0. BRAND TAGLINE ANNOUNCEMENT BAR                             */}
+      {/* ------------------------------------------------------------- */}
+      <div className="bg-slate-950 text-white text-xs py-2 px-4 border-b border-slate-800 flex items-center justify-center gap-2.5 sm:gap-3 text-center">
+        <span className="inline-flex items-center gap-1.5 font-bold text-[10px] sm:text-[11px] uppercase tracking-wider text-amber-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Campus Resource Platform
+        </span>
+        <span className="text-slate-600">•</span>
+        <span className="font-black tracking-wider text-white italic text-[10px] sm:text-[11px]">
+          “BOOK IT, TRACK IT, USE IT.”
+        </span>
+        <span className="hidden md:inline text-slate-600">•</span>
+        <span className="hidden md:inline text-slate-300 text-[11px]">
+          Every Campus Space. One Smarter Way to Book.
+        </span>
+      </div>
+
+      {/* ------------------------------------------------------------- */}
       {/* 1. PREMIUM NAVIGATION BAR                                      */}
       {/* ------------------------------------------------------------- */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all">
@@ -381,6 +399,148 @@ export const PublicMarketingPortal: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 2.5 OFFICIAL BRAND PILLARS: BOOK SMARTER. MANAGE BETTER.       */}
+      {/* ------------------------------------------------------------- */}
+      <section className="py-20 bg-gradient-to-b from-white via-amber-50/20 to-white border-y border-slate-100 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          {/* Section Heading matching Image 5 */}
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[#0077C8] text-xs font-bold border border-blue-200">
+              <span className="w-2 h-2 rounded-full bg-[#0077C8] animate-pulse" />
+              <span>Core Brand Principles</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-black italic tracking-tight text-[#0077C8]">
+              BOOK SMARTER. MANAGE BETTER.
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+              Designed specifically around the four essential needs of modern university campus operations.
+            </p>
+          </div>
+
+          {/* Grid of the 4 Pillars matching Image 5 exact styling & copy */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            {/* Pillar 1 */}
+            <div className="relative bg-[#FEF3E2] hover:bg-[#FEE8C8] rounded-3xl p-6 sm:p-7 border-2 border-[#E6F9AF] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-white text-[#0077C8] shadow-xs flex items-center justify-center font-black text-lg border border-amber-200">
+                  01
+                </div>
+                <h3 className="text-xl font-black text-[#0077C8] tracking-tight group-hover:text-blue-800 transition-colors">
+                  Simplified Reservations
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                  Submit requests conveniently across campus venues with real-time slot checking.
+                </p>
+              </div>
+              <div className="pt-4 mt-4 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-[#0077C8]">
+                <span>Frictionless Booking</span>
+                <span>→</span>
+              </div>
+            </div>
+
+            {/* Pillar 2 */}
+            <div className="relative bg-[#FEF3E2] hover:bg-[#FEE8C8] rounded-3xl p-6 sm:p-7 border-2 border-[#E6F9AF] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-white text-[#0077C8] shadow-xs flex items-center justify-center font-black text-lg border border-amber-200">
+                  02
+                </div>
+                <h3 className="text-xl font-black text-[#0077C8] tracking-tight group-hover:text-blue-800 transition-colors">
+                  Organized Records
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                  Keep track of reservation statuses, endorsement paperwork, and verified history in one place.
+                </p>
+              </div>
+              <div className="pt-4 mt-4 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-[#0077C8]">
+                <span>Status Tracking</span>
+                <span>→</span>
+              </div>
+            </div>
+
+            {/* Pillar 3 */}
+            <div className="relative bg-[#FEF3E2] hover:bg-[#FEE8C8] rounded-3xl p-6 sm:p-7 border-2 border-[#E6F9AF] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-white text-[#0077C8] shadow-xs flex items-center justify-center font-black text-lg border border-amber-200">
+                  03
+                </div>
+                <h3 className="text-xl font-black text-[#0077C8] tracking-tight group-hover:text-blue-800 transition-colors">
+                  Facility Information
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                  Access facility details, capacities, equipment inventory, and interactive schedules on demand.
+                </p>
+              </div>
+              <div className="pt-4 mt-4 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-[#0077C8]">
+                <span>Live Catalogs</span>
+                <span>→</span>
+              </div>
+            </div>
+
+            {/* Pillar 4 */}
+            <div className="relative bg-[#FEF3E2] hover:bg-[#FEE8C8] rounded-3xl p-6 sm:p-7 border-2 border-[#E6F9AF] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-white text-[#0077C8] shadow-xs flex items-center justify-center font-black text-lg border border-amber-200">
+                  04
+                </div>
+                <h3 className="text-xl font-black text-[#0077C8] tracking-tight group-hover:text-blue-800 transition-colors">
+                  Efficient Facility Management
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                  Support facility administrators with automated approvals, conflict locks, and comprehensive logs.
+                </p>
+              </div>
+              <div className="pt-4 mt-4 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-[#0077C8]">
+                <span>Admin Governance</span>
+                <span>→</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Dual Brand Graphic Feature: Showing Images 4 and 5 */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-slate-900 rounded-3xl p-6 sm:p-10 text-white shadow-2xl border border-slate-800">
+            <div className="lg:col-span-5 space-y-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>SPACE FOR EVERY POSSIBILITY</span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                Meet SmartSpace.
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                A smarter way to discover, reserve, and manage shared university facilities. From students booking study spaces to administrative councils organizing campus-wide conventions.
+              </p>
+              <div className="pt-2 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/request-demo')}
+                  className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition-all shadow-md cursor-pointer"
+                >
+                  Schedule Institutional Walkthrough
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/access')}
+                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition-colors cursor-pointer"
+                >
+                  Enter Access Gateway
+                </button>
+              </div>
+            </div>
+
+            <div className="lg:col-span-7 flex justify-center">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-700/80 shadow-2xl bg-slate-950 p-2 max-w-lg w-full group">
+                <img
+                  src="/assets/aistudio/4_eae3ba44.png"
+                  alt="Meet SmartSpace - Space For Every Possibility"
+                  className="w-full h-auto object-cover rounded-xl transition-transform duration-500 group-hover:scale-[1.02]"
+                />
               </div>
             </div>
           </div>

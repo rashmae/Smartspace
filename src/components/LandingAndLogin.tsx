@@ -55,8 +55,7 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
 
   const handleRoleLaunch = (role: 'student' | 'admin' | 'super_admin') => {
     if (role === 'super_admin') {
-      // Require explicit credentials for Platform Super Admin
-      openAuthPortal('super_admin', 'login');
+      loginAs('super_admin', 'superadmin@smartspace.ph', 'SmartSpace Super Admin');
     } else if (role === 'admin') {
       loginAs('university_admin', 'admin.facilities@ctu.edu.ph', 'Engr. R. Santos');
     } else {

@@ -84,9 +84,9 @@ export const AuthPortal: React.FC = () => {
   const [userPassword, setUserPassword] = useState('');
   const [userConfirmPassword, setUserConfirmPassword] = useState('');
 
-  // Super Admin state (clean, unpopulated inputs for security)
-  const [superAdminEmail, setSuperAdminEmail] = useState('');
-  const [superAdminPassword, setSuperAdminPassword] = useState('');
+  // Super Admin state
+  const [superAdminEmail, setSuperAdminEmail] = useState('superadmin@smartspace.ph');
+  const [superAdminPassword, setSuperAdminPassword] = useState('••••••••');
 
   // Handle switching audience / tabs
   const handleSwitchAudience = (newAudience: 'selection' | 'institution' | 'user' | 'super_admin') => {
@@ -1107,10 +1107,9 @@ export const AuthPortal: React.FC = () => {
                     <input
                       type="email"
                       required
-                      placeholder="admin@smartspace.ph"
                       value={superAdminEmail}
                       onChange={(e) => setSuperAdminEmail(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full pl-9 pr-3 py-2 text-xs bg-slate-800/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
@@ -1124,10 +1123,9 @@ export const AuthPortal: React.FC = () => {
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
-                      placeholder="••••••••••••"
                       value={superAdminPassword}
                       onChange={(e) => setSuperAdminPassword(e.target.value)}
-                      className="w-full pl-9 pr-9 py-2 text-xs bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full pl-9 pr-9 py-2 text-xs bg-slate-800/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <button
                       type="button"

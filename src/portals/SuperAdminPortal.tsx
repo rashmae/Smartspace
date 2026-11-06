@@ -267,13 +267,15 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ initialSubRo
                 </button>
               </form>
 
-              {/* Protected Platform Security Notice */}
-              <div className="pt-4 border-t border-slate-100">
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-center">
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    <span className="font-semibold text-slate-700">Protected Console:</span> Unauthorized access attempts are prohibited and recorded in the platform security audit log. Enter your verified platform administrator credentials to proceed.
-                  </p>
+              {/* Secure Platform Policy Notice */}
+              <div className="pt-4 border-t border-slate-100 space-y-2 text-center">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] text-slate-600 font-medium">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Authorized Personnel Only</span>
                 </div>
+                <p className="text-[11px] text-slate-400">
+                  Access is strictly restricted to designated platform administrators. Sign-in attempts are monitored and recorded.
+                </p>
               </div>
             </div>
           </div>
