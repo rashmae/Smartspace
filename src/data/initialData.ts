@@ -406,6 +406,61 @@ export const INITIAL_FACILITIES: Facility[] = [
     imageUrl: 'https://images.unsplash.com/photo-1469488865564-c2de10f69f96?auto=format&fit=crop&w=1200&q=80',
     description: 'Amphitheater venue for university ceremonies, student assemblies, and cultural arts events.',
   },
+  {
+    id: 'ctu-fac-gym',
+    institutionId: 'ctu-main',
+    name: 'University Gymnasium & Sports Arena',
+    type: 'Gymnasium',
+    building: 'Campus Athletics & Physical Education Complex',
+    floor: 'Ground Level Arena',
+    capacity: 800,
+    equipment: [
+      'Maple Hardwood Multi-Sport Floor (Basketball / Volleyball)',
+      'Digital Overhead LED Scoreboard & Shot Clocks',
+      'High-Output Stadium Floodlights',
+      'Retractable Bleachers & Locker Rooms',
+      'Official PA Audio Announcer Console',
+    ],
+    operatingHours: { open: '06:00', close: '21:00', days: 'Monday – Sunday' },
+    rules: [
+      'Only non-marking athletic rubber shoes allowed on hardwood floors.',
+      'Varsity and intramural events must submit physical therapist coverage notice.',
+      'No outdoor food or sugary drinks inside the court perimeter.',
+    ],
+    bookingRequirements: [
+      'Athletics Department endorsement or accredited sports club clearance.',
+      'Minimum 72 hours advance notice.',
+    ],
+    imageUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1200&q=80',
+    description: 'Premier 800-capacity university indoor arena equipped with hardwood flooring, bleachers, and digital scoreboards for tournaments, pep rallies, and varsity training.',
+  },
+  {
+    id: 'ctu-fac-courts',
+    institutionId: 'ctu-main',
+    name: 'Varsity Tennis & Open Athletic Courts',
+    type: 'Open Court',
+    building: 'Outdoor Sports Field Quadrangle',
+    floor: 'Ground Level Outdoor',
+    capacity: 60,
+    equipment: [
+      'Two Regulation Hardcourt Tennis / Badminton Courts',
+      'Dual High-Lumen Nighttime Floodlights',
+      'Center Nets & Umpire High Chairs',
+      'Shaded Player Rest Benches & Water Stations',
+    ],
+    operatingHours: { open: '06:00', close: '20:30', days: 'Monday – Sunday' },
+    rules: [
+      'Proper tennis and court footwear required.',
+      'Turn off floodlights immediately after evening sessions.',
+      'Max 2 hours per booking block during peak training hours.',
+    ],
+    bookingRequirements: [
+      'Student or faculty sports organization affiliation.',
+      'Minimum 24 hours advance submission.',
+    ],
+    imageUrl: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=1200&q=80',
+    description: 'Dual outdoor tournament-grade hardcourt facilities with full night illumination for university tennis practices, inter-college tournaments, and open drills.',
+  },
 ];
 
 // Helper to generate dynamic offset dates

@@ -79,7 +79,9 @@ export type FacilityType =
   | 'Conference Room'
   | 'University Auditorium'
   | 'Student Activity Room'
-  | 'Multimedia Presentation Hall';
+  | 'Multimedia Presentation Hall'
+  | 'Gymnasium'
+  | 'Open Court';
 
 export interface Facility {
   id: string;

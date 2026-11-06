@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand-red: #EE2726;
+    --brand-yellow: #FDB813;
+    --brand-blue: #0077C8;
+    --brand-green: #8CC63F;
+    --brand-navy: #0B1528;
+    --brand-navy-card: #0F1E36;
+  }
+
+  body {
+    font-family: 'Onest', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #0F172A;
+    background-color: #FFFFFF;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

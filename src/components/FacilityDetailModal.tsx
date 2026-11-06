@@ -33,8 +33,16 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
 
   if (!facility) return null;
 
-  const hostInstitution = allInstitutions.find((i) => i.id === facility.institutionId) || currentInstitution;
-  const isExternal = facility.institutionId !== currentInstitution.id;
+  const matchedInstitution = allInstitutions.find((i) => i.id === facility.institutionId);
+  const hostInstitution = matchedInstitution || {
+    ...currentInstitution,
+    id: facility.institutionId,
+    name: facility.institutionId === 'public-he-inst' ? 'Public Higher Education Institution' : facility.institutionId === 'private-he-inst' ? 'Private Higher Education University' : 'Participating Higher Education Campus',
+    shortName: facility.institutionId === 'public-he-inst' ? 'Public SUC' : facility.institutionId === 'private-he-inst' ? 'Private University' : 'Campus Venue',
+    allowExternalBookings: true,
+    bookingPolicy: 'external_allowed' as const,
+  };
+  const isExternal = Boolean(facility.institutionId && currentInstitution.id && facility.institutionId !== currentInstitution.id && matchedInstitution);
   const isBlocked = isExternal && (!hostInstitution.allowExternalBookings || hostInstitution.bookingPolicy === 'internal_only');
 
   return (

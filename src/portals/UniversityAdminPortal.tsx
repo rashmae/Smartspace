@@ -112,7 +112,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
             </button>
             <button
               onClick={() => navigate('/access')}
-              className="text-xs font-semibold text-slate-600 hover:text-purple-700 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-semibold text-slate-600 hover:text-[#0077C8] flex items-center gap-1 cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Access Gateway</span>
@@ -123,7 +123,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
         <main className="flex-1 flex items-center justify-center p-4 py-12">
           <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-xl p-8 space-y-6">
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-blue-100 text-[#0077C8] flex items-center justify-center mx-auto">
                 <Building2 className="w-6 h-6" />
               </div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -154,7 +154,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                     placeholder="admin.facilities@ctu.edu.ph"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                    className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                   />
                 </div>
               </div>
@@ -171,7 +171,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                     placeholder="••••••••"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    className="w-full pl-9 pr-9 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                    className="w-full pl-9 pr-9 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                   />
                   <button
                     type="button"
@@ -185,7 +185,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
 
               <button
                 type="submit"
-                className="w-full py-3 px-4 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                className="w-full py-3 px-4 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
               >
                 <span>Enter University Management Portal</span>
                 <ArrowRight className="w-4 h-4" />
@@ -198,7 +198,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 <button
                   type="button"
                   onClick={() => navigate('/university/register')}
-                  className="font-bold text-purple-700 hover:underline cursor-pointer"
+                  className="font-bold text-[#0077C8] hover:underline cursor-pointer"
                 >
                   Register Your Institution
                 </button>
@@ -269,7 +269,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
             </button>
             <button
               onClick={() => navigate('/access')}
-              className="text-xs font-semibold text-slate-600 hover:text-purple-700 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-semibold text-slate-600 hover:text-[#0077C8] flex items-center gap-1 cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Access Gateway</span>
@@ -280,7 +280,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
         <main className="flex-1 flex items-center justify-center p-4 py-12">
           <div className="w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-xl p-8 space-y-6">
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-blue-100 text-[#0077C8] flex items-center justify-center mx-auto">
                 <Building2 className="w-6 h-6" />
               </div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -299,18 +299,18 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
             )}
 
             {pendingNotice && (
-              <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl text-xs text-purple-950 space-y-2">
-                <div className="font-bold flex items-center gap-1.5 text-purple-900">
-                  <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0" />
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-xs text-slate-900 space-y-2">
+                <div className="font-bold flex items-center gap-1.5 text-blue-900">
+                  <CheckCircle2 className="w-5 h-5 text-[#0077C8] shrink-0" />
                   <span>Onboarding Application Logged (Pending Status)</span>
                 </div>
-                <p className="text-[11px] text-purple-800 leading-relaxed">
+                <p className="text-[11px] text-blue-800 leading-relaxed">
                   {pendingNotice}
                 </p>
                 <div className="pt-2">
                   <button
                     onClick={() => navigate('/university/login')}
-                    className="w-full py-2 px-3 rounded-xl bg-purple-700 text-white font-bold text-xs"
+                    className="w-full py-2 px-3 rounded-xl bg-[#0077C8] text-white font-bold text-xs"
                   >
                     Return to University Login
                   </button>
@@ -331,7 +331,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                       placeholder="e.g. Cebu State College"
                       value={instName}
                       onChange={(e) => setInstName(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
 
@@ -342,7 +342,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                     <select
                       value={instType}
                       onChange={(e) => setInstType(e.target.value as any)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white cursor-pointer"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white cursor-pointer"
                     >
                       <option value="Public University">Public / State University</option>
                       <option value="Private University">Private University</option>
@@ -362,7 +362,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                     placeholder="e.g. facilities.office@university.edu.ph"
                     value={instEmail}
                     onChange={(e) => setInstEmail(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                   />
                 </div>
 
@@ -377,7 +377,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                       placeholder="e.g. Engr. David Reyes"
                       value={contactPerson}
                       onChange={(e) => setContactPerson(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
 
@@ -391,7 +391,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                       placeholder="+63 (32) 234-5678"
                       value={contactNumber}
                       onChange={(e) => setContactNumber(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
                 </div>
@@ -407,7 +407,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                       placeholder="Min. 6 characters"
                       value={instPassword}
                       onChange={(e) => setInstPassword(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
 
@@ -421,7 +421,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                       placeholder="Repeat password"
                       value={instConfirmPassword}
                       onChange={(e) => setInstConfirmPassword(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
                 </div>
@@ -432,7 +432,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
 
                 <button
                   type="submit"
-                  className="w-full py-3 px-4 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  className="w-full py-3 px-4 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   <span>Submit Institutional Registration</span>
                   <ArrowRight className="w-4 h-4" />
@@ -445,7 +445,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
               <button
                 type="button"
                 onClick={() => navigate('/university/login')}
-                className="font-bold text-purple-700 hover:underline cursor-pointer"
+                className="font-bold text-[#0077C8] hover:underline cursor-pointer"
               >
                 University Admin Sign In
               </button>
@@ -460,7 +460,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
   // 3. UNIVERSITY ADMIN DASHBOARD (/university/dashboard)
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800 antialiased selection:bg-purple-100 selection:text-purple-900">
+    <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
       {/* University Admin Dedicated Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -475,9 +475,9 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
               </button>
 
               <div className="hidden sm:flex items-center gap-2 pl-4 border-l border-slate-200">
-                <Building2 className="w-4 h-4 text-purple-700 shrink-0" />
+                <Building2 className="w-4 h-4 text-[#0077C8] shrink-0" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#0077C8]">
                     Institutional Management
                   </span>
                   <span className="text-xs font-black text-slate-900">
@@ -493,7 +493,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 onClick={() => setActiveTab('requests')}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'requests'
-                    ? 'bg-purple-700 text-white shadow-2xs'
+                    ? 'bg-[#0077C8] text-white shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -508,7 +508,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 onClick={() => setActiveTab('facilities')}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   activeTab === 'facilities'
-                    ? 'bg-purple-700 text-white shadow-2xs'
+                    ? 'bg-[#0077C8] text-white shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -518,7 +518,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 onClick={() => setActiveTab('records')}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   activeTab === 'records'
-                    ? 'bg-purple-700 text-white shadow-2xs'
+                    ? 'bg-[#0077C8] text-white shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -528,7 +528,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 onClick={() => setActiveTab('reports')}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   activeTab === 'reports'
-                    ? 'bg-purple-700 text-white shadow-2xs'
+                    ? 'bg-[#0077C8] text-white shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -538,7 +538,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 onClick={() => setActiveTab('settings')}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   activeTab === 'settings'
-                    ? 'bg-purple-700 text-white shadow-2xs'
+                    ? 'bg-[#0077C8] text-white shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -552,7 +552,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 <span className="text-xs font-bold text-slate-900">
                   {currentUser?.name || currentInstitution.assignedAdminName || 'University Facility Admin'}
                 </span>
-                <span className="text-[10px] text-purple-700 font-semibold truncate max-w-[160px]">
+                <span className="text-[10px] text-[#0077C8] font-semibold truncate max-w-[160px]">
                   Physical Plant Administrator
                 </span>
               </div>
@@ -573,9 +573,9 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
       </header>
 
       {platformSettings.announcementActive && platformSettings.globalAnnouncement && (
-        <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white px-4 py-2.5 text-xs flex items-center justify-center gap-2 border-b border-purple-700/50 shadow-xs">
+        <div className="bg-gradient-to-r from-[#0B1528] via-[#0F1E36] to-[#0B1528] text-white px-4 py-2.5 text-xs flex items-center justify-center gap-2 border-b border-slate-800 shadow-xs">
           <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0 animate-pulse" />
-          <span className="font-semibold text-purple-100">{platformSettings.globalAnnouncement}</span>
+          <span className="font-semibold text-blue-100">{platformSettings.globalAnnouncement}</span>
         </div>
       )}
 
@@ -588,7 +588,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
         {activeTab === 'settings' && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-3xl mx-auto shadow-sm space-y-6">
             <div className="flex items-center gap-4 border-b border-slate-100 pb-5">
-              <div className="w-14 h-14 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-xl shadow-inner">
+              <div className="w-14 h-14 rounded-2xl bg-blue-100 text-[#0077C8] flex items-center justify-center font-black text-xl shadow-inner">
                 <Building2 className="w-7 h-7" />
               </div>
               <div className="space-y-1">
@@ -596,7 +596,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                   {currentInstitution.name}
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Institution ID: <code className="font-mono text-purple-700">{currentInstitution.id}</code> · Plan: <strong>{currentInstitution.subscriptionPlan || 'Standard'}</strong>
+                  Institution ID: <code className="font-mono text-[#0077C8]">{currentInstitution.id}</code> · Plan: <strong>{currentInstitution.subscriptionPlan || 'Standard'}</strong>
                 </p>
               </div>
             </div>
@@ -616,7 +616,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                   <span className="text-[10px] font-bold uppercase text-slate-400">Total Historical Bookings</span>
-                  <p className="text-lg font-black text-purple-700">{institutionBookings.length} Bookings</p>
+                  <p className="text-lg font-black text-[#0077C8]">{institutionBookings.length} Bookings</p>
                 </div>
               </div>
 
@@ -647,7 +647,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
         <button
           onClick={() => setActiveTab('requests')}
           className={`relative flex flex-col items-center gap-1 p-1 rounded-xl cursor-pointer min-w-[56px] min-h-[44px] justify-center ${
-            activeTab === 'requests' ? 'text-purple-700 font-bold' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'requests' ? 'text-[#0077C8] font-bold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Clock className="w-5 h-5" />
@@ -662,7 +662,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
         <button
           onClick={() => setActiveTab('facilities')}
           className={`flex flex-col items-center gap-1 p-1 rounded-xl cursor-pointer min-w-[56px] min-h-[44px] justify-center ${
-            activeTab === 'facilities' ? 'text-purple-700 font-bold' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'facilities' ? 'text-[#0077C8] font-bold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Building2 className="w-5 h-5" />
@@ -672,7 +672,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
         <button
           onClick={() => setActiveTab('records')}
           className={`flex flex-col items-center gap-1 p-1 rounded-xl cursor-pointer min-w-[56px] min-h-[44px] justify-center ${
-            activeTab === 'records' ? 'text-purple-700 font-bold' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'records' ? 'text-[#0077C8] font-bold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <FileSpreadsheet className="w-5 h-5" />
@@ -682,7 +682,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
         <button
           onClick={() => setActiveTab('reports')}
           className={`flex flex-col items-center gap-1 p-1 rounded-xl cursor-pointer min-w-[56px] min-h-[44px] justify-center ${
-            activeTab === 'reports' ? 'text-purple-700 font-bold' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'reports' ? 'text-[#0077C8] font-bold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <BarChart3 className="w-5 h-5" />
@@ -692,7 +692,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
         <button
           onClick={() => setActiveTab('settings')}
           className={`flex flex-col items-center gap-1 p-1 rounded-xl cursor-pointer min-w-[56px] min-h-[44px] justify-center ${
-            activeTab === 'settings' ? 'text-purple-700 font-bold' : 'text-slate-500 hover:text-slate-800'
+            activeTab === 'settings' ? 'text-[#0077C8] font-bold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Settings className="w-5 h-5" />

@@ -111,11 +111,11 @@ const AppRouteDispatcher: React.FC = () => {
       <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center space-y-4 shadow-xl border border-slate-200">
         <h2 className="text-2xl font-black text-slate-900">Page Not Found (404)</h2>
         <p className="text-xs text-slate-500">
-          The requested route <code className="font-mono text-purple-700">{path}</code> does not exist on SmartSpace.
+          The requested route <code className="font-mono text-[#0077C8]">{path}</code> does not exist on SmartSpace.
         </p>
         <button
           onClick={() => navigate('/')}
-          className="w-full py-2.5 px-4 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs"
+          className="w-full py-2.5 px-4 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white font-bold text-xs cursor-pointer shadow-md"
         >
           Return to Public Homepage
         </button>

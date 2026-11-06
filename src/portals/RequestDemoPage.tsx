@@ -66,7 +66,7 @@ export const RequestDemoPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 antialiased selection:bg-purple-100 selection:text-purple-900">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -81,7 +81,7 @@ export const RequestDemoPage: React.FC = () => {
           <div className="flex items-center gap-3 text-xs font-semibold">
             <button
               onClick={() => navigate('/')}
-              className="text-slate-600 hover:text-purple-700 transition-colors flex items-center gap-1 cursor-pointer"
+              className="text-slate-600 hover:text-[#0077C8] transition-colors flex items-center gap-1 cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Overview</span>
@@ -118,7 +118,7 @@ export const RequestDemoPage: React.FC = () => {
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left text-xs space-y-2">
               <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-purple-600" />
+                <Clock className="w-4 h-4 text-[#0077C8]" />
                 <span>Next Onboarding Steps:</span>
               </h4>
               <ul className="space-y-1.5 text-slate-600 pl-5 list-disc">
@@ -131,7 +131,7 @@ export const RequestDemoPage: React.FC = () => {
             <div className="pt-2">
               <button
                 onClick={() => navigate('/')}
-                className="w-full py-3 px-4 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs shadow-md transition-colors cursor-pointer"
+                className="w-full py-3 px-4 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white font-bold text-xs shadow-md transition-colors cursor-pointer"
               >
                 Return to SmartSpace Homepage
               </button>
@@ -142,13 +142,13 @@ export const RequestDemoPage: React.FC = () => {
             {/* Left Column: Context & Value */}
             <div className="lg:col-span-5 space-y-6">
               <div className="space-y-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0077C8] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                   Institutional Demonstration
                 </span>
                 <h1 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
                   See SmartSpace in Action for Your University
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
                   Schedule a focused product walk-through with our solution architects. We will show you how universities centralize reservations, prevent double bookings, and eliminate paper custodian logs.
                 </p>
               </div>
@@ -156,7 +156,7 @@ export const RequestDemoPage: React.FC = () => {
               <div className="space-y-3 pt-2">
                 <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1.5">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-                    <ShieldCheck className="w-4 h-4 text-purple-600" />
+                    <ShieldCheck className="w-4 h-4 text-[#0077C8]" />
                     <span>No Obligation & Zero Setup Fee</span>
                   </div>
                   <p className="text-[11px] text-slate-500 leading-relaxed">
@@ -166,7 +166,7 @@ export const RequestDemoPage: React.FC = () => {
 
                 <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-1.5">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-                    <Building2 className="w-4 h-4 text-indigo-600" />
+                    <Building2 className="w-4 h-4 text-[#0077C8]" />
                     <span>Multi-Campus Architecture</span>
                   </div>
                   <p className="text-[11px] text-slate-500 leading-relaxed">
@@ -180,7 +180,7 @@ export const RequestDemoPage: React.FC = () => {
                     <span>30-Minute Tailored Session</span>
                   </div>
                   <p className="text-[11px] text-slate-500 leading-relaxed">
-                    We demonstrate workflows relevant to your role: approval routing, QR gate permits, and utilization reporting.
+                    We demonstrate workflows relevant to your role: approval routing, QR gate permits, and space utilization reporting.
                   </p>
                 </div>
               </div>
@@ -192,7 +192,7 @@ export const RequestDemoPage: React.FC = () => {
                 <h2 className="text-xl font-black text-slate-900">
                   Request an Institutional Demo
                 </h2>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 mt-1 font-medium">
                   Complete this form and an institutional coordinator will reach out to confirm your preferred session time.
                 </p>
               </div>
@@ -216,7 +216,7 @@ export const RequestDemoPage: React.FC = () => {
                       placeholder="e.g. Dr. Arthur Santos"
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
 
@@ -230,7 +230,7 @@ export const RequestDemoPage: React.FC = () => {
                       placeholder="e.g. facilities@university.edu.ph"
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
                 </div>
@@ -246,7 +246,7 @@ export const RequestDemoPage: React.FC = () => {
                       placeholder="e.g. University of Science & Technology"
                       value={institutionName}
                       onChange={(e) => setInstitutionName(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
 
@@ -257,7 +257,7 @@ export const RequestDemoPage: React.FC = () => {
                     <select
                       value={institutionType}
                       onChange={(e) => setInstitutionType(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white cursor-pointer"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white cursor-pointer"
                     >
                       <option value="Public University">Public / State University</option>
                       <option value="Private University">Private Higher Education Institution</option>
@@ -277,7 +277,7 @@ export const RequestDemoPage: React.FC = () => {
                       placeholder="e.g. Director of Physical Plant, Dean, Registrar"
                       value={position}
                       onChange={(e) => setPosition(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
 
@@ -290,7 +290,7 @@ export const RequestDemoPage: React.FC = () => {
                       placeholder="+63 (32) 123-4567"
                       value={contactNumber}
                       onChange={(e) => setContactNumber(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                     />
                   </div>
                 </div>
@@ -304,14 +304,14 @@ export const RequestDemoPage: React.FC = () => {
                     placeholder="Tell us about your campus facility challenges (e.g. number of buildings, double booking issues, approval routing)..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white"
                   />
                 </div>
 
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                    className="w-full py-3.5 px-4 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                   >
                     <Send className="w-4 h-4" />
                     <span>Submit Institutional Demo Request</span>
