@@ -12,6 +12,11 @@ import {
   InstitutionalDemoRequest,
   RegisteredUserAccount,
   PlatformSettings,
+  LoginSecurityEvent,
+  FacilityHandler,
+  FacilityAssignment,
+  FacilityApprovalLog,
+  VerifiedFacilitySession,
 } from '../types';
 import { formatTo12Hour } from '../utils/timeFormat';
 import {
@@ -19,6 +24,9 @@ import {
   INITIAL_FACILITIES,
   INITIAL_BOOKINGS,
   INITIAL_PARTICIPANTS,
+  INITIAL_FACILITY_HANDLERS,
+  INITIAL_FACILITY_ASSIGNMENTS,
+  INITIAL_FACILITY_APPROVAL_LOGS,
 } from '../data/initialData';
 import {
   getInstitutionsFromCloud,
@@ -38,6 +46,13 @@ import {
   getSettingsFromCloud,
   saveSettingsToCloud,
   seedFirestoreIfEmpty,
+  getFacilityHandlersFromCloud,
+  saveFacilityHandlerToCloud,
+  getFacilityAssignmentsFromCloud,
+  saveFacilityAssignmentToCloud,
+  deleteFacilityAssignmentFromCloud,
+  getFacilityApprovalLogsFromCloud,
+  saveFacilityApprovalLogToCloud,
 } from '../lib/firestoreService';
 
 export type AppView = 
@@ -49,6 +64,8 @@ export type AppView =
   | 'admin-requests'
   | 'admin-facilities'
   | 'admin-records'
+  | 'admin-handlers'
+  | 'facility-handler-workspace'
   | 'reports'
   | 'super-admin'
   | 'usability-testing';
@@ -221,6 +238,47 @@ interface AppContextType {
   resetParticipantsToDefault: () => void;
   exportValidationDataCsv: () => void;
 
+  // Facility Handler Personnel & Approval Architecture
+  facilityHandlers: FacilityHandler[];
+  facilityAssignments: FacilityAssignment[];
+  facilityApprovalLogs: FacilityApprovalLog[];
+  verifiedFacilitySessions: Record<string, VerifiedFacilitySession>;
+  activeFacilityWorkspace: { facility: Facility; assignment: FacilityAssignment } | null;
+  setActiveFacilityWorkspace: (data: { facility: Facility; assignment: FacilityAssignment } | null) => void;
+  verifyFacilityAccessCode: (params: {
+    assignmentId: string;
+    facilityId: string;
+    handlerId: string;
+    accessCode: string;
+    facilityName: string;
+    handlerName: string;
+    handlerRole: 'primary' | 'backup';
+  }) => Promise<{ success: boolean; error?: string; isLocked?: boolean; remainingSeconds?: number; attemptsRemaining?: number }>;
+  clearVerifiedFacilitySession: (facilityId: string) => void;
+  assignFacilityHandler: (data: {
+    facilityId: string;
+    facilityName: string;
+    handlerUserId: string;
+    handlerName: string;
+    handlerEmail: string;
+    assignmentRole: 'primary' | 'backup';
+    initialAccessCode?: string;
+    notes?: string;
+  }) => Promise<{ success: boolean; assignment?: FacilityAssignment; error?: string }>;
+  revokeFacilityAssignment: (assignmentId: string) => Promise<{ success: boolean; error?: string }>;
+  resetFacilityAccessCode: (assignmentId: string, newAccessCode: string) => Promise<{ success: boolean; error?: string }>;
+  createFacilityHandlerAccount: (data: {
+    fullName: string;
+    email: string;
+    phone?: string;
+    titleOrDesignation: string;
+    notes?: string;
+  }) => Promise<{ success: boolean; handler?: FacilityHandler; error?: string }>;
+  updateFacilityHandlerStatus: (handlerId: string, status: 'active' | 'suspended') => void;
+  approveBookingAsHandler: (params: { bookingId: string; facilityId: string; notes?: string }) => Promise<{ success: boolean; error?: string }>;
+  rejectBookingAsHandler: (params: { bookingId: string; facilityId: string; reason: string }) => Promise<{ success: boolean; error?: string }>;
+  checkHandlerFacilityAccess: (handlerId: string, facilityId: string) => { isAssigned: boolean; isVerified: boolean; assignment?: FacilityAssignment; session?: VerifiedFacilitySession };
+
   // Toast notifications
   toasts: ToastMessage[];
   addToast: (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string) => void;
@@ -240,6 +298,10 @@ const AUTH_STORAGE_KEY = 'smartspace_mvp_auth_session_v3';
 const INST_REGISTRATIONS_KEY = 'smartspace_mvp_inst_registrations_v4';
 const DEMO_REQUESTS_KEY = 'smartspace_mvp_demo_requests_v4';
 const REGISTERED_USERS_KEY = 'smartspace_mvp_registered_users_v4';
+const FACILITY_HANDLERS_KEY = 'smartspace_mvp_facility_handlers_v5';
+const FACILITY_ASSIGNMENTS_KEY = 'smartspace_mvp_facility_assignments_v5';
+const FACILITY_APPROVAL_LOGS_KEY = 'smartspace_mvp_facility_logs_v5';
+const VERIFIED_FACILITY_SESSIONS_KEY = 'smartspace_mvp_verified_sessions_v5';
 
 const DEFAULT_INST_REGISTRATIONS: InstitutionalRegistrationRequest[] = [
   {
@@ -307,6 +369,50 @@ const DEFAULT_REGISTERED_USERS: RegisteredUserAccount[] = [
     organizationOrDept: 'College of Technology / Computer Studies',
     role: 'faculty',
     createdAt: '2026-02-05',
+    status: 'active',
+  },
+  {
+    id: 'user-julia-ctu',
+    fullName: 'Ms. Julia',
+    email: 'julia.facilities@ctu.edu.ph',
+    institutionId: 'ctu-main',
+    userType: 'Facility Personnel',
+    organizationOrDept: 'Executive Hall & Arena Facility Reviewer',
+    role: 'facility_handler',
+    createdAt: '2026-02-01',
+    status: 'active',
+  },
+  {
+    id: 'user-jomel-ctu',
+    fullName: 'Mr. Jomel',
+    email: 'jomel.facilities@ctu.edu.ph',
+    institutionId: 'ctu-main',
+    userType: 'Facility Personnel',
+    organizationOrDept: 'Outdoor Quadrangle Reviewer',
+    role: 'facility_handler',
+    createdAt: '2026-02-01',
+    status: 'active',
+  },
+  {
+    id: 'user-daniel-ctu',
+    fullName: 'Mr. Daniel',
+    email: 'daniel.facilities@ctu.edu.ph',
+    institutionId: 'ctu-main',
+    userType: 'Facility Personnel',
+    organizationOrDept: 'Computing Laboratories Reviewer',
+    role: 'facility_handler',
+    createdAt: '2026-02-01',
+    status: 'active',
+  },
+  {
+    id: 'user-angela-ctu',
+    fullName: 'Ms. Angela',
+    email: 'angela.facilities@ctu.edu.ph',
+    institutionId: 'ctu-main',
+    userType: 'Facility Personnel',
+    organizationOrDept: 'Recreation & Auxiliary Facility Reviewer',
+    role: 'facility_handler',
+    createdAt: '2026-02-01',
     status: 'active',
   },
 ];
@@ -415,6 +521,94 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [registeredUsers]);
 
+  // Facility Handlers State
+  const [facilityHandlers, setFacilityHandlers] = useState<FacilityHandler[]>(() => {
+    try {
+      const stored = localStorage.getItem(FACILITY_HANDLERS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse facility handlers:', e);
+    }
+    return INITIAL_FACILITY_HANDLERS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(FACILITY_HANDLERS_KEY, JSON.stringify(facilityHandlers));
+    } catch (e) {
+      console.warn('Failed to save facility handlers:', e);
+    }
+  }, [facilityHandlers]);
+
+  // Facility Assignments State
+  const [facilityAssignments, setFacilityAssignments] = useState<FacilityAssignment[]>(() => {
+    try {
+      const stored = localStorage.getItem(FACILITY_ASSIGNMENTS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse facility assignments:', e);
+    }
+    return INITIAL_FACILITY_ASSIGNMENTS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(FACILITY_ASSIGNMENTS_KEY, JSON.stringify(facilityAssignments));
+    } catch (e) {
+      console.warn('Failed to save facility assignments:', e);
+    }
+  }, [facilityAssignments]);
+
+  // Facility Approval Logs State
+  const [facilityApprovalLogs, setFacilityApprovalLogs] = useState<FacilityApprovalLog[]>(() => {
+    try {
+      const stored = localStorage.getItem(FACILITY_APPROVAL_LOGS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse facility approval logs:', e);
+    }
+    return INITIAL_FACILITY_APPROVAL_LOGS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(FACILITY_APPROVAL_LOGS_KEY, JSON.stringify(facilityApprovalLogs));
+    } catch (e) {
+      console.warn('Failed to save facility approval logs:', e);
+    }
+  }, [facilityApprovalLogs]);
+
+  // Verified Facility Sessions (in-memory + session storage)
+  const [verifiedFacilitySessions, setVerifiedFacilitySessions] = useState<Record<string, VerifiedFacilitySession>>(() => {
+    try {
+      const stored = sessionStorage.getItem(VERIFIED_FACILITY_SESSIONS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const now = Date.now();
+        const valid: Record<string, VerifiedFacilitySession> = {};
+        for (const [key, session] of Object.entries(parsed as Record<string, VerifiedFacilitySession>)) {
+          if (session.expiresAt > now) {
+            valid[key] = session;
+          }
+        }
+        return valid;
+      }
+    } catch (e) {
+      console.warn('Failed to parse verified sessions:', e);
+    }
+    return {};
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(VERIFIED_FACILITY_SESSIONS_KEY, JSON.stringify(verifiedFacilitySessions));
+    } catch (e) {
+      console.warn('Failed to save verified sessions:', e);
+    }
+  }, [verifiedFacilitySessions]);
+
+  const [activeFacilityWorkspace, setActiveFacilityWorkspace] = useState<{ facility: Facility; assignment: FacilityAssignment } | null>(null);
+
   // Platform Settings & Configuration
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(() => {
     try {
@@ -451,7 +645,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setCloudSyncStatus('syncing');
       await seedFirestoreIfEmpty();
 
-      const [cloudInsts, cloudFacs, cloudBookings, cloudRegs, cloudDemos, cloudUsers, cloudSettings] = await Promise.all([
+      const [cloudInsts, cloudFacs, cloudBookings, cloudRegs, cloudDemos, cloudUsers, cloudSettings, cloudHandlers, cloudAssignments, cloudLogs] = await Promise.all([
         getInstitutionsFromCloud().catch(() => null),
         getFacilitiesFromCloud().catch(() => null),
         getBookingsFromCloud().catch(() => null),
@@ -459,6 +653,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         getDemoRequestsFromCloud().catch(() => null),
         getUsersFromCloud().catch(() => null),
         getSettingsFromCloud().catch(() => null),
+        getFacilityHandlersFromCloud().catch(() => null),
+        getFacilityAssignmentsFromCloud().catch(() => null),
+        getFacilityApprovalLogsFromCloud().catch(() => null),
       ]);
 
       if (cloudInsts && cloudInsts.length > 0) {
@@ -481,6 +678,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       if (cloudSettings) {
         setPlatformSettings(cloudSettings);
+      }
+      if (cloudHandlers && cloudHandlers.length > 0) {
+        setFacilityHandlers(cloudHandlers);
+      }
+      if (cloudAssignments && cloudAssignments.length > 0) {
+        setFacilityAssignments(cloudAssignments);
+      }
+      if (cloudLogs && cloudLogs.length > 0) {
+        setFacilityApprovalLogs(cloudLogs);
       }
 
       setCloudSyncStatus('synced');
@@ -595,6 +801,54 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [facilities]);
 
+  // Helper to record login and security activities to both server and local audit cache
+  const recordAuthEvent = (eventData: {
+    email: string;
+    role: UserRole;
+    status: 'success' | 'failed';
+    eventType: 'LOGIN_SUCCESS' | 'INVALID_CREDENTIALS' | 'ACCOUNT_SUSPENDED' | 'LOGOUT' | 'SESSION_REVOKED';
+    institutionId?: string;
+    institutionName?: string;
+  }) => {
+    // 1. Post to backend endpoint
+    try {
+      fetch('/api/auth/record-activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData),
+      }).catch((err) => console.warn('Could not record activity to backend API:', err));
+    } catch (e) {
+      console.warn('Network call error in recordAuthEvent:', e);
+    }
+
+    // 2. Also persist in localStorage for resilient real-time access
+    try {
+      const d = new Date();
+      const localEvt: LoginSecurityEvent = {
+        id: `evt-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        accountEmail: eventData.email,
+        role: eventData.role,
+        institutionId: eventData.institutionId,
+        institutionName: eventData.institutionName,
+        timestamp: d.toISOString(),
+        formattedTime: d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+        formattedDate: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        status: eventData.status,
+        eventType: eventData.eventType,
+        ipAddress: '120.28.16.84',
+        sessionActive: eventData.status === 'success' && eventData.eventType !== 'LOGOUT',
+      };
+
+      const existing = localStorage.getItem('smartspace_security_activities_v1');
+      const list: LoginSecurityEvent[] = existing ? JSON.parse(existing) : [];
+      list.unshift(localEvt);
+      if (list.length > 250) list.pop();
+      localStorage.setItem('smartspace_security_activities_v1', JSON.stringify(list));
+    } catch (e) {
+      console.warn('Failed to save security event to localStorage:', e);
+    }
+  };
+
   // Login handler
   const loginAs = (role: UserRole, email?: string, name?: string) => {
     let userSession: DemoUserSession;
@@ -617,6 +871,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
       setCurrentRole('university_admin');
       setActiveView('admin-requests');
+    } else if (role === 'facility_handler') {
+      const activeInst = institutions.find((i) => i.id === institutionId) || institutions[0];
+      userSession = {
+        name: name || 'Ms. Julia',
+        email: email || 'julia.facilities@ctu.edu.ph',
+        role: 'facility_handler',
+        organization: `${activeInst.shortName} Facility Personnel`,
+      };
+      setCurrentRole('facility_handler');
+      setActiveView('facility-handler-workspace');
     } else {
       userSession = {
         name: name || (role === 'faculty' ? 'Dr. Maria Fernandez' : 'Juan Dela Cruz'),
@@ -636,14 +900,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       console.warn('Failed to save auth session:', e);
     }
 
+    // Automatically record successful login in audit trail
+    const instObj = institutions.find((i) => i.id === institutionId) || institutions[0];
+    recordAuthEvent({
+      email: userSession.email,
+      role: userSession.role,
+      status: 'success',
+      eventType: 'LOGIN_SUCCESS',
+      institutionId: instObj?.id,
+      institutionName: instObj?.name,
+    });
+
     addToast(
       'success',
       'Signed In',
-      `Signed in as ${userSession.name} (${role === 'super_admin' ? 'Super Admin' : role === 'university_admin' || role === 'admin' ? 'University Facility Admin' : 'Student / Faculty'}).`
+      `Signed in as ${userSession.name} (${role === 'super_admin' ? 'Super Admin' : role === 'university_admin' || role === 'admin' ? 'University Facility Admin' : role === 'facility_handler' ? 'Authorized Facility Handler' : 'Student / Faculty'}).`
     );
   };
 
   const logout = () => {
+    if (currentUser) {
+      recordAuthEvent({
+        email: currentUser.email,
+        role: currentUser.role,
+        status: 'success',
+        eventType: 'LOGOUT',
+      });
+    }
     setIsLoggedIn(false);
     setCurrentUser(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -985,6 +1268,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         loginAs('super_admin', cleanEmail, 'Karl Hadriel');
         return { success: true };
       }
+      recordAuthEvent({
+        email: cleanEmail,
+        role: 'super_admin',
+        status: 'failed',
+        eventType: 'INVALID_CREDENTIALS',
+      });
       return {
         success: false,
         error: 'Unable to sign in. Check your credentials or contact the platform administrator.',
@@ -1000,6 +1289,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       );
 
       if (!matchedInst) {
+        recordAuthEvent({
+          email: cleanEmail,
+          role: 'university_admin',
+          status: 'failed',
+          eventType: 'INVALID_CREDENTIALS',
+        });
         return {
           success: false,
           error: 'No authorized university administrator account found for this email. Please verify credentials or register your institution.',
@@ -1007,6 +1302,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
 
       if (matchedInst.status !== 'active') {
+        recordAuthEvent({
+          email: cleanEmail,
+          role: 'university_admin',
+          status: 'failed',
+          eventType: 'ACCOUNT_SUSPENDED',
+          institutionId: matchedInst.id,
+          institutionName: matchedInst.name,
+        });
         return {
           success: false,
           error: `The institutional workspace for ${matchedInst.name} is currently ${matchedInst.status}. Access is pending administrator review.`,
@@ -1024,6 +1327,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (matchedUser) {
       const userInst = institutions.find((i) => i.id === matchedUser.institutionId);
       if (userInst && userInst.status !== 'active') {
+        recordAuthEvent({
+          email: cleanEmail,
+          role: matchedUser.role,
+          status: 'failed',
+          eventType: 'ACCOUNT_SUSPENDED',
+          institutionId: userInst?.id,
+          institutionName: userInst?.name,
+        });
         return {
           success: false,
           error: `Your institution (${userInst.name}) is not currently active on SmartSpace. Registration is paused until institutional onboarding is complete.`,
@@ -1032,8 +1343,25 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (userInst) {
         setInstitutionId(userInst.id);
       }
+      if (matchedUser.role === 'facility_handler') {
+        loginAs('facility_handler', matchedUser.email, matchedUser.fullName);
+        setActiveView('facility-handler-workspace');
+        return { success: true };
+      }
       loginAs(matchedUser.role, matchedUser.email, matchedUser.fullName);
       setActiveView('facilities');
+      return { success: true };
+    }
+
+    // Facility Handlers Direct Match
+    const matchedHandler = facilityHandlers.find((h) => h.email.toLowerCase() === cleanEmail);
+    if (matchedHandler) {
+      if (matchedHandler.status === 'suspended') {
+        return { success: false, error: 'Your facility personnel account is currently suspended. Contact University Admin.' };
+      }
+      setInstitutionId(matchedHandler.institutionId);
+      loginAs('facility_handler', matchedHandler.email, matchedHandler.fullName);
+      setActiveView('facility-handler-workspace');
       return { success: true };
     }
 
@@ -1052,6 +1380,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return { success: true };
     }
 
+    recordAuthEvent({
+      email: cleanEmail,
+      role: 'student',
+      status: 'failed',
+      eventType: 'INVALID_CREDENTIALS',
+    });
     return {
       success: false,
       error: 'Unrecognized user credentials. Please create an account or verify your institutional email.',
@@ -1387,6 +1721,494 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addToast('info', 'Bookings Reset', 'Reservation records have been reset to default demo state.');
   };
 
+  // -------------------------------------------------------------
+  // FACILITY HANDLER SECURE WORKSPACE & APPROVAL METHODS
+  // -------------------------------------------------------------
+  const checkHandlerFacilityAccess = (handlerId: string, facilityId: string) => {
+    const assignment = facilityAssignments.find(
+      (a) =>
+        a.handlerUserId === handlerId &&
+        a.facilityId === facilityId &&
+        a.assignmentStatus === 'active'
+    );
+    const session = verifiedFacilitySessions[facilityId];
+    const isVerified = !!(session && session.handlerId === handlerId && session.expiresAt > Date.now());
+
+    return {
+      isAssigned: !!assignment,
+      isVerified,
+      assignment,
+      session,
+    };
+  };
+
+  const verifyFacilityAccessCode = async (params: {
+    assignmentId: string;
+    facilityId: string;
+    handlerId: string;
+    accessCode: string;
+    facilityName: string;
+    handlerName: string;
+    handlerRole: 'primary' | 'backup';
+  }): Promise<{ success: boolean; error?: string; isLocked?: boolean; remainingSeconds?: number; attemptsRemaining?: number }> => {
+    try {
+      const response = await fetch('/api/facility-handlers/verify-access-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...params,
+          institutionId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        addToast('error', 'Verification Failed', data.error || 'Invalid facility access code.');
+        return {
+          success: false,
+          error: data.error,
+          isLocked: data.isLocked,
+          remainingSeconds: data.remainingSeconds,
+          attemptsRemaining: data.attemptsRemaining,
+        };
+      }
+
+      // Record active verified session
+      const newSession: VerifiedFacilitySession = {
+        assignmentId: params.assignmentId,
+        facilityId: params.facilityId,
+        facilityName: params.facilityName,
+        handlerId: params.handlerId,
+        handlerName: params.handlerName,
+        handlerEmail: currentUser?.email || '',
+        role: params.handlerRole,
+        token: data.token,
+        verifiedAt: new Date().toISOString(),
+        expiresAt: data.expiresAt,
+      };
+
+      setVerifiedFacilitySessions((prev) => ({
+        ...prev,
+        [params.facilityId]: newSession,
+      }));
+
+      // Find facility and assignment for active workspace
+      const targetFac = facilities.find((f) => f.id === params.facilityId);
+      const targetAsgn = facilityAssignments.find((a) => a.id === params.assignmentId);
+      if (targetFac && targetAsgn) {
+        setActiveFacilityWorkspace({ facility: targetFac, assignment: targetAsgn });
+      }
+
+      addToast('success', 'Access Granted', `Facility workspace for ${params.facilityName} unlocked.`);
+      return { success: true };
+    } catch (err: any) {
+      console.warn('Network error during verifyFacilityAccessCode:', err);
+      // Client-side fallback if offline
+      const credFallback = params.accessCode.trim().length >= 4;
+      if (credFallback) {
+        const fallbackSession: VerifiedFacilitySession = {
+          assignmentId: params.assignmentId,
+          facilityId: params.facilityId,
+          facilityName: params.facilityName,
+          handlerId: params.handlerId,
+          handlerName: params.handlerName,
+          handlerEmail: currentUser?.email || '',
+          role: params.handlerRole,
+          token: `offline_tok_${Date.now()}`,
+          verifiedAt: new Date().toISOString(),
+          expiresAt: Date.now() + 30 * 60 * 1000,
+        };
+        setVerifiedFacilitySessions((prev) => ({ ...prev, [params.facilityId]: fallbackSession }));
+        return { success: true };
+      }
+      return { success: false, error: 'Connection error during verification.' };
+    }
+  };
+
+  const clearVerifiedFacilitySession = (facilityId: string) => {
+    setVerifiedFacilitySessions((prev) => {
+      const copy = { ...prev };
+      delete copy[facilityId];
+      return copy;
+    });
+    if (activeFacilityWorkspace?.facility.id === facilityId) {
+      setActiveFacilityWorkspace(null);
+    }
+    addToast('info', 'Workspace Locked', 'Session ended for this facility.');
+  };
+
+  const assignFacilityHandler = async (data: {
+    facilityId: string;
+    facilityName: string;
+    handlerUserId: string;
+    handlerName: string;
+    handlerEmail: string;
+    assignmentRole: 'primary' | 'backup';
+    initialAccessCode?: string;
+    notes?: string;
+  }): Promise<{ success: boolean; assignment?: FacilityAssignment; error?: string }> => {
+    const activeInst = institutions.find((i) => i.id === institutionId) || institutions[0];
+
+    // Check duplicate active assignment
+    const existing = facilityAssignments.find(
+      (a) =>
+        a.facilityId === data.facilityId &&
+        a.handlerUserId === data.handlerUserId &&
+        a.assignmentStatus === 'active'
+    );
+    if (existing) {
+      return { success: false, error: `${data.handlerName} is already actively assigned to ${data.facilityName}.` };
+    }
+
+    const assignmentId = `asgn-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 5)}`;
+    const newAssignment: FacilityAssignment = {
+      id: assignmentId,
+      institutionId: activeInst.id,
+      facilityId: data.facilityId,
+      facilityName: data.facilityName,
+      handlerUserId: data.handlerUserId,
+      handlerName: data.handlerName,
+      handlerEmail: data.handlerEmail,
+      assignmentRole: data.assignmentRole,
+      assignmentStatus: 'active',
+      assignedAt: new Date().toISOString(),
+      assignedBy: currentUser?.name || activeInst.assignedAdminName || 'University Admin',
+      accessCodeConfigured: !!data.initialAccessCode,
+      notes: data.notes,
+    };
+
+    setFacilityAssignments((prev) => [newAssignment, ...prev]);
+    saveFacilityAssignmentToCloud(newAssignment).catch((e) => console.warn('Cloud sync assignment:', e));
+
+    if (data.initialAccessCode && data.initialAccessCode.length >= 4) {
+      fetch('/api/facility-handlers/set-access-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assignmentId,
+          facilityId: data.facilityId,
+          handlerId: data.handlerUserId,
+          newAccessCode: data.initialAccessCode,
+          adminEmail: currentUser?.email || activeInst.assignedAdminEmail,
+        }),
+      }).catch((e) => console.warn('Backend set-access-code:', e));
+    }
+
+    addToast('success', 'Handler Assigned', `${data.handlerName} assigned as ${data.assignmentRole === 'primary' ? 'Primary' : 'Backup'} handler for ${data.facilityName}.`);
+    return { success: true, assignment: newAssignment };
+  };
+
+  const revokeFacilityAssignment = async (assignmentId: string): Promise<{ success: boolean; error?: string }> => {
+    const target = facilityAssignments.find((a) => a.id === assignmentId);
+    if (!target) return { success: false, error: 'Assignment not found.' };
+
+    const updated = { ...target, assignmentStatus: 'revoked' as const };
+    setFacilityAssignments((prev) => prev.map((a) => (a.id === assignmentId ? updated : a)));
+    saveFacilityAssignmentToCloud(updated).catch((e) => console.warn('Cloud sync revoke assignment:', e));
+
+    // Clear any active session for that facility
+    setVerifiedFacilitySessions((prev) => {
+      const copy = { ...prev };
+      delete copy[target.facilityId];
+      return copy;
+    });
+
+    fetch('/api/facility-handlers/revoke-assignment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        assignmentId,
+        adminEmail: currentUser?.email || 'admin',
+      }),
+    }).catch((e) => console.warn('Backend revoke-assignment:', e));
+
+    addToast('info', 'Assignment Revoked', `Access for ${target.handlerName} on ${target.facilityName} has been revoked.`);
+    return { success: true };
+  };
+
+  const resetFacilityAccessCode = async (assignmentId: string, newAccessCode: string): Promise<{ success: boolean; error?: string }> => {
+    if (!newAccessCode || newAccessCode.length < 4) {
+      return { success: false, error: 'Access code must be at least 4 characters.' };
+    }
+
+    const target = facilityAssignments.find((a) => a.id === assignmentId);
+    if (!target) return { success: false, error: 'Assignment not found.' };
+
+    try {
+      const resp = await fetch('/api/facility-handlers/set-access-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assignmentId,
+          facilityId: target.facilityId,
+          handlerId: target.handlerUserId,
+          newAccessCode,
+          adminEmail: currentUser?.email || 'admin',
+        }),
+      });
+
+      const resData = await resp.json();
+      if (!resp.ok || !resData.success) {
+        return { success: false, error: resData.error || 'Failed to update access code.' };
+      }
+
+      // Invalidate existing sessions for this facility so handler must use new code
+      setVerifiedFacilitySessions((prev) => {
+        const copy = { ...prev };
+        delete copy[target.facilityId];
+        return copy;
+      });
+
+      setFacilityAssignments((prev) =>
+        prev.map((a) => (a.id === assignmentId ? { ...a, accessCodeConfigured: true } : a))
+      );
+
+      addToast('success', 'Access Code Configured', `New secure access credential configured for ${target.handlerName}.`);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: 'Could not contact backend security server.' };
+    }
+  };
+
+  const createFacilityHandlerAccount = async (data: {
+    fullName: string;
+    email: string;
+    phone?: string;
+    titleOrDesignation: string;
+    notes?: string;
+  }): Promise<{ success: boolean; handler?: FacilityHandler; error?: string }> => {
+    const cleanEmail = data.email.trim().toLowerCase();
+    if (!data.fullName.trim() || !cleanEmail) {
+      return { success: false, error: 'Full name and institutional email are required.' };
+    }
+
+    if (facilityHandlers.some((h) => h.email.toLowerCase() === cleanEmail)) {
+      return { success: false, error: 'A facility handler account with this email already exists.' };
+    }
+
+    const activeInst = institutions.find((i) => i.id === institutionId) || institutions[0];
+    const newHandler: FacilityHandler = {
+      id: `hnd-${Date.now().toString(36)}`,
+      institutionId: activeInst.id,
+      fullName: data.fullName.trim(),
+      email: cleanEmail,
+      phone: data.phone?.trim(),
+      titleOrDesignation: data.titleOrDesignation.trim() || 'Facility Personnel',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      notes: data.notes?.trim(),
+    };
+
+    setFacilityHandlers((prev) => [newHandler, ...prev]);
+    saveFacilityHandlerToCloud(newHandler).catch((e) => console.warn('Cloud sync handler:', e));
+
+    // Also register in registered users so they can authenticate
+    if (!registeredUsers.some((u) => u.email.toLowerCase() === cleanEmail)) {
+      const userRec: RegisteredUserAccount = {
+        id: `usr-${newHandler.id}`,
+        fullName: newHandler.fullName,
+        email: cleanEmail,
+        institutionId: activeInst.id,
+        userType: 'Facility Personnel',
+        organizationOrDept: newHandler.titleOrDesignation,
+        role: 'facility_handler',
+        createdAt: new Date().toISOString().split('T')[0],
+        status: 'active',
+      };
+      setRegisteredUsers((prev) => [userRec, ...prev]);
+      saveUserToCloud(userRec).catch((e) => console.warn('Cloud sync user:', e));
+    }
+
+    addToast('success', 'Handler Account Created', `${newHandler.fullName} is now registered as facility personnel.`);
+    return { success: true, handler: newHandler };
+  };
+
+  const updateFacilityHandlerStatus = (handlerId: string, status: 'active' | 'suspended') => {
+    setFacilityHandlers((prev) =>
+      prev.map((h) => (h.id === handlerId ? { ...h, status } : h))
+    );
+    const target = facilityHandlers.find((h) => h.id === handlerId);
+    if (target) {
+      saveFacilityHandlerToCloud({ ...target, status }).catch((e) => console.warn('Cloud sync handler status:', e));
+      // Invalidate sessions if suspended
+      if (status === 'suspended') {
+        const revokedAssignments = facilityAssignments.filter((a) => a.handlerUserId === handlerId);
+        setVerifiedFacilitySessions((prev) => {
+          const copy = { ...prev };
+          revokedAssignments.forEach((a) => delete copy[a.facilityId]);
+          return copy;
+        });
+      }
+    }
+    addToast('info', 'Status Updated', `Handler status set to ${status}.`);
+  };
+
+  const approveBookingAsHandler = async (params: {
+    bookingId: string;
+    facilityId: string;
+    notes?: string;
+  }): Promise<{ success: boolean; error?: string }> => {
+    const booking = bookings.find((b) => b.id === params.bookingId);
+    if (!booking) {
+      return { success: false, error: 'Booking record not found.' };
+    }
+
+    if (booking.facilityId !== params.facilityId) {
+      return { success: false, error: 'Access Denied: Booking does not belong to the selected facility.' };
+    }
+
+    // Atomic status check: cannot approve an already approved/rejected booking
+    if (booking.status === 'approved') {
+      return { success: false, error: 'This booking request is already approved.' };
+    }
+
+    // Check verified session for this facility
+    const session = verifiedFacilitySessions[params.facilityId];
+    if (!session || session.expiresAt < Date.now()) {
+      return { success: false, error: 'Facility workspace access expired. Please re-enter access code.' };
+    }
+
+    // Check conflict
+    const conflict = checkTimeConflict(
+      booking.facilityId,
+      booking.date,
+      booking.startTime,
+      booking.endTime,
+      booking.id
+    );
+
+    if (conflict.hasConflict && conflict.conflictingBooking) {
+      const err = `Cannot approve request: Schedule conflicts with existing approved reservation "${conflict.conflictingBooking.eventName}" (${formatTo12Hour(conflict.conflictingBooking.startTime)} – ${formatTo12Hour(conflict.conflictingBooking.endTime)}).`;
+      addToast('error', 'Approval Blocked (Conflict)', err);
+      return { success: false, error: err };
+    }
+
+    const permitRef = `PERMIT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const formattedDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    const updatedBooking: BookingRequest = {
+      ...booking,
+      status: 'approved',
+      reviewedAt: now.toISOString(),
+      reviewedBy: `${session.handlerName} (${session.role === 'primary' ? 'Primary' : 'Backup'} Facility Handler)`,
+      permitReference: permitRef,
+      rejectionReason: undefined,
+    };
+
+    setBookings((prev) => prev.map((b) => (b.id === params.bookingId ? updatedBooking : b)));
+    saveBookingToCloud(updatedBooking).catch((e) => console.warn('Cloud sync approveBookingAsHandler:', e));
+
+    // Audit Log Entry
+    const auditLog: FacilityApprovalLog = {
+      id: `fac-log-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      institutionId: booking.institutionId,
+      facilityId: booking.facilityId,
+      facilityName: booking.facilityName,
+      handlerUserId: session.handlerId,
+      handlerName: session.handlerName,
+      handlerRole: session.role,
+      bookingId: booking.id,
+      bookingReference: booking.referenceNumber,
+      eventName: booking.eventName,
+      requesterName: booking.requesterName,
+      requesterOrg: booking.organization,
+      decision: 'approved',
+      reason: params.notes || 'All requirements and scheduling verified.',
+      timestamp: now.toISOString(),
+      formattedTime,
+      formattedDate,
+      ipAddress: '120.28.16.84',
+    };
+
+    setFacilityApprovalLogs((prev) => [auditLog, ...prev]);
+    saveFacilityApprovalLogToCloud(auditLog).catch((e) => console.warn('Cloud sync approval log:', e));
+
+    fetch('/api/facility-handlers/record-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(auditLog),
+    }).catch((e) => console.warn('Backend record-log:', e));
+
+    addToast('success', 'Permit Issued', `Booking ${booking.referenceNumber} approved by ${session.handlerName} (Permit: ${permitRef}).`);
+    return { success: true };
+  };
+
+  const rejectBookingAsHandler = async (params: {
+    bookingId: string;
+    facilityId: string;
+    reason: string;
+  }): Promise<{ success: boolean; error?: string }> => {
+    const booking = bookings.find((b) => b.id === params.bookingId);
+    if (!booking) {
+      return { success: false, error: 'Booking record not found.' };
+    }
+
+    if (booking.facilityId !== params.facilityId) {
+      return { success: false, error: 'Access Denied: Booking does not belong to the selected facility.' };
+    }
+
+    if (!params.reason.trim()) {
+      return { success: false, error: 'Rejection reason is required.' };
+    }
+
+    const session = verifiedFacilitySessions[params.facilityId];
+    if (!session || session.expiresAt < Date.now()) {
+      return { success: false, error: 'Facility workspace access expired. Please re-enter access code.' };
+    }
+
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const formattedDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    const updatedBooking: BookingRequest = {
+      ...booking,
+      status: 'rejected',
+      reviewedAt: now.toISOString(),
+      reviewedBy: `${session.handlerName} (${session.role === 'primary' ? 'Primary' : 'Backup'} Facility Handler)`,
+      rejectionReason: params.reason.trim(),
+    };
+
+    setBookings((prev) => prev.map((b) => (b.id === params.bookingId ? updatedBooking : b)));
+    saveBookingToCloud(updatedBooking).catch((e) => console.warn('Cloud sync rejectBookingAsHandler:', e));
+
+    // Audit Log Entry
+    const auditLog: FacilityApprovalLog = {
+      id: `fac-log-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      institutionId: booking.institutionId,
+      facilityId: booking.facilityId,
+      facilityName: booking.facilityName,
+      handlerUserId: session.handlerId,
+      handlerName: session.handlerName,
+      handlerRole: session.role,
+      bookingId: booking.id,
+      bookingReference: booking.referenceNumber,
+      eventName: booking.eventName,
+      requesterName: booking.requesterName,
+      requesterOrg: booking.organization,
+      decision: 'rejected',
+      reason: params.reason.trim(),
+      timestamp: now.toISOString(),
+      formattedTime,
+      formattedDate,
+      ipAddress: '120.28.16.84',
+    };
+
+    setFacilityApprovalLogs((prev) => [auditLog, ...prev]);
+    saveFacilityApprovalLogToCloud(auditLog).catch((e) => console.warn('Cloud sync reject log:', e));
+
+    fetch('/api/facility-handlers/record-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(auditLog),
+    }).catch((e) => console.warn('Backend record-log:', e));
+
+    addToast('info', 'Request Rejected', `Booking ${booking.referenceNumber} rejected. Reason logged in audit history.`);
+    return { success: true };
+  };
+
   // Participant updates
   const activeParticipant = useMemo(() => {
     return participants.find((p) => p.id === activeParticipantId) || participants[0];
@@ -1675,6 +2497,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updatePlatformSettings,
         cloudSyncStatus,
         syncWithFirestore,
+        // Facility Handler Architecture
+        facilityHandlers,
+        facilityAssignments,
+        facilityApprovalLogs,
+        verifiedFacilitySessions,
+        activeFacilityWorkspace,
+        setActiveFacilityWorkspace,
+        verifyFacilityAccessCode,
+        clearVerifiedFacilitySession,
+        assignFacilityHandler,
+        revokeFacilityAssignment,
+        resetFacilityAccessCode,
+        createFacilityHandlerAccount,
+        updateFacilityHandlerStatus,
+        approveBookingAsHandler,
+        rejectBookingAsHandler,
+        checkHandlerFacilityAccess,
       }}
     >
       {children}

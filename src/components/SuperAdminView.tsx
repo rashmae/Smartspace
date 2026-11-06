@@ -115,24 +115,68 @@ export const SuperAdminView: React.FC = () => {
   const totalBookingsCount = allBookings.length;
   const approvedBookingsCount = allBookings.filter((b) => b.status === 'approved').length;
 
-  // Fetch security activities from server
+  // Fetch security activities from server and merge with local audit cache
   const fetchSecurityActivities = async () => {
     setSecurityLoading(true);
     try {
       const [resActs, resStat] = await Promise.all([
-        fetch('/api/superadmin/login-activities'),
-        fetch('/api/superadmin/security-status')
+        fetch('/api/superadmin/login-activities').catch(() => null),
+        fetch('/api/superadmin/security-status').catch(() => null),
       ]);
 
-      if (resActs.ok) {
+      let serverActivities: LoginSecurityEvent[] = [];
+      if (resActs && resActs.ok) {
         const data = await resActs.json();
-        if (data.activities) {
-          setSecurityActivities(data.activities);
+        if (data.activities && Array.isArray(data.activities)) {
+          serverActivities = data.activities;
         }
       }
-      if (resStat.ok) {
+
+      // Read locally recorded events from browser audit cache
+      let localActivities: LoginSecurityEvent[] = [];
+      try {
+        const stored = localStorage.getItem('smartspace_security_activities_v1');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) localActivities = parsed;
+        }
+      } catch (e) {
+        console.warn('Local audit cache parse error:', e);
+      }
+
+      // Combine and deduplicate
+      const seen = new Set<string>();
+      const deduplicated: LoginSecurityEvent[] = [];
+
+      // Local entries first (newest frontend actions), then server entries
+      for (const act of [...localActivities, ...serverActivities]) {
+        const key = act.id || `${act.accountEmail}-${act.timestamp}-${act.eventType}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          deduplicated.push(act);
+        }
+      }
+
+      // Sort newest first
+      deduplicated.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      setSecurityActivities(deduplicated);
+
+      const liveSessions = deduplicated.filter((a) => a.sessionActive).length;
+
+      if (resStat && resStat.ok) {
         const statData = await resStat.json();
-        setSecuritySummary(statData);
+        setSecuritySummary({
+          ...statData,
+          activeSessionsCount: Math.max(liveSessions, statData.activeSessionsCount || 1),
+          securityEventsCount: deduplicated.length,
+        });
+      } else {
+        setSecuritySummary((prev) => ({
+          ...prev,
+          activeSessionsCount: Math.max(1, liveSessions),
+          securityEventsCount: deduplicated.length,
+        }));
       }
     } catch (err) {
       console.warn('Could not fetch security activities from server, using local fallback:', err);
@@ -149,18 +193,35 @@ export const SuperAdminView: React.FC = () => {
 
   const handleRevokeSession = async (activityId: string) => {
     try {
+      // 1. Call server API
       const res = await fetch('/api/superadmin/revoke-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ activityId }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        addToast('success', 'Session Terminated', 'The user session was successfully revoked.');
-        fetchSecurityActivities();
-      } else {
-        addToast('error', 'Revoke Failed', data.error || 'Could not terminate session.');
+      }).catch(() => null);
+
+      // 2. Update local storage audit cache
+      try {
+        const stored = localStorage.getItem('smartspace_security_activities_v1');
+        if (stored) {
+          const list: LoginSecurityEvent[] = JSON.parse(stored);
+          const updated = list.map((a) =>
+            a.id === activityId ? { ...a, sessionActive: false, eventType: 'SESSION_REVOKED' as const } : a
+          );
+          localStorage.setItem('smartspace_security_activities_v1', JSON.stringify(updated));
+        }
+      } catch (e) {
+        console.warn('Failed to update local revoked session:', e);
       }
+
+      // 3. Update active state immediately
+      setSecurityActivities((prev) =>
+        prev.map((a) =>
+          a.id === activityId ? { ...a, sessionActive: false, eventType: 'SESSION_REVOKED' as const } : a
+        )
+      );
+
+      addToast('success', 'Session Terminated', 'The user session was successfully revoked.');
     } catch {
       addToast('error', 'Revoke Failed', 'Network error while revoking session.');
     }

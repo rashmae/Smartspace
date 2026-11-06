@@ -152,6 +152,66 @@
         "autoConflictDetection": { "type": "boolean" }
       },
       "required": ["id", "platformName"]
+    },
+    "FacilityHandler": {
+      "title": "FacilityHandler",
+      "description": "Designated custodian, room coordinator, or personnel authorized for facility operations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "institutionId": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "format": "email", "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "titleOrDesignation": { "type": "string", "maxLength": 150 },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "institutionId", "fullName", "email", "status"]
+    },
+    "FacilityAssignment": {
+      "title": "FacilityAssignment",
+      "description": "Facility-specific personnel authorization assignment linking handler to facility",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "institutionId": { "type": "string", "maxLength": 128 },
+        "facilityId": { "type": "string", "maxLength": 128 },
+        "facilityName": { "type": "string", "maxLength": 200 },
+        "handlerUserId": { "type": "string", "maxLength": 128 },
+        "handlerName": { "type": "string", "maxLength": 150 },
+        "handlerEmail": { "type": "string", "format": "email", "maxLength": 150 },
+        "assignmentRole": { "type": "string", "enum": ["primary", "backup"] },
+        "assignmentStatus": { "type": "string", "enum": ["active", "revoked"] },
+        "assignedAt": { "type": "string", "maxLength": 50 },
+        "assignedBy": { "type": "string", "maxLength": 150 },
+        "accessCodeConfigured": { "type": "boolean" }
+      },
+      "required": ["id", "institutionId", "facilityId", "handlerUserId", "assignmentRole", "assignmentStatus"]
+    },
+    "FacilityApprovalLog": {
+      "title": "FacilityApprovalLog",
+      "description": "Immutable decision and access audit trail for facility-specific approvals",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "institutionId": { "type": "string", "maxLength": 128 },
+        "facilityId": { "type": "string", "maxLength": 128 },
+        "facilityName": { "type": "string", "maxLength": 200 },
+        "handlerUserId": { "type": "string", "maxLength": 128 },
+        "handlerName": { "type": "string", "maxLength": 150 },
+        "handlerRole": { "type": "string", "enum": ["primary", "backup"] },
+        "bookingId": { "type": "string", "maxLength": 128 },
+        "bookingReference": { "type": "string", "maxLength": 64 },
+        "eventName": { "type": "string", "maxLength": 200 },
+        "requesterName": { "type": "string", "maxLength": 150 },
+        "decision": { "type": "string", "maxLength": 50 },
+        "reason": { "type": "string", "maxLength": 1000 },
+        "timestamp": { "type": "string", "maxLength": 50 },
+        "formattedTime": { "type": "string", "maxLength": 50 },
+        "formattedDate": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "institutionId", "facilityId", "handlerUserId", "decision", "timestamp"]
     }
   },
   "firestore": {
@@ -182,6 +242,18 @@
     "/platformSettings/{settingsId}": {
       "schema": "PlatformSettings",
       "description": "Global platform governance and configuration parameters"
+    },
+    "/facilityHandlers/{handlerId}": {
+      "schema": "FacilityHandler",
+      "description": "Authorized facility custodians and room handlers"
+    },
+    "/facilityAssignments/{assignmentId}": {
+      "schema": "FacilityAssignment",
+      "description": "Role-specific facility handler assignments"
+    },
+    "/facilityApprovalLogs/{logId}": {
+      "schema": "FacilityApprovalLog",
+      "description": "Auditable log of facility reviews and decision entries"
     }
   }
 }

@@ -1,4 +1,4 @@
-export type UserRole = 'super_admin' | 'university_admin' | 'admin' | 'student' | 'faculty';
+export type UserRole = 'super_admin' | 'university_admin' | 'admin' | 'facility_handler' | 'student' | 'faculty';
 
 export interface InstitutionalRegistrationRequest {
   id: string;
@@ -39,6 +39,7 @@ export interface RegisteredUserAccount {
     | 'Faculty Member'
     | 'Department Representative'
     | 'Campus Office Representative'
+    | 'Facility Personnel'
     | 'Other Authorized User';
   organizationOrDept: string;
   role: UserRole;
@@ -220,4 +221,71 @@ export interface ParticipantRecord {
   startedAt?: string;
   completedAt?: string;
   isCompleted: boolean;
+}
+
+// -------------------------------------------------------------
+// FACILITY PERSONNEL & SECURE APPROVAL SYSTEM
+// -------------------------------------------------------------
+
+export interface FacilityHandler {
+  id: string; // e.g. "hnd-ctu-julia"
+  institutionId: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  titleOrDesignation: string; // e.g. "Physical Plant Custodian", "Hall Coordinator", "Lab Supervisor"
+  status: 'active' | 'suspended';
+  createdAt: string;
+  lastActiveAt?: string;
+  notes?: string;
+}
+
+export interface FacilityAssignment {
+  id: string; // e.g. "asgn-ctu-julia-cn-hall"
+  institutionId: string;
+  facilityId: string;
+  facilityName: string;
+  handlerUserId: string;
+  handlerName: string;
+  handlerEmail: string;
+  assignmentRole: 'primary' | 'backup';
+  assignmentStatus: 'active' | 'revoked';
+  assignedAt: string;
+  assignedBy: string; // name or email of University Admin
+  accessCodeConfigured: boolean;
+  notes?: string;
+}
+
+export interface FacilityApprovalLog {
+  id: string;
+  institutionId: string;
+  facilityId: string;
+  facilityName: string;
+  handlerUserId: string;
+  handlerName: string;
+  handlerRole: 'primary' | 'backup';
+  bookingId: string;
+  bookingReference: string;
+  eventName: string;
+  requesterName: string;
+  requesterOrg?: string;
+  decision: 'approved' | 'rejected' | 'code_verified' | 'verification_failed' | 'assignment_revoked';
+  reason?: string;
+  timestamp: string; // ISO
+  formattedTime: string; // 12-hour AM/PM e.g. "2:30 PM"
+  formattedDate: string; // e.g. "Oct 30, 2026"
+  ipAddress?: string;
+}
+
+export interface VerifiedFacilitySession {
+  assignmentId: string;
+  facilityId: string;
+  facilityName: string;
+  handlerId: string;
+  handlerName: string;
+  handlerEmail: string;
+  role: 'primary' | 'backup';
+  token: string;
+  verifiedAt: string; // ISO
+  expiresAt: number; // timestamp in ms
 }

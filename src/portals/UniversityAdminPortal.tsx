@@ -6,6 +6,8 @@ import { AdminRequestsView } from '../components/AdminRequestsView';
 import { AdminFacilitiesView } from '../components/AdminFacilitiesView';
 import { AdminRecordsView } from '../components/AdminRecordsView';
 import { UtilizationReportsView } from '../components/UtilizationReportsView';
+import { FacilityPersonnelManagementView } from '../components/FacilityPersonnelManagementView';
+import { FacilityHandlerWorkspaceView } from '../components/FacilityHandlerWorkspaceView';
 import { 
   Building2, 
   ShieldCheck, 
@@ -27,7 +29,9 @@ import {
   Settings,
   Users,
   Info,
-  Sparkles
+  Sparkles,
+  UserCheck,
+  KeyRound,
 } from 'lucide-react';
 
 interface UniversityAdminPortalProps {
@@ -53,7 +57,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
   } = useApp();
 
   // Internal dashboard tab
-  const [activeTab, setActiveTab] = useState<'requests' | 'facilities' | 'records' | 'reports' | 'settings'>('requests');
+  const [activeTab, setActiveTab] = useState<'requests' | 'facilities' | 'handlers' | 'handler-workspace' | 'records' | 'reports' | 'settings'>('requests');
 
   // Synchronize internal tab when external components call setActiveView
   React.useEffect(() => {
@@ -61,6 +65,8 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
     else if (activeView === 'admin-facilities') setActiveTab('facilities');
     else if (activeView === 'admin-records') setActiveTab('records');
     else if (activeView === 'reports') setActiveTab('reports');
+    else if (activeView === 'admin-handlers') setActiveTab('handlers');
+    else if (activeView === 'facility-handler-workspace') setActiveTab('handler-workspace');
   }, [activeView]);
 
   // Form states for login
@@ -191,6 +197,65 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
+
+            {/* Quick Demo Evaluation Personas */}
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
+                Instant Evaluation Sign-In (Cebu Tech University)
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginEmail('admin.facilities@ctu.edu.ph');
+                    setLoginPassword('admin123');
+                  }}
+                  className="py-1.5 px-2 bg-purple-100 hover:bg-purple-200 text-purple-900 rounded-lg font-bold text-[11px] text-left truncate cursor-pointer"
+                >
+                  Engr. Santos (Admin)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginEmail('julia.facilities@ctu.edu.ph');
+                    setLoginPassword('handler123');
+                  }}
+                  className="py-1.5 px-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-900 rounded-lg font-bold text-[11px] text-left truncate cursor-pointer"
+                >
+                  Ms. Julia (Hall/Gym)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginEmail('jomel.facilities@ctu.edu.ph');
+                    setLoginPassword('handler123');
+                  }}
+                  className="py-1.5 px-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 rounded-lg font-bold text-[11px] text-left truncate cursor-pointer"
+                >
+                  Mr. Jomel (Courts)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginEmail('daniel.facilities@ctu.edu.ph');
+                    setLoginPassword('handler123');
+                  }}
+                  className="py-1.5 px-2 bg-sky-100 hover:bg-sky-200 text-sky-900 rounded-lg font-bold text-[11px] text-left truncate cursor-pointer"
+                >
+                  Mr. Daniel (Labs)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginEmail('angela.facilities@ctu.edu.ph');
+                    setLoginPassword('handler123');
+                  }}
+                  className="py-1.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg font-bold text-[11px] text-left truncate cursor-pointer"
+                >
+                  Ms. Angela (Tennis)
+                </button>
+              </div>
+            </div>
 
             <div className="pt-4 border-t border-slate-100 text-center space-y-2 text-xs text-slate-500">
               <p>
@@ -515,6 +580,28 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
                 Facilities Inventory
               </button>
               <button
+                onClick={() => setActiveTab('handlers')}
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'handlers'
+                    ? 'bg-purple-700 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Personnel Assignments</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('handler-workspace')}
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'handler-workspace'
+                    ? 'bg-purple-700 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>Handler Workspace</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('records')}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   activeTab === 'records'
@@ -583,6 +670,8 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = ({ in
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
         {activeTab === 'requests' && <AdminRequestsView />}
         {activeTab === 'facilities' && <AdminFacilitiesView />}
+        {activeTab === 'handlers' && <FacilityPersonnelManagementView />}
+        {activeTab === 'handler-workspace' && <FacilityHandlerWorkspaceView />}
         {activeTab === 'records' && <AdminRecordsView />}
         {activeTab === 'reports' && <UtilizationReportsView />}
         {activeTab === 'settings' && (

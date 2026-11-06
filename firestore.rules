@@ -79,6 +79,27 @@ service cloud.firestore {
       allow create, update, delete: if isValidId(settingsId);
     }
 
+    // 8. Facility Handlers
+    match /facilityHandlers/{handlerId} {
+      allow get: if isValidId(handlerId);
+      allow list: if true;
+      allow create, update, delete: if isValidId(handlerId);
+    }
+
+    // 9. Facility Assignments
+    match /facilityAssignments/{assignmentId} {
+      allow get: if isValidId(assignmentId);
+      allow list: if true;
+      allow create, update, delete: if isValidId(assignmentId);
+    }
+
+    // 10. Facility Approval & Access Logs
+    match /facilityApprovalLogs/{logId} {
+      allow get: if isValidId(logId);
+      allow list: if true;
+      allow create, update, delete: if isValidId(logId);
+    }
+
     // Default-deny all other unspecified document routes
     match /{document=**} {
       allow read, write: if false;

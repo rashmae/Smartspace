@@ -1,3 +1,4 @@
+import http from 'http';
 import express from 'express';
 import type { Request, Response } from 'express';
 import path from 'path';
@@ -174,6 +175,15 @@ function recordLoginEvent(
   const formattedTime = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   const formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
+  // If logging out, deactivate previous active sessions for this account
+  if (eventType === 'LOGOUT') {
+    loginActivities.forEach((act) => {
+      if (act.accountEmail.toLowerCase() === accountEmail.toLowerCase()) {
+        act.sessionActive = false;
+      }
+    });
+  }
+
   loginActivities.unshift({
     id: `evt-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
     accountEmail,
@@ -184,9 +194,9 @@ function recordLoginEvent(
     formattedTime,
     formattedDate,
     status,
-    ipAddress: ip || '127.0.0.1',
+    ipAddress: ip || '120.28.16.84',
     eventType,
-    sessionActive: status === 'success',
+    sessionActive: status === 'success' && eventType !== 'LOGOUT',
   });
 
   if (loginActivities.length > 300) loginActivities.pop();
@@ -303,10 +313,15 @@ async function startServer() {
   // VITE DEV MIDDLEWARE INTEGRATION
   // -------------------------------------------------------------
   const isProd = process.env.NODE_ENV === 'production';
+  const httpServer = http.createServer(app);
+
   if (!isProd) {
     const { createServer } = await import('vite');
     const vite = await createServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: false,
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -318,7 +333,7 @@ async function startServer() {
   }
 
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`SmartSpace enterprise full-stack server running on http://0.0.0.0:${PORT}`);
   });
 }
