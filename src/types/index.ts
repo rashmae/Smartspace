@@ -76,6 +76,7 @@ export interface Institution {
 
 export type FacilityType = 
   | 'Lecture Room'
+  | 'Lecture Hall'
   | 'Computer Laboratory'
   | 'Conference Room'
   | 'University Auditorium'

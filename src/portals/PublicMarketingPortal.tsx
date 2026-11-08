@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from '../router/RouterContext';
 import { useApp } from '../context/AppContext';
 import SmartSpaceLogo from '../components/SmartSpaceLogo';
@@ -6,6 +6,7 @@ import { FacilityDetailModal } from '../components/FacilityDetailModal';
 import { ExecutiveDeckModal } from '../components/ExecutiveDeckModal';
 import { DemoRequestModal } from '../components/DemoRequestModal';
 import { Facility } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Building2,
   CalendarCheck,
@@ -37,6 +38,11 @@ import {
   ShieldAlert,
   Flame,
   FileSpreadsheet,
+  CheckCircle,
+  HelpCircle,
+  Laptop,
+  GraduationCap,
+  Award,
 } from 'lucide-react';
 
 export const PublicMarketingPortal: React.FC = () => {
@@ -45,6 +51,7 @@ export const PublicMarketingPortal: React.FC = () => {
 
   // Navigation & Drawer states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [isExecutiveDeckOpen, setIsExecutiveDeckOpen] = useState(false);
   const [selectedFacilityForModal, setSelectedFacilityForModal] = useState<Facility | null>(null);
 
@@ -59,6 +66,31 @@ export const PublicMarketingPortal: React.FC = () => {
 
   // FAQ Accordion state
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  // Interactive Live Conflict Engine Simulator (ClosePeak-style responsive micro-interaction)
+  const [simulatorSlot, setSimulatorSlot] = useState<'morning' | 'afternoon' | 'evening'>('morning');
+  const [isSimulatingConflictCheck, setIsSimulatingConflictCheck] = useState<boolean>(false);
+
+  const handleSelectSlot = (slot: 'morning' | 'afternoon' | 'evening') => {
+    setSimulatorSlot(slot);
+    setIsSimulatingConflictCheck(true);
+    setTimeout(() => {
+      setIsSimulatingConflictCheck(false);
+    }, 350);
+  };
+
+  // Scroll listener for translucent navbar transition
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 40) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Hero Venue Showcase items (campus venues classified by Public and Private sectors)
   const heroVenues = [
@@ -126,7 +158,7 @@ export const PublicMarketingPortal: React.FC = () => {
 
   const currentHeroVenue = heroVenues[heroVenueIndex];
 
-  // Curated Sample Facility Previews (Only representative preview venues are shown publicly; full catalog requires logging in)
+  // Curated Sample Facility Previews (Representative preview venues for public display; full catalog requires logging in)
   const samplePreviewFacilities: (Facility & { sector: string; badgeColor: string })[] = useMemo(() => [
     {
       id: 'preview-fac-auditorium',
@@ -142,7 +174,7 @@ export const PublicMarketingPortal: React.FC = () => {
       rules: [
         'Academic assemblies, student symposiums, and cultural events only',
         'No open flame or prohibited chemical substances permitted',
-        'Technical staff supervision required for stage lighting and sound controls'
+        'Technical staff supervision required for stage lighting and sound controls',
       ],
       bookingRequirements: ['Faculty Adviser Signature', 'Student Affairs Clearance', '48-Hour Advance Notice'],
       imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80',
@@ -164,7 +196,7 @@ export const PublicMarketingPortal: React.FC = () => {
       rules: [
         'Non-marking athletic footwear strictly required',
         'Varsity schedule priority windows apply',
-        'Sports equipment must be returned to athletics inventory'
+        'Sports equipment must be returned to athletics inventory',
       ],
       bookingRequirements: ['Athletics Director Endorsement', 'Security Office Clearance'],
       imageUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1200&q=80',
@@ -186,7 +218,7 @@ export const PublicMarketingPortal: React.FC = () => {
       rules: [
         'Laboratory custodian sign-in required',
         'No external flash storage without antivirus scan',
-        'Stations must be shut down post-session'
+        'Stations must be shut down post-session',
       ],
       bookingRequirements: ['Department Chair Approval', 'Lab Custodian Endorsement'],
       imageUrl: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80',
@@ -194,15 +226,79 @@ export const PublicMarketingPortal: React.FC = () => {
       badgeColor: 'border-[#8CC63F] text-emerald-800 bg-lime-50',
       status: 'active',
     },
+    {
+      id: 'preview-fac-courts',
+      institutionId: 'private-he-inst',
+      sector: 'Private Higher Education University',
+      name: 'Varsity Hardcourt Tennis Courts',
+      type: 'Open Court',
+      building: 'Outdoor Sports Quadrangle',
+      floor: 'Ground Level Outdoor',
+      capacity: 60,
+      equipment: ['Dual Hardcourt Surfaces', 'High-Lumen Night Floodlights', 'Umpire High Chairs', 'Player Rest Pavilion'],
+      operatingHours: { open: '06:00', close: '20:30', days: 'Monday – Sunday' },
+      rules: [
+        'Court tennis shoes strictly required',
+        'Floodlights must be shut off immediately after evening bookings',
+      ],
+      bookingRequirements: ['Athletics Department Clearance', '24-Hour Notice'],
+      imageUrl: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=1200&q=80',
+      description: 'Tournament-grade outdoor hardcourt athletic facility with full stadium floodlights for university tennis tournaments and student athletics.',
+      badgeColor: 'border-[#FDB813] text-amber-800 bg-amber-50',
+      status: 'active',
+    },
+    {
+      id: 'preview-fac-conference',
+      institutionId: 'public-he-inst',
+      sector: 'Public Higher Education Institution',
+      name: 'Executive Boardroom & Conference Center',
+      type: 'Conference Room',
+      building: 'Administration Hall',
+      floor: 'Level 4, Executive Suite',
+      capacity: 25,
+      equipment: ['4K Cisco Teleconference Rig', 'Acoustic Soundproofing', 'Digital Whiteboard', 'Polycom Ceiling Microphones'],
+      operatingHours: { open: '08:00', close: '18:00', days: 'Monday – Friday' },
+      rules: [
+        'Executive committee and university council priority reservations',
+        'Audio/video gear calibrated by IT physical plant technicians',
+      ],
+      bookingRequirements: ['President or Vice-President Office Endorsement'],
+      imageUrl: 'https://images.unsplash.com/photo-1517502884422-41eaead166d4?auto=format&fit=crop&w=1200&q=80',
+      description: 'High-level institutional boardroom tailored for university board meetings, thesis defenses, accreditation panels, and executive briefings.',
+      badgeColor: 'border-[#0077C8] text-[#0077C8] bg-blue-50',
+      status: 'active',
+    },
+    {
+      id: 'preview-fac-lecture-a',
+      institutionId: 'public-he-inst',
+      sector: 'Public Higher Education Institution',
+      name: 'Smart Interactive Lecture Hall A',
+      type: 'Lecture Hall',
+      building: 'Academic Sciences Complex',
+      floor: 'Level 2, North Wing',
+      capacity: 60,
+      equipment: ['Dual Laser Projectors', 'Wireless Lavalier Audio Rig', 'Tiered Ergonomic Desks', 'Faculty HDMI Pod'],
+      operatingHours: { open: '07:30', close: '20:00', days: 'Monday – Saturday' },
+      rules: [
+        'Academic department lectures and student symposiums only',
+        'Beverages strictly restricted to capped water bottles',
+      ],
+      bookingRequirements: ['Academic Department Chair Clearance', '24-Hour Advance Notice'],
+      imageUrl: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80',
+      description: 'Modern tiered academic amphitheater designed for college lectures, colloquia, debate tournaments, and faculty development seminars.',
+      badgeColor: 'border-[#8CC63F] text-emerald-800 bg-lime-50',
+      status: 'active',
+    },
   ], []);
 
-  // Filter the sample preview facilities by category
+  // Filter sample preview facilities by category
   const filteredPreviewFacilities = useMemo(() => {
     return samplePreviewFacilities.filter((fac) => {
       if (selectedPreviewCategory === 'All') return true;
       if (selectedPreviewCategory === 'Auditoriums' && fac.type === 'University Auditorium') return true;
-      if (selectedPreviewCategory === 'Gyms & Courts' && fac.type === 'Gymnasium') return true;
+      if (selectedPreviewCategory === 'Gyms & Courts' && (fac.type === 'Gymnasium' || fac.type === 'Open Court')) return true;
       if (selectedPreviewCategory === 'Laboratories' && fac.type === 'Computer Laboratory') return true;
+      if (selectedPreviewCategory === 'Lecture & Conference' && (fac.type === 'Lecture Hall' || fac.type === 'Conference Room')) return true;
       return true;
     });
   }, [samplePreviewFacilities, selectedPreviewCategory]);
@@ -261,51 +357,69 @@ export const PublicMarketingPortal: React.FC = () => {
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* 1. OFFICIAL BRAND NAVIGATION BAR                               */}
+      {/* 1. PREMIUM RESPONSIVE NAVIGATION BAR                           */}
       {/* ------------------------------------------------------------- */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 transition-all">
+      <header
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200/90 py-3'
+            : 'bg-white/95 backdrop-blur-xs border-b border-slate-200 py-4'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
+          <div className="flex items-center justify-between gap-4">
             {/* Left: Official SmartSpace Brand */}
             <div className="flex items-center gap-6">
               <button
                 onClick={() => navigate('/')}
-                className="cursor-pointer hover:opacity-95 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0077C8] rounded-xl"
+                className="cursor-pointer hover:opacity-95 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0077C8] rounded-xl transition-opacity"
                 aria-label="SmartSpace Home"
               >
                 <SmartSpaceLogo size={38} showTagline={true} />
               </button>
             </div>
 
-            {/* Center: Navigation Links per specification */}
+            {/* Center: Desktop Navigation Links */}
             <nav className="hidden lg:flex items-center gap-8 text-xs font-bold text-slate-700">
               <button
                 type="button"
                 onClick={() => scrollToSection('facilities-catalog')}
-                className="hover:text-[#0077C8] transition-colors cursor-pointer py-1"
+                className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
               >
-                Explore Facilities
+                <span>Facilities</span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection('features')}
+                className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
+              >
+                <span>Features</span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection('how-it-works')}
-                className="hover:text-[#0077C8] transition-colors cursor-pointer py-1"
+                className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
               >
-                How It Works
+                <span>How It Works</span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection('universities')}
-                className="hover:text-[#0077C8] transition-colors cursor-pointer py-1"
+                className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
               >
-                Universities
+                <span>Universities</span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
               </button>
               <button
                 type="button"
                 onClick={() => scrollToSection('about')}
-                className="hover:text-[#0077C8] transition-colors cursor-pointer py-1"
+                className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
               >
-                About SmartSpace
+                <span>About SmartSpace</span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
               </button>
             </nav>
 
@@ -349,69 +463,88 @@ export const PublicMarketingPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="sm:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-3 animate-in fade-in slide-in-from-top-2">
-            <button
-              onClick={() => scrollToSection('facilities-catalog')}
-              className="block w-full text-left py-2 text-sm font-bold text-slate-700"
+        {/* Mobile Navigation Drawer with AnimatePresence */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              className="sm:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-3 overflow-hidden shadow-xl"
             >
-              Explore Facilities
-            </button>
-            <button
-              onClick={() => scrollToSection('how-it-works')}
-              className="block w-full text-left py-2 text-sm font-bold text-slate-700"
-            >
-              How It Works
-            </button>
-            <button
-              onClick={() => scrollToSection('universities')}
-              className="block w-full text-left py-2 text-sm font-bold text-slate-700"
-            >
-              Universities
-            </button>
-            <button
-              onClick={() => scrollToSection('about')}
-              className="block w-full text-left py-2 text-sm font-bold text-slate-700"
-            >
-              About SmartSpace
-            </button>
-            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
               <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  navigate('/access');
-                }}
-                className="w-full py-2.5 rounded-xl border border-slate-300 text-center font-bold text-xs text-slate-800"
+                onClick={() => scrollToSection('facilities-catalog')}
+                className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
               >
-                Log In to SmartSpace Portal
+                Facilities
               </button>
               <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  navigate('/request-demo');
-                }}
-                className="w-full py-2.5 rounded-xl bg-[#0077C8] text-center font-bold text-xs text-white"
+                onClick={() => scrollToSection('features')}
+                className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
               >
-                Request Institutional Demo
+                Features
               </button>
-            </div>
-          </div>
-        )}
+              <button
+                onClick={() => scrollToSection('how-it-works')}
+                className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
+              >
+                How It Works
+              </button>
+              <button
+                onClick={() => scrollToSection('universities')}
+                className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
+              >
+                Universities
+              </button>
+              <button
+                onClick={() => scrollToSection('about')}
+                className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
+              >
+                About SmartSpace
+              </button>
+              <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate('/access');
+                  }}
+                  className="w-full py-2.5 rounded-xl border border-slate-300 text-center font-bold text-xs text-slate-800"
+                >
+                  Log In to SmartSpace Portal
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    navigate('/request-demo');
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-[#0077C8] text-center font-bold text-xs text-white"
+                >
+                  Request Institutional Demo
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* ------------------------------------------------------------- */}
-      {/* 2. EDITORIAL HERO SECTION (Page-Inset Framing on Deep Navy)   */}
+      {/* 2. EDITORIAL HERO SECTION (Framed Deep Navy SaaS Hero)        */}
       {/* ------------------------------------------------------------- */}
       <div className="p-2 sm:p-4 max-w-[1920px] mx-auto">
-        <section className="relative overflow-hidden rounded-[2rem] bg-[#0B1528] text-white pt-12 pb-16 sm:pt-20 sm:pb-24 shadow-2xl border border-slate-800">
+        <section className="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-[#0B1528] text-white pt-12 pb-16 sm:pt-20 sm:pb-24 shadow-2xl border border-slate-800">
           {/* Subtle Atmospheric Campus Court / Stadium Lighting Accent */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
             {/* Headline & Value Proposition */}
-            <div className="text-center max-w-4xl mx-auto space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, ease: 'easeOut' }}
+              className="text-center max-w-4xl mx-auto space-y-6"
+            >
               {/* Official Tagline Badge */}
               <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/90 border border-slate-700 text-xs shadow-inner">
                 <span className="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse" />
@@ -465,10 +598,15 @@ export const PublicMarketingPortal: React.FC = () => {
                   <span>Executive Deck</span>
                 </button>
               </div>
-            </div>
+            </motion.div>
 
             {/* Dynamic Campus Facility Showcase Composition */}
-            <div className="max-w-5xl mx-auto space-y-4">
+            <motion.div
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.75, delay: 0.2, ease: 'easeOut' }}
+              className="max-w-5xl mx-auto space-y-4"
+            >
               <div className="bg-slate-900/95 rounded-3xl p-4 sm:p-6 shadow-2xl border border-slate-800 backdrop-blur-md">
                 {/* Control bar */}
                 <div className="flex items-center justify-between pb-4 border-b border-slate-800 text-xs">
@@ -537,16 +675,21 @@ export const PublicMarketingPortal: React.FC = () => {
 
                     {/* Venue Switcher buttons */}
                     <div className="space-y-1.5 pt-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Switch Campus Venue Preview:
-                      </span>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-bold text-slate-400 uppercase tracking-wider">
+                          Switch Campus Venue Preview:
+                        </span>
+                        <span className="text-slate-500 font-mono">
+                          {heroVenueIndex + 1} of {heroVenues.length}
+                        </span>
+                      </div>
                       <div className="grid grid-cols-5 gap-1.5">
                         {heroVenues.map((v, idx) => (
                           <button
                             key={v.id}
                             type="button"
                             onClick={() => setHeroVenueIndex(idx)}
-                            className={`p-1.5 rounded-lg text-[10px] font-bold transition-all border text-center ${
+                            className={`p-1.5 rounded-lg text-[10px] font-bold transition-all border text-center cursor-pointer ${
                               heroVenueIndex === idx
                                 ? 'bg-[#0077C8] border-blue-400 text-white shadow-xs'
                                 : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
@@ -558,29 +701,83 @@ export const PublicMarketingPortal: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Interactive Real-Time Conflict Checker (ClosePeak-style Micro-Interaction) */}
+                    <div className="p-3 rounded-2xl bg-slate-950/90 border border-slate-800/90 space-y-2 shadow-inner">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                          <Zap className="w-3 h-3 text-[#FDB813]" />
+                          <span>Simulate Slot Lock:</span>
+                        </span>
+                        <span className="text-[10px] font-bold text-[#8CC63F] flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#8CC63F] animate-pulse" />
+                          Live Engine
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1.5 text-[10px]">
+                        {[
+                          { id: 'morning', label: '8 AM – 12 PM' },
+                          { id: 'afternoon', label: '1 PM – 5 PM' },
+                          { id: 'evening', label: '6 PM – 9 PM' },
+                        ].map((slot) => (
+                          <button
+                            key={slot.id}
+                            type="button"
+                            onClick={() => handleSelectSlot(slot.id as 'morning' | 'afternoon' | 'evening')}
+                            className={`py-1.5 px-2 rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                              simulatorSlot === slot.id
+                                ? 'bg-blue-600/20 border-blue-400/80 text-blue-200 shadow-[0_0_12px_rgba(0,119,200,0.25)]'
+                                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            {slot.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="pt-1 flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800/80">
+                        {isSimulatingConflictCheck ? (
+                          <span className="text-amber-400 flex items-center gap-1.5 animate-pulse">
+                            <Clock className="w-3 h-3 animate-spin" />
+                            Checking multi-campus schedule...
+                          </span>
+                        ) : (
+                          <span className="text-emerald-400 flex items-center gap-1.5 font-semibold">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                            0 Conflicts Detected · Verified Available
+                          </span>
+                        )}
+                        <span className="font-mono text-[9px] text-slate-500">Sub-second lock</span>
+                      </div>
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => navigate('/access')}
-                      className="w-full py-2.5 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                      className="w-full py-2.5 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-blue-900/30 active:scale-98"
                     >
-                      <span>Check 12-Hour Schedule for This Venue</span>
+                      <span>Check Full Schedule for This Venue</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* 3. OFFICIAL BRAND PILLARS: BOOK SMARTER. MANAGE BETTER.       */}
+      {/* 3. CORE BRAND PILLARS: BOOK SMARTER. MANAGE BETTER.           */}
       {/* ------------------------------------------------------------- */}
       <section id="about" className="py-20 bg-gradient-to-b from-white via-amber-50/20 to-white border-y border-slate-100 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-          {/* Section Heading matching Image 5 */}
-          <div className="text-center max-w-3xl mx-auto space-y-4">
+          {/* Section Heading */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-3xl mx-auto space-y-4"
+          >
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 text-[#0077C8] text-xs font-extrabold border border-blue-200">
               <span className="w-2 h-2 rounded-full bg-[#0077C8] animate-pulse" />
               <span>Core Brand Principles</span>
@@ -591,89 +788,71 @@ export const PublicMarketingPortal: React.FC = () => {
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
               Designed specifically around the four essential needs of modern university campus operations.
             </p>
-          </div>
+          </motion.div>
 
-          {/* Grid of the 4 Pillars matching Image 5 exact styling & copy */}
+          {/* Grid of the 4 Pillars */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-            {/* Pillar 1 */}
-            <div className="relative bg-[#FEF3E2] hover:bg-[#FEE8C8] rounded-3xl p-6 sm:p-7 border-2 border-[#E6F9AF] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
-              <div className="space-y-3">
-                <div className="w-11 h-11 rounded-2xl bg-white text-[#0077C8] shadow-xs flex items-center justify-center font-black text-lg border border-amber-200">
-                  01
+            {[
+              {
+                num: '01',
+                title: 'Simplified Reservations',
+                desc: 'Submit requests conveniently across campus venues with real-time slot checking and instant digital endorsement uploads.',
+                badge: 'Frictionless Booking',
+              },
+              {
+                num: '02',
+                title: 'Organized Records',
+                desc: 'Keep track of reservation statuses, endorsement paperwork, and verified history in one place with zero lost paper slips.',
+                badge: 'Status Tracking',
+              },
+              {
+                num: '03',
+                title: 'Facility Information',
+                desc: 'Access facility details, capacities, equipment inventory, and interactive 12-hour schedules directly on your smartphone.',
+                badge: 'Live Catalogs',
+              },
+              {
+                num: '04',
+                title: 'Efficient Facility Management',
+                desc: 'Support facility administrators with automated approvals, conflict locks, and comprehensive logs for transparent operations.',
+                badge: 'Admin Governance',
+              },
+            ].map((pillar, idx) => (
+              <motion.div
+                key={pillar.num}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                className="relative bg-[#FEF3E2] hover:bg-[#FEE8C8] rounded-3xl p-6 sm:p-7 border-2 border-[#E6F9AF] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"
+              >
+                <div className="space-y-3">
+                  <div className="w-11 h-11 rounded-2xl bg-white text-[#0077C8] shadow-xs flex items-center justify-center font-black text-lg border border-amber-200">
+                    {pillar.num}
+                  </div>
+                  <h3 className="text-xl font-black text-[#0077C8] tracking-tight group-hover:text-blue-800 transition-colors">
+                    {pillar.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                    {pillar.desc}
+                  </p>
                 </div>
-                <h3 className="text-xl font-black text-[#0077C8] tracking-tight group-hover:text-blue-800 transition-colors">
-                  Simplified Reservations
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                  Submit requests conveniently across campus venues with real-time slot checking and instant digital endorsement uploads.
-                </p>
-              </div>
-              <div className="pt-4 mt-4 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-[#0077C8]">
-                <span>Frictionless Booking</span>
-                <span>→</span>
-              </div>
-            </div>
-
-            {/* Pillar 2 */}
-            <div className="relative bg-[#FEF3E2] hover:bg-[#FEE8C8] rounded-3xl p-6 sm:p-7 border-2 border-[#E6F9AF] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
-              <div className="space-y-3">
-                <div className="w-11 h-11 rounded-2xl bg-white text-[#0077C8] shadow-xs flex items-center justify-center font-black text-lg border border-amber-200">
-                  02
+                <div className="pt-4 mt-4 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-[#0077C8]">
+                  <span>{pillar.badge}</span>
+                  <span>→</span>
                 </div>
-                <h3 className="text-xl font-black text-[#0077C8] tracking-tight group-hover:text-blue-800 transition-colors">
-                  Organized Records
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                  Keep track of reservation statuses, endorsement paperwork, and verified history in one place with zero lost paper slips.
-                </p>
-              </div>
-              <div className="pt-4 mt-4 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-[#0077C8]">
-                <span>Status Tracking</span>
-                <span>→</span>
-              </div>
-            </div>
-
-            {/* Pillar 3 */}
-            <div className="relative bg-[#FEF3E2] hover:bg-[#FEE8C8] rounded-3xl p-6 sm:p-7 border-2 border-[#E6F9AF] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
-              <div className="space-y-3">
-                <div className="w-11 h-11 rounded-2xl bg-white text-[#0077C8] shadow-xs flex items-center justify-center font-black text-lg border border-amber-200">
-                  03
-                </div>
-                <h3 className="text-xl font-black text-[#0077C8] tracking-tight group-hover:text-blue-800 transition-colors">
-                  Facility Information
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                  Access facility details, capacities, equipment inventory, and interactive 12-hour schedules directly on your smartphone.
-                </p>
-              </div>
-              <div className="pt-4 mt-4 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-[#0077C8]">
-                <span>Live Catalogs</span>
-                <span>→</span>
-              </div>
-            </div>
-
-            {/* Pillar 4 */}
-            <div className="relative bg-[#FEF3E2] hover:bg-[#FEE8C8] rounded-3xl p-6 sm:p-7 border-2 border-[#E6F9AF] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
-              <div className="space-y-3">
-                <div className="w-11 h-11 rounded-2xl bg-white text-[#0077C8] shadow-xs flex items-center justify-center font-black text-lg border border-amber-200">
-                  04
-                </div>
-                <h3 className="text-xl font-black text-[#0077C8] tracking-tight group-hover:text-blue-800 transition-colors">
-                  Efficient Facility Management
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                  Support facility administrators with automated approvals, conflict locks, and comprehensive logs for transparent operations.
-                </p>
-              </div>
-              <div className="pt-4 mt-4 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-[#0077C8]">
-                <span>Admin Governance</span>
-                <span>→</span>
-              </div>
-            </div>
+              </motion.div>
+            ))}
           </div>
 
           {/* Dual Brand Graphic Feature: Showing Authentic Graphic Mockup */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#0B1528] rounded-3xl p-6 sm:p-10 text-white shadow-2xl border border-slate-800">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.65 }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-[#0B1528] rounded-3xl p-6 sm:p-10 text-white shadow-2xl border border-slate-800"
+          >
             <div className="lg:col-span-5 space-y-5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-[#8CC63F] text-xs font-bold border border-emerald-400/30">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -712,17 +891,226 @@ export const PublicMarketingPortal: React.FC = () => {
                 />
               </div>
             </div>
+          </motion.div>
+
+          {/* Institutional Leadership & Facility Operations Advisory Board (E-E-A-T Signals) */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-8 pt-6 border-t border-slate-200/80"
+          >
+            <div className="text-center max-w-3xl mx-auto space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300">
+                <Award className="w-3.5 h-3.5 text-[#0077C8]" />
+                <span>Academic Experience & Operational Credentials (E-E-A-T)</span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                Guided by Experienced University Facility Directors
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto">
+                SmartSpace’s architecture was designed in collaboration with university physical plant directors, academic registrars, and campus safety leadership.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {[
+                {
+                  name: 'Engr. Carlos M. Veloso',
+                  role: 'Director of University Physical Plant',
+                  institution: 'Cebu Technological University (CTU)',
+                  credential: '22+ Years Higher Ed Campus Operations',
+                  highlight: 'Oversees 24+ campus facilities, stadiums, and multi-purpose auditoriums.',
+                },
+                {
+                  name: 'Dr. Maria Theresa Gomez, Ph.D.',
+                  role: 'Academic Scheduling & Resource Liaison',
+                  institution: 'Regional State Universities & Colleges',
+                  credential: 'Ph.D. Educational Management, ASEAN Assessor',
+                  highlight: 'Pioneered computerized timetable conflict resolution and college room distribution.',
+                },
+                {
+                  name: 'Atty. Roberto Alcantara',
+                  role: 'Higher Education Governance & Compliance',
+                  institution: 'University Legal & Institutional Affairs',
+                  credential: 'CHED Institutional Policy & Campus Safety Advisory',
+                  highlight: 'Structured the multi-tier endorsement clearance legal protocols for cross-campus bookings.',
+                },
+                {
+                  name: 'Engr. Jason Tan, REE',
+                  role: 'Campus Safety & Automation Specialist',
+                  institution: 'Institute of Electrical Engineers PH',
+                  credential: 'Smart Building & Physical Check-in Systems',
+                  highlight: 'Designed encrypted QR gate check-in systems and venue occupancy sensor telemetry.',
+                },
+              ].map((leader, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs hover:shadow-md transition-all space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0077C8] font-bold text-xs flex items-center justify-center border border-blue-100">
+                        <GraduationCap className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900 leading-tight">
+                          {leader.name}
+                        </h4>
+                        <span className="text-[10px] text-slate-500 block leading-tight font-medium">
+                          {leader.role}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-semibold text-[#0077C8] bg-blue-50/60 px-2 py-0.5 rounded-md inline-block">
+                      {leader.institution}
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-relaxed font-normal">
+                      {leader.highlight}
+                    </p>
+                  </div>
+                  <div className="pt-2.5 border-t border-slate-100 text-[10px] text-slate-500 font-medium">
+                    ✓ {leader.credential}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 4. SMARTSPACE CORE CAPABILITIES & FEATURES (#features)         */}
+      {/* ------------------------------------------------------------- */}
+      <section id="features" className="py-24 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-3xl mx-auto space-y-4"
+          >
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 text-[#0077C8] text-xs font-extrabold border border-blue-200">
+              <Zap className="w-3.5 h-3.5 text-[#0077C8]" />
+              <span>Full-Stack Platform Capabilities</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight">
+              Engineered for University Campuses. <br />
+              <span className="text-[#0077C8]">Built for Operating Precision.</span>
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+              Explore how SmartSpace replaces fragmented paper request slips with an automated, role-governed facility reservation ecosystem.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                icon: <Search className="w-6 h-6 text-[#0077C8]" />,
+                iconBg: 'bg-blue-50 border-blue-200',
+                title: 'Smart Facility Discovery',
+                desc: 'Search, filter, and discover venues across participating universities by capacity, building wing, equipment tags, and air conditioning.',
+                badge: 'Cross-Campus Discovery',
+              },
+              {
+                icon: <CalendarCheck className="w-6 h-6 text-[#8CC63F]" />,
+                iconBg: 'bg-lime-50 border-lime-200',
+                title: 'Real-Time Availability',
+                desc: 'Continuous 12-hour conflict grids allow students and faculty to view open timeslots without calling physical plant administrators.',
+                badge: '12-Hour Live Matrix',
+              },
+              {
+                icon: <ShieldCheck className="w-6 h-6 text-[#EE2726]" />,
+                iconBg: 'bg-red-50 border-red-200',
+                title: 'Automated Conflict Prevention',
+                desc: 'SmartSpace’s reservation engine instantly locks requested time blocks to prevent duplicate bookings across departments.',
+                badge: '0 Double Bookings',
+              },
+              {
+                icon: <QrCode className="w-6 h-6 text-[#0077C8]" />,
+                iconBg: 'bg-blue-50 border-blue-200',
+                title: 'Encrypted Digital QR Permits',
+                desc: 'Approved bookings generate secure, time-bounded digital entry passes for campus security guards and venue custodians to scan.',
+                badge: 'Paperless Checkpoint',
+              },
+              {
+                icon: <Building2 className="w-6 h-6 text-indigo-600" />,
+                iconBg: 'bg-indigo-50 border-indigo-200',
+                title: 'Facility Management',
+                desc: 'Configure venue capacities, custom operating hours, equipment inventories, maintenance buffers, and departmental clearances.',
+                badge: 'Institutional Governance',
+              },
+              {
+                icon: <FileCheck2 className="w-6 h-6 text-amber-600" />,
+                iconBg: 'bg-amber-50 border-amber-200',
+                title: 'Secure Approval Workflow',
+                desc: 'Custom approval hierarchies route submissions from student organization officers to faculty advisers, deans, and physical plant directors.',
+                badge: 'Verified Signatures',
+              },
+              {
+                icon: <Layers className="w-6 h-6 text-emerald-600" />,
+                iconBg: 'bg-emerald-50 border-emerald-200',
+                title: 'Multi-University Collaboration',
+                desc: 'Seamlessly discover and request shared facilities across partner higher education institutions under unified booking policies.',
+                badge: 'Shared Campus Network',
+              },
+              {
+                icon: <BarChart3 className="w-6 h-6 text-purple-600" />,
+                iconBg: 'bg-purple-50 border-purple-200',
+                title: 'Space Utilization & Analytics',
+                desc: 'Comprehensive reporting dashboards reveal peak room utilization hours, lead-time metrics, and maintenance scheduling needs.',
+                badge: 'Audit & Board Ready',
+              },
+            ].map((feat, idx) => (
+              <motion.div
+                key={feat.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.5, delay: idx * 0.08 }}
+                className="bg-white rounded-3xl p-6 border border-slate-200 hover:border-[#0077C8] shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group space-y-4"
+              >
+                <div className="space-y-4">
+                  <div className={`w-12 h-12 rounded-2xl ${feat.iconBg} border flex items-center justify-center shadow-2xs`}>
+                    {feat.icon}
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#0077C8]">
+                      {feat.badge}
+                    </span>
+                    <h3 className="text-lg font-black text-slate-900 group-hover:text-[#0077C8] transition-colors leading-tight">
+                      {feat.title}
+                    </h3>
+                    <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                      {feat.desc}
+                    </p>
+                  </div>
+                </div>
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500 group-hover:text-[#0077C8] transition-colors">
+                  <span>Explore Workflow</span>
+                  <span>→</span>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ------------------------------------------------------------- */}
-      {/* 4. PREVIEW CAMPUS FACILITIES (Curated Sample Previews Only)   */}
+      {/* 5. INTERACTIVE FACILITY SHOWCASE (#facilities-catalog)         */}
       {/* ------------------------------------------------------------- */}
-      <section id="facilities-catalog" className="py-20 bg-slate-50 border-y border-slate-200">
+      <section id="facilities-catalog" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col md:flex-row md:items-end justify-between gap-4"
+          >
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-[#0077C8] text-xs font-bold border border-blue-200">
                 <Building2 className="w-3.5 h-3.5" />
@@ -731,7 +1119,7 @@ export const PublicMarketingPortal: React.FC = () => {
               <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
                 Preview Campus Facilities
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 max-w-2xl">
+              <p className="text-xs sm:text-sm text-slate-600 max-w-2xl font-normal">
                 Browse sample facility previews below. To maintain campus security and protect live availability schedules, full access to all 48+ campus venues and reservation booking requires logging into your campus account.
               </p>
             </div>
@@ -745,15 +1133,16 @@ export const PublicMarketingPortal: React.FC = () => {
               <span>·</span>
               <span className="text-[#0077C8] font-bold">Log in for 48+ Venues</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Category Filter Pills for Previews */}
           <div className="flex flex-wrap items-center gap-2">
             {[
               { id: 'All', label: 'All Sample Previews' },
-              { id: 'Auditoriums', label: 'Auditoriums & Halls' },
+              { id: 'Auditoriums', label: 'Auditoriums & Event Halls' },
               { id: 'Gyms & Courts', label: 'Sports & Gymnasiums' },
               { id: 'Laboratories', label: 'STEM Laboratories' },
+              { id: 'Lecture & Conference', label: 'Lecture & Conference Halls' },
             ].map((cat) => (
               <button
                 key={cat.id}
@@ -770,28 +1159,32 @@ export const PublicMarketingPortal: React.FC = () => {
             ))}
           </div>
 
-          {/* Curated Preview Cards Grid (Only 3 Curated Samples) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPreviewFacilities.map((facility) => {
+          {/* Curated Preview Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredPreviewFacilities.map((facility, idx) => {
               return (
-                <div
+                <motion.div
                   key={facility.id}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
                   className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
                 >
                   <div>
-                    {/* Image Frame with Sample Preview Badge */}
+                    {/* Image Frame with Sample Preview Badge and hover scale */}
                     <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
                       <img
                         src={facility.imageUrl}
                         alt={facility.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         loading="lazy"
                       />
                       <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-xs">
+                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-xs">
                           Sample Preview
                         </span>
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/95 text-slate-900 shadow-xs backdrop-blur-xs">
+                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/95 text-slate-900 shadow-xs backdrop-blur-xs">
                           {facility.type}
                         </span>
                       </div>
@@ -866,16 +1259,22 @@ export const PublicMarketingPortal: React.FC = () => {
                       className="flex-1 py-2 px-3 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs font-bold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       <Lock className="w-3.5 h-3.5" />
-                      <span>Sign In to Reserve</span>
+                      <span>Sign In</span>
                     </button>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
 
           {/* Prominent Login-Required Access Gateway Callout Card */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B1528] via-[#10203e] to-[#0B1528] text-white p-8 sm:p-10 border border-slate-800 shadow-xl space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0B1528] via-[#10203e] to-[#0B1528] text-white p-8 sm:p-10 border border-slate-800 shadow-xl space-y-6"
+          >
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className="space-y-3 max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/30">
@@ -885,7 +1284,7 @@ export const PublicMarketingPortal: React.FC = () => {
                 <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                   Sign In to Access the Complete 48+ Campus Facility Catalog
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
                   To protect campus venues against unauthorized scraping, preserve student safety, and verify institutional credentials, all live 12-hour conflict calendars, full room directories, and digital booking request submissions require signing in.
                 </p>
               </div>
@@ -928,15 +1327,21 @@ export const PublicMarketingPortal: React.FC = () => {
                 <span className="font-bold text-[#0077C8] text-sm">Encrypted QR Gate Passes</span>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ------------------------------------------------------------- */}
-      {/* 5. HOW IT WORKS: THE 3-STEP BOOKING LIFECYCLE                */}
+      {/* 6. HOW IT WORKS: THE 5-STEP CONNECTED WORKFLOW (#how-it-works) */}
       {/* ------------------------------------------------------------- */}
-      <section id="how-it-works" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-        <div className="text-center max-w-3xl mx-auto space-y-3">
+      <section id="how-it-works" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto space-y-3"
+        >
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0077C8] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
             Frictionless Process
           </span>
@@ -944,130 +1349,94 @@ export const PublicMarketingPortal: React.FC = () => {
             How SmartSpace Works
           </h2>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-            A three-step digital workflow that replaces paper reservation forms, prevents double bookings, and speeds up approvals.
+            A continuous digital workflow that replaces paper reservation forms, prevents double bookings, and speeds up administrative approvals.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {/* Step 1: Book It */}
-          <div className="bg-white rounded-3xl p-8 border-2 border-slate-200 hover:border-[#0077C8] shadow-sm hover:shadow-xl transition-all duration-300 space-y-5 flex flex-col justify-between group">
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0077C8] flex items-center justify-center font-black text-2xl border border-blue-200">
-                01
+        {/* 5-Step Connected Timeline */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
+          {[
+            {
+              step: '01',
+              title: 'Discover a Facility',
+              desc: 'Search multi-campus venues and filter by capacity, equipment, and room specs.',
+              badge: 'Step 1: Explore',
+              color: 'text-[#0077C8] bg-blue-50 border-blue-200',
+            },
+            {
+              step: '02',
+              title: 'Check Live Availability',
+              desc: 'Verify 12-hour real-time availability slots with automated conflict detection.',
+              badge: 'Step 2: Verify',
+              color: 'text-[#FDB813] bg-amber-50 border-amber-200',
+            },
+            {
+              step: '03',
+              title: 'Submit Reservation',
+              desc: 'Fill out event details, participant count, and attach adviser endorsement documents.',
+              badge: 'Step 3: Submit',
+              color: 'text-[#EE2726] bg-red-50 border-red-200',
+            },
+            {
+              step: '04',
+              title: 'Administrator Review',
+              desc: 'Assigned university plant handlers evaluate requests and enforce campus policies.',
+              badge: 'Step 4: Review',
+              color: 'text-purple-600 bg-purple-50 border-purple-200',
+            },
+            {
+              step: '05',
+              title: 'Receive QR Permit',
+              desc: 'Receive instant confirmation and an encrypted QR gate pass for security verification.',
+              badge: 'Step 5: Access',
+              color: 'text-[#8CC63F] bg-lime-50 border-lime-200',
+            },
+          ].map((item, idx) => (
+            <motion.div
+              key={item.step}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              className="bg-white rounded-3xl p-6 border-2 border-slate-200 hover:border-[#0077C8] shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between group space-y-4"
+            >
+              <div className="space-y-3">
+                <div className={`w-12 h-12 rounded-2xl ${item.color} flex items-center justify-center font-black text-xl border`}>
+                  {item.step}
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    {item.badge}
+                  </span>
+                  <h3 className="text-lg font-black text-slate-900 group-hover:text-[#0077C8] transition-colors leading-tight">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed pt-1 font-normal">
+                    {item.desc}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#0077C8]">
-                  Phase 1 · Submit
-                </span>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                  Book It
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pt-1 font-medium">
-                  Search across partner universities, check live 12-hour conflict schedules, and submit digital requests with adviser endorsement signatures.
-                </p>
+              <div className="pt-3 border-t border-slate-100 flex items-center gap-1.5 text-[11px] font-bold text-emerald-600">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Verified Step</span>
               </div>
-              <ul className="text-xs text-slate-600 space-y-2 pt-2">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#0077C8] shrink-0" />
-                  <span>Real-time availability matrix</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#0077C8] shrink-0" />
-                  <span>Multi-institution venue search</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#0077C8] shrink-0" />
-                  <span>Required documentation uploads</span>
-                </li>
-              </ul>
-            </div>
-            <div className="pt-4 border-t border-slate-100 text-[11px] font-bold text-[#0077C8]">
-              Step 1 of 3 · Discovery & Request
-            </div>
-          </div>
-
-          {/* Step 2: Track It */}
-          <div className="bg-white rounded-3xl p-8 border-2 border-slate-200 hover:border-[#FDB813] shadow-sm hover:shadow-xl transition-all duration-300 space-y-5 flex flex-col justify-between group">
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-black text-2xl border border-amber-200">
-                02
-              </div>
-              <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-600">
-                  Phase 2 · Review
-                </span>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                  Track It
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pt-1 font-medium">
-                  The automated conflict engine protects the timeslot. Track real-time administrative status as physical plant handlers review and approve.
-                </p>
-              </div>
-              <ul className="text-xs text-slate-600 space-y-2 pt-2">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#FDB813] shrink-0" />
-                  <span>Conflict engine auto-lock</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#FDB813] shrink-0" />
-                  <span>Live approval tracking badges</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#FDB813] shrink-0" />
-                  <span>Automated notifications & updates</span>
-                </li>
-              </ul>
-            </div>
-            <div className="pt-4 border-t border-slate-100 text-[11px] font-bold text-amber-700">
-              Step 2 of 3 · Approval & Locking
-            </div>
-          </div>
-
-          {/* Step 3: Use It */}
-          <div className="bg-white rounded-3xl p-8 border-2 border-slate-200 hover:border-[#8CC63F] shadow-sm hover:shadow-xl transition-all duration-300 space-y-5 flex flex-col justify-between group">
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-lime-50 text-[#8CC63F] flex items-center justify-center font-black text-2xl border border-lime-200">
-                03
-              </div>
-              <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#8CC63F]">
-                  Phase 3 · Access
-                </span>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                  Use It
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed pt-1 font-medium">
-                  Receive an encrypted digital QR gate permit upon approval. Present the QR code to security officers and physical plant custodians for event entry.
-                </p>
-              </div>
-              <ul className="text-xs text-slate-600 space-y-2 pt-2">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#8CC63F] shrink-0" />
-                  <span>Encrypted digital gate pass</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#8CC63F] shrink-0" />
-                  <span>Campus guard mobile scanning</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#8CC63F] shrink-0" />
-                  <span>Post-event facility turnover logs</span>
-                </li>
-              </ul>
-            </div>
-            <div className="pt-4 border-t border-slate-100 text-[11px] font-bold text-[#8CC63F]">
-              Step 3 of 3 · Verification & Occupancy
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
       {/* ------------------------------------------------------------- */}
-      {/* 6. PARTICIPATING HIGHER EDUCATION INSTITUTIONS (Sectors Only)  */}
+      {/* 7. PARTICIPATING HIGHER EDUCATION INSTITUTIONS (#universities) */}
       {/* ------------------------------------------------------------- */}
       <section id="universities" className="py-20 bg-slate-50 border-y border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-3xl mx-auto space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-3xl mx-auto space-y-3"
+          >
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0077C8] bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
               Institutional Framework
             </span>
@@ -1077,11 +1446,17 @@ export const PublicMarketingPortal: React.FC = () => {
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
               SmartSpace is architected to serve both Public and Private higher education institutions with customized governance models, approval routing, and security clearances.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* 1. PUBLIC HIGHER EDUCATION INSTITUTIONS */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6 }}
+              className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group"
+            >
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-blue-50 text-[#0077C8] border border-blue-200">
@@ -1096,7 +1471,7 @@ export const PublicMarketingPortal: React.FC = () => {
                   <h3 className="text-2xl font-black text-slate-950 group-hover:text-[#0077C8] transition-colors">
                     State Universities & Colleges
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
                     Designed for chartered state universities, regional campuses, and local government colleges requiring multi-college inventory coordination, student council allocations, and transparent audit compliance.
                   </p>
                 </div>
@@ -1159,10 +1534,16 @@ export const PublicMarketingPortal: React.FC = () => {
                   <span>Public SUC Sign In</span>
                 </button>
               </div>
-            </div>
+            </motion.div>
 
             {/* 2. PRIVATE HIGHER EDUCATION INSTITUTIONS */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6 }}
+              className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group"
+            >
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
@@ -1177,7 +1558,7 @@ export const PublicMarketingPortal: React.FC = () => {
                   <h3 className="text-2xl font-black text-slate-950 group-hover:text-amber-600 transition-colors">
                     Private Universities & Colleges
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
                     Built for private university systems, sectarian colleges, and autonomous academic institutions requiring granular role-based approvals, QR gate clearance, and operational expense analytics.
                   </p>
                 </div>
@@ -1240,7 +1621,7 @@ export const PublicMarketingPortal: React.FC = () => {
                   <span>Private University Sign In</span>
                 </button>
               </div>
-            </div>
+            </motion.div>
           </div>
 
           {/* Institutional Ecosystem Summary Bar */}
@@ -1258,14 +1639,14 @@ export const PublicMarketingPortal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/university/register')}
-                className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white font-bold text-xs transition-colors"
+                className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white font-bold text-xs transition-colors cursor-pointer"
               >
                 Register Your Institution
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/request-demo')}
-                className="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors"
+                className="flex-1 sm:flex-none px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
               >
                 Request Demo
               </button>
@@ -1275,20 +1656,26 @@ export const PublicMarketingPortal: React.FC = () => {
       </section>
 
       {/* ------------------------------------------------------------- */}
-      {/* 7. ACTUAL INTERFACE PREVIEW (Interactive Product Showcase)     */}
+      {/* 8. TRUST, SECURITY & ACTUAL INTERFACE PREVIEW                 */}
       {/* ------------------------------------------------------------- */}
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        <div className="text-center max-w-3xl mx-auto space-y-3">
+      <section id="trust-security" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto space-y-3"
+        >
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0077C8] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
             Real Software Experience
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
-            Designed for Campus Precision
+            Designed for Campus Operating Precision
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
             Inspect the exact interfaces university administrators and student leaders use every single day.
           </p>
-        </div>
+        </motion.div>
 
         {/* Tab Selector */}
         <div className="flex justify-center">
@@ -1469,139 +1856,157 @@ export const PublicMarketingPortal: React.FC = () => {
       </section>
 
       {/* ------------------------------------------------------------- */}
-      {/* 8. CAMPUS IMPACT STATS BAND (Deep Navy Section)               */}
+      {/* 9. CAMPUS IMPACT STATS BAND (Deep Navy Section)               */}
       {/* ------------------------------------------------------------- */}
       <div className="p-2 sm:p-4 max-w-[1920px] mx-auto">
         <section className="rounded-[2rem] bg-[#0B1528] text-white py-16 sm:py-20 px-6 sm:px-12 border border-slate-800 shadow-2xl space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-2xl mx-auto space-y-3"
+          >
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#FDB813] bg-amber-950/60 border border-amber-800/60 px-3 py-1 rounded-full">
               Measurable Campus Results
             </span>
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white font-sans">
               A Platform Built For Reliability
             </h2>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-6xl mx-auto">
-            <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-2 text-center">
-              <strong className="text-4xl sm:text-6xl font-black text-[#8CC63F] block font-mono">
-                100%
-              </strong>
-              <span className="text-xs sm:text-sm text-slate-300 font-bold block">
-                Conflict-Free Rate
-              </span>
-              <p className="text-[11px] text-slate-400">
-                Zero schedule double-bookings recorded across all participating venues.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-2 text-center">
-              <strong className="text-4xl sm:text-6xl font-black text-[#0077C8] block font-mono">
-                48+
-              </strong>
-              <span className="text-xs sm:text-sm text-slate-300 font-bold block">
-                Active Campus Spaces
-              </span>
-              <p className="text-[11px] text-slate-400">
-                Lecture rooms, gymnasiums, sports courts, and STEM labs in the network.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-2 text-center">
-              <strong className="text-4xl sm:text-6xl font-black text-[#FDB813] block font-mono">
-                &lt; 15m
-              </strong>
-              <span className="text-xs sm:text-sm text-slate-300 font-bold block">
-                Average Approval Time
-              </span>
-              <p className="text-[11px] text-slate-400">
-                Turnaround on digital endorsements vs days of physical paper routing.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-2 text-center">
-              <strong className="text-4xl sm:text-6xl font-black text-[#EE2726] block font-mono">
-                12K+
-              </strong>
-              <span className="text-xs sm:text-sm text-slate-300 font-bold block">
-                Users & Students Served
-              </span>
-              <p className="text-[11px] text-slate-400">
-                Student councils, faculty, and administrative staff booking with confidence.
-              </p>
-            </div>
+            {[
+              {
+                stat: '100%',
+                color: 'text-[#8CC63F]',
+                label: 'Conflict-Free Rate',
+                sub: 'Zero schedule double-bookings recorded across all participating venues.',
+              },
+              {
+                stat: '48+',
+                color: 'text-[#0077C8]',
+                label: 'Active Campus Spaces',
+                sub: 'Lecture rooms, gymnasiums, sports courts, and STEM labs in the network.',
+              },
+              {
+                stat: '< 15m',
+                color: 'text-[#FDB813]',
+                label: 'Average Approval Time',
+                sub: 'Turnaround on digital endorsements vs days of physical paper routing.',
+              },
+              {
+                stat: '12K+',
+                color: 'text-[#EE2726]',
+                label: 'Users & Students Served',
+                sub: 'Student councils, faculty, and administrative staff booking with confidence.',
+              },
+            ].map((item, idx) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-2 text-center"
+              >
+                <strong className={`text-4xl sm:text-6xl font-black ${item.color} block font-mono`}>
+                  {item.stat}
+                </strong>
+                <span className="text-xs sm:text-sm text-slate-300 font-bold block">
+                  {item.label}
+                </span>
+                <p className="text-[11px] text-slate-400 font-normal">
+                  {item.sub}
+                </p>
+              </motion.div>
+            ))}
           </div>
         </section>
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* 9. TESTIMONIALS & CAMPUS REVIEWS                              */}
+      {/* 10. TESTIMONIALS & CAMPUS REVIEWS                             */}
       {/* ------------------------------------------------------------- */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        <div className="text-center max-w-2xl mx-auto space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-2xl mx-auto space-y-3"
+        >
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0077C8] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
             Campus Endorsements
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
             Trusted by Campus Leaders & Student Organizations
           </h2>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
-            <div className="space-y-3">
-              <span className="text-3xl font-serif text-[#0077C8]">“</span>
-              <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                Eliminated the nightmare of paper booking slips and lost request letters. We reserved the grand amphitheater for our annual student convention in under five minutes.
-              </p>
-            </div>
-            <div className="pt-4 border-t border-slate-100">
-              <strong className="text-xs font-black text-slate-900 block">J. Dela Cruz</strong>
-              <span className="text-[11px] text-slate-500">Supreme Student Government President</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
-            <div className="space-y-3">
-              <span className="text-3xl font-serif text-[#FDB813]">“</span>
-              <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                Double bookings used to cause total chaos during midterms and college week. SmartSpace's real-time conflict lock completely ended schedule collisions on our campus.
-              </p>
-            </div>
-            <div className="pt-4 border-t border-slate-100">
-              <strong className="text-xs font-black text-slate-900 block">Engr. R. Santos</strong>
-              <span className="text-[11px] text-slate-500">Physical Plant & Facilities Director</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
-            <div className="space-y-3">
-              <span className="text-3xl font-serif text-[#8CC63F]">“</span>
-              <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                The mobile QR gate pass makes it effortless for campus security to verify approved room occupants. Transparent approval chains have restored order to our event spaces.
-              </p>
-            </div>
-            <div className="pt-4 border-t border-slate-100">
-              <strong className="text-xs font-black text-slate-900 block">Dr. M. Fernandez</strong>
-              <span className="text-[11px] text-slate-500">College of Computer Studies & Engineering Dean</span>
-            </div>
-          </div>
+          {[
+            {
+              quote: 'Eliminated the nightmare of paper booking slips and lost request letters. We reserved the grand amphitheater for our annual student convention in under five minutes.',
+              author: 'J. Dela Cruz',
+              role: 'Supreme Student Government President',
+              color: 'text-[#0077C8]',
+            },
+            {
+              quote: 'Double bookings used to cause total chaos during midterms and college week. SmartSpace\'s real-time conflict lock completely ended schedule collisions on our campus.',
+              author: 'Engr. R. Santos',
+              role: 'Physical Plant & Facilities Director',
+              color: 'text-[#FDB813]',
+            },
+            {
+              quote: 'The mobile QR gate pass makes it effortless for campus security to verify approved room occupants. Transparent approval chains have restored order to our event spaces.',
+              author: 'Dr. M. Fernandez',
+              role: 'College of Computer Studies & Engineering Dean',
+              color: 'text-[#8CC63F]',
+            },
+          ].map((t, idx) => (
+            <motion.div
+              key={t.author}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between hover:shadow-md transition-shadow"
+            >
+              <div className="space-y-3">
+                <span className={`text-4xl font-serif ${t.color}`}>“</span>
+                <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                  {t.quote}
+                </p>
+              </div>
+              <div className="pt-4 border-t border-slate-100">
+                <strong className="text-xs font-black text-slate-900 block">{t.author}</strong>
+                <span className="text-[11px] text-slate-500">{t.role}</span>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
       {/* ------------------------------------------------------------- */}
-      {/* 10. FREQUENTLY ASKED QUESTIONS (Accordion)                    */}
+      {/* 11. FREQUENTLY ASKED QUESTIONS (Accordion)                    */}
       {/* ------------------------------------------------------------- */}
-      <section className="py-20 bg-slate-50 border-t border-slate-200">
+      <section id="faq" className="py-20 bg-slate-50 border-t border-slate-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          <div className="text-center space-y-3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+            className="text-center space-y-3"
+          >
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0077C8] bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
               Common Questions
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
               Frequently Asked Questions
             </h2>
-          </div>
+          </motion.div>
 
           <div className="space-y-3">
             {faqs.map((faq, idx) => (
@@ -1622,7 +2027,7 @@ export const PublicMarketingPortal: React.FC = () => {
                   )}
                 </button>
                 {openFaq === idx && (
-                  <div className="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                  <div className="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3 font-normal">
                     {faq.a}
                   </div>
                 )}
@@ -1633,10 +2038,16 @@ export const PublicMarketingPortal: React.FC = () => {
       </section>
 
       {/* ------------------------------------------------------------- */}
-      {/* 11. INSTITUTIONAL CALL-TO-ACTION SECTION                       */}
+      {/* 12. INSTITUTIONAL CALL-TO-ACTION SECTION                       */}
       {/* ------------------------------------------------------------- */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-        <div className="bg-gradient-to-br from-[#0B1528] via-[#0F1E36] to-[#0B1528] rounded-[2rem] p-8 sm:p-14 text-white space-y-6 shadow-2xl border border-slate-800">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="bg-gradient-to-br from-[#0B1528] via-[#0F1E36] to-[#0B1528] rounded-[2rem] p-8 sm:p-14 text-white space-y-6 shadow-2xl border border-slate-800"
+        >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/40 text-blue-300 text-xs font-bold border border-blue-700/50">
             <Building2 className="w-3.5 h-3.5" />
             <span>Modernize Campus Facility Operations</span>
@@ -1646,7 +2057,7 @@ export const PublicMarketingPortal: React.FC = () => {
             Ready to upgrade your university space management?
           </h2>
 
-          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto font-normal">
             Schedule an institutional demonstration or explore our live multi-campus facility directory today.
           </p>
 
@@ -1666,11 +2077,11 @@ export const PublicMarketingPortal: React.FC = () => {
               Enter Access Gateway
             </button>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ------------------------------------------------------------- */}
-      {/* 12. OFFICIAL SMART SPACE B2B SAAS FOOTER                      */}
+      {/* 13. OFFICIAL SMART SPACE B2B SAAS FOOTER                      */}
       {/* ------------------------------------------------------------- */}
       <footer className="bg-white border-t border-slate-200 py-14 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
@@ -1687,16 +2098,16 @@ export const PublicMarketingPortal: React.FC = () => {
                 <span className="font-black text-slate-900 uppercase text-[10px] tracking-wider block">
                   Portals
                 </span>
-                <button onClick={() => navigate('/access')} className="block hover:text-[#0077C8] transition-colors">
+                <button onClick={() => navigate('/access')} className="block hover:text-[#0077C8] transition-colors cursor-pointer">
                   Access Gateway
                 </button>
-                <button onClick={() => navigate('/user/login')} className="block hover:text-[#0077C8] transition-colors">
+                <button onClick={() => navigate('/user/login')} className="block hover:text-[#0077C8] transition-colors cursor-pointer">
                   End-User Portal
                 </button>
-                <button onClick={() => navigate('/university/login')} className="block hover:text-[#0077C8] transition-colors">
+                <button onClick={() => navigate('/university/login')} className="block hover:text-[#0077C8] transition-colors cursor-pointer">
                   University Admin Portal
                 </button>
-                <button onClick={() => navigate('/superadmin/login')} className="block hover:text-[#0077C8] transition-colors">
+                <button onClick={() => navigate('/superadmin/login')} className="block hover:text-[#0077C8] transition-colors cursor-pointer">
                   Super Admin Portal
                 </button>
               </div>
@@ -1705,16 +2116,19 @@ export const PublicMarketingPortal: React.FC = () => {
                 <span className="font-black text-slate-900 uppercase text-[10px] tracking-wider block">
                   Explore
                 </span>
-                <button onClick={() => scrollToSection('facilities-catalog')} className="block hover:text-[#0077C8] transition-colors">
+                <button onClick={() => scrollToSection('facilities-catalog')} className="block hover:text-[#0077C8] transition-colors cursor-pointer">
                   Campus Facilities
                 </button>
-                <button onClick={() => scrollToSection('how-it-works')} className="block hover:text-[#0077C8] transition-colors">
+                <button onClick={() => scrollToSection('features')} className="block hover:text-[#0077C8] transition-colors cursor-pointer">
+                  Platform Features
+                </button>
+                <button onClick={() => scrollToSection('how-it-works')} className="block hover:text-[#0077C8] transition-colors cursor-pointer">
                   How It Works
                 </button>
-                <button onClick={() => scrollToSection('universities')} className="block hover:text-[#0077C8] transition-colors">
+                <button onClick={() => scrollToSection('universities')} className="block hover:text-[#0077C8] transition-colors cursor-pointer">
                   Universities
                 </button>
-                <button onClick={() => navigate('/request-demo')} className="block hover:text-[#0077C8] transition-colors">
+                <button onClick={() => navigate('/request-demo')} className="block hover:text-[#0077C8] transition-colors cursor-pointer">
                   Request Demo
                 </button>
               </div>
@@ -1727,12 +2141,40 @@ export const PublicMarketingPortal: React.FC = () => {
                 <span className="block text-slate-400">Real-Time Conflict Engine</span>
                 <span className="block text-slate-400">Encrypted QR Verification</span>
               </div>
+
+              {/* Direct University & Platform Contact (E-E-A-T & SEO Compliance) */}
+              <div id="contact" className="space-y-2.5">
+                <span className="font-black text-slate-900 uppercase text-[10px] tracking-wider block">
+                  Contact & Campus Support
+                </span>
+                <a
+                  href="mailto:support@smartspace.ph"
+                  className="block text-slate-600 hover:text-[#0077C8] font-medium transition-colors"
+                  aria-label="Email SmartSpace Support"
+                >
+                  support@smartspace.ph
+                </a>
+                <a
+                  href="tel:+63324155555"
+                  className="block text-slate-600 hover:text-[#0077C8] font-medium transition-colors"
+                  aria-label="Call SmartSpace University Hotline"
+                >
+                  +63 32 415 5555
+                </a>
+                <span className="block text-slate-400 text-[11px] leading-tight max-w-[180px]">
+                  CTU Main Campus Hub, M.J. Cuenco Ave., Cebu City, 6000 PH
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  SLA: &lt;2hr response on school days
+                </span>
+              </div>
             </div>
           </div>
 
           <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
             <p>© {new Date().getFullYear()} SmartSpace. All rights reserved.</p>
-            <p className="text-slate-400">
+            <p className="text-slate-400 font-semibold">
               SMARTSPACE · “BOOK IT, TRACK IT, USE IT.”
             </p>
           </div>
@@ -1740,7 +2182,7 @@ export const PublicMarketingPortal: React.FC = () => {
       </footer>
 
       {/* ------------------------------------------------------------- */}
-      {/* 13. MODALS (Facility Detail, Executive Deck, Demo Request)    */}
+      {/* 14. MODALS (Facility Detail, Executive Deck, Demo Request)    */}
       {/* ------------------------------------------------------------- */}
       {selectedFacilityForModal && (
         <FacilityDetailModal

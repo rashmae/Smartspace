@@ -310,6 +310,29 @@ async function startServer() {
   });
 
   // -------------------------------------------------------------
+  // SEO & AI SEARCH READINESS STATIC ASSETS
+  // -------------------------------------------------------------
+  app.get('/sitemap.xml', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+  });
+
+  app.get('/robots.txt', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
+  });
+
+  app.get('/llms.txt', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.sendFile(path.join(__dirname, 'public', 'llms.txt'));
+  });
+
+  app.get('/smartspace-og.png', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'image/png');
+    res.sendFile(path.join(__dirname, 'public', 'smartspace-og.png'));
+  });
+
+  // -------------------------------------------------------------
   // VITE DEV MIDDLEWARE INTEGRATION
   // -------------------------------------------------------------
   const isProd = process.env.NODE_ENV === 'production';

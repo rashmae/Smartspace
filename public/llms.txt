@@ -1,0 +1,41 @@
+# SmartSpace — Multi-University Facility Booking & Campus Resource Management SaaS
+
+> Tagline: "Book It, Track It, Use It."
+> Website: https://smartspace.ph/
+> Last Updated: 2026-11-08
+
+## Overview
+SmartSpace is a multi-tenant higher education SaaS platform designed for university campuses across the Philippines and Southeast Asia. It digitizes physical facility management, eliminates paper booking forms, resolves scheduling conflicts in real-time, automates multi-tiered institutional approvals, and issues encrypted, time-bounded QR gate passes for campus security.
+
+## Core Value Proposition
+- **Conflict Prevention Engine**: Instant sub-second locking ensures zero overlapping reservations for high-demand campus venues (auditoriums, gymnasiums, sports courts, computer labs, lecture theaters, and seminar rooms).
+- **Multi-Level Academic Approval Pipeline**: Department Chair, College Dean, Physical Plant & Facilities Director, and Campus Security verify booking requirements, clearances, and adviser endorsements systematically.
+- **Encrypted Digital QR Gate Pass**: Approved bookings produce a scannable QR pass that guards and venue custodians verify on mobile devices at physical checkpoints.
+- **Cross-University Booking**: Enables accredited student organizations and academic departments from partner universities to discover and reserve host campus venues with verified institutional clearance.
+- **Centralized Facility Governance**: High-level utilization analytics, automated check-in compliance, equipment tracking, and incident logging for university administrations.
+
+## Target Audience & User Roles
+1. **Students & Student Organizations**: Browse available venues, submit reservation requests with event advisers, and receive digital gate passes.
+2. **Faculty & Department Chairs**: Review college requests, reserve academic colloquium rooms, and approve syllabus-aligned workshops.
+3. **University Facility Administrators**: Manage facility catalog, define advance reservation windows, enforce cleaning intervals, and monitor campus capacity.
+4. **Campus Security & Building Custodians**: Scan QR gate passes at entry points, inspect attendance compliance, and log check-in/out timestamps.
+5. **Super Administrators**: Manage institution tenants, system audit logs, and platform security.
+
+## Key URLs & Resources
+- **Homepage & Public Portal**: https://smartspace.ph/
+- **Campus Facility Catalog**: https://smartspace.ph/#facilities-catalog
+- **Platform Features**: https://smartspace.ph/#features
+- **System Architecture & How It Works**: https://smartspace.ph/#how-it-works
+- **Partner Universities & Sectors**: https://smartspace.ph/#universities
+- **About SmartSpace & Leadership**: https://smartspace.ph/#about
+- **Trust, Security & Privacy**: https://smartspace.ph/#trust-security
+- **Frequently Asked Questions**: https://smartspace.ph/#faq
+- **Request Institutional Demo**: https://smartspace.ph/request-demo
+- **Authentication & Secure Sign-In**: https://smartspace.ph/access
+
+## Organization Contact Details
+- **Email**: mailto:support@smartspace.ph
+- **Phone**: tel:+63324155555
+- **Office Location**: Cebu Technological University Main Campus / University Innovation Hub, M.J. Cuenco Ave. cor. R. Palma St., Cebu City, 6000, Philippines
+- **Sector**: Higher Education Facility Management & Academic Resource Governance Software
+- **Operating Regions**: Philippines, ASEAN University Networks
