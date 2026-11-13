@@ -33,7 +33,10 @@ import {
   Check,
   RefreshCw,
   LogOut,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Bot,
+  Send,
+  Cpu
 } from 'lucide-react';
 import { formatDateTime12Hour, formatTimeOnly12Hour } from '../utils/timeFormat';
 
@@ -57,15 +60,23 @@ export const SuperAdminView: React.FC = () => {
     updateUserAccountRole,
     platformSettings,
     updatePlatformSettings,
+    aiAutomationJobs,
+    emailDeliveryRecords,
+    approveAIJob,
+    retryAIJob,
+    retryEmailDelivery,
+    triggerManualAIAnalysis,
   } = useApp();
 
   const [adminSection, setAdminSection] = useState<
-    'institutions' | 'pending-registrations' | 'demo-inquiries' | 'login-security' | 'user-management' | 'platform-settings'
+    'institutions' | 'pending-registrations' | 'demo-inquiries' | 'login-security' | 'user-management' | 'platform-settings' | 'ai-automation'
   >('institutions');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isGeneratingAiSummary, setIsGeneratingAiSummary] = useState(false);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState<string | null>(null);
   const [editingInst, setEditingInst] = useState<Institution | null>(null);
 
   // Security Monitoring state
@@ -513,7 +524,25 @@ export const SuperAdminView: React.FC = () => {
           <Mail className="w-4 h-4" />
           <span>Demo Inquiries ({demoRequests.length})</span>
         </button>
+
+        <button
+          onClick={() => setAdminSection('ai-automation')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            adminSection === 'ai-automation'
+              ? 'border-indigo-600 text-indigo-700 bg-white rounded-t-lg'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Bot className="w-4 h-4 text-indigo-600" />
+          <span>AI Automation & Dispatch</span>
+          {aiAutomationJobs.filter((j) => j.status === 'requires_human_approval').length > 0 && (
+            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black">
+              {aiAutomationJobs.filter((j) => j.status === 'requires_human_approval').length} Review
+            </span>
+          )}
+        </button>
       </div>
+
 
       {/* SECTION: LOGIN ACTIVITY & SECURITY MONITORING */}
       {adminSection === 'login-security' && (
@@ -1238,8 +1267,292 @@ export const SuperAdminView: React.FC = () => {
         </div>
       )}
 
+      {/* SECTION: AGENTIC AI AUTOMATION & EMAIL DISPATCH MONITOR */}
+      {adminSection === 'ai-automation' && (
+        <div className="space-y-6">
+          {/* Executive Overview Card */}
+          <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl relative overflow-hidden">
+            <div className="relative z-10 max-w-3xl space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold border border-indigo-400/30">
+                <Bot className="w-4 h-4 text-indigo-400" />
+                <span>Autonomous Operations & Gemini 3.8 Flash Agent</span>
+              </div>
+              <h2 className="text-xl sm:text-3xl font-black text-white tracking-tight">
+                AI Automation Task Queue & Email Dispatcher
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Server-side AI models autonomously classify institutional demo requests, construct 12-hour AM/PM gate permits, and alert provisioned Super Admins. Human-in-the-Loop review is required for non-standard enterprise inquiries.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 pt-3">
+                <button
+                  onClick={async () => {
+                    setIsGeneratingAiSummary(true);
+                    const res = await triggerManualAIAnalysis();
+                    setIsGeneratingAiSummary(false);
+                    if (res.summary) {
+                      setAiAnalysisResult(res.summary);
+                    }
+                  }}
+                  disabled={isGeneratingAiSummary}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98 disabled:opacity-60"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>{isGeneratingAiSummary ? 'Analyzing with Gemini...' : 'Run Real-time AI Venue Diagnostics'}</span>
+                </button>
+
+                <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Private BCC Dispatch: Active (5 Provisioned Super Admins)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Live AI Analysis Banner if generated */}
+          {aiAnalysisResult && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-indigo-50 border border-indigo-200 text-slate-900 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-indigo-600" />
+                  Gemini Model Diagnostics Brief
+                </span>
+                <button
+                  onClick={() => setAiAnalysisResult(null)}
+                  className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+              <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                {aiAnalysisResult}
+              </p>
+            </div>
+          )}
+
+          {/* Human-in-the-Loop Review Queue */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <ShieldAlert className="w-5 h-5 text-amber-500" />
+                  <span>Human-in-the-Loop Governance Queue</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Actions paused for Super Admin review prior to SLA agreement generation or automated tenant provisioning.
+                </p>
+              </div>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                {aiAutomationJobs.filter((j) => j.status === 'requires_human_approval').length} Awaiting Approval
+              </span>
+            </div>
+
+            {aiAutomationJobs.filter((j) => j.status === 'requires_human_approval').length === 0 ? (
+              <div className="p-6 text-center text-xs text-slate-500 italic bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                All high-priority AI automation tasks are currently approved and processed.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {aiAutomationJobs
+                  .filter((j) => j.status === 'requires_human_approval')
+                  .map((job) => (
+                    <div
+                      key={job.id}
+                      className="p-4 rounded-xl border border-amber-200 bg-amber-50/50 space-y-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1.5 max-w-2xl">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-200 text-amber-900">
+                            {job.aiCategory || 'Enterprise Onboarding'}
+                          </span>
+                          <span className="font-bold text-sm text-slate-900">{job.title}</span>
+                        </div>
+                        <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                          {job.aiSummary}
+                        </p>
+                        {job.aiDraftContent && (
+                          <div className="text-[11px] text-slate-600 bg-white/80 p-2.5 rounded-lg border border-amber-200/80 italic">
+                            "{job.aiDraftContent}"
+                          </div>
+                        )}
+                        <div className="text-[10px] text-slate-500 flex items-center gap-3">
+                          <span>Suggested Lead: <strong>{job.suggestedSuperAdmin || 'Rashmae'}</strong></span>
+                          <span>·</span>
+                          <span>Logged: {formatDateTime12Hour(job.createdAt)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => approveAIJob(job.id)}
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Approve & Dispatch</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* Automation Jobs Queue */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-indigo-600" />
+                  <span>Agent Task Execution Queue</span>
+                </h3>
+                <p className="text-xs text-slate-500">Autonomous categorization, permit QR compiles, and notification flows</p>
+              </div>
+              <span className="text-xs text-slate-500 font-medium">
+                {aiAutomationJobs.length} Tasks Recorded
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {aiAutomationJobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                        job.status === 'completed'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : job.status === 'requires_human_approval'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {job.status.replace(/_/g, ' ')}
+                      </span>
+                      <span className="text-xs font-bold text-slate-900">{job.title}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                      <span>{formatDateTime12Hour(job.createdAt)}</span>
+                      {job.status === 'failed' && (
+                        <button
+                          onClick={() => retryAIJob(job.id)}
+                          className="px-2.5 py-1 rounded bg-indigo-600 text-white font-bold text-[10px] hover:bg-indigo-700 cursor-pointer"
+                        >
+                          Retry Task
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {job.aiSummary && (
+                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                      {job.aiSummary}
+                    </p>
+                  )}
+
+                  {/* Execution Logs */}
+                  <div className="pt-2 border-t border-slate-200/70 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                      Autonomous Trace & Verification Logs:
+                    </span>
+                    <div className="flex flex-wrap gap-2 text-[10px] font-mono text-slate-600">
+                      {job.executionLogs.map((log, idx) => (
+                        <span key={idx} className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                          {log}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Automated Email Delivery Audit Log */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <Send className="w-5 h-5 text-indigo-600" />
+                  <span>Super Admin Email Dispatch & Delivery Audit</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Automated alert routing to provisioned Super Admins (BCC recipient addresses protected).
+                </p>
+              </div>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                100% Dispatch Reliability
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="py-2.5 px-3">Subject & Payload</th>
+                    <th className="py-2.5 px-3">Inquiry Type</th>
+                    <th className="py-2.5 px-3">Recipients & Privacy</th>
+                    <th className="py-2.5 px-3">Time</th>
+                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-2.5 px-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {emailDeliveryRecords.map((del) => (
+                    <tr key={del.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3 px-3 font-semibold text-slate-900 max-w-xs truncate">
+                        {del.subject}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold text-[10px] border border-indigo-200">
+                          {del.inquiryType || 'General'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-slate-600">
+                        <span className="font-medium">
+                          {del.recipientCount} Provisioned Super Admins
+                        </span>
+                        <span className="block text-[10px] text-emerald-600 font-medium">
+                          ✓ Private BCC Protected
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
+                        {del.formattedTime} ({formatDateTime12Hour(del.timestamp).split(',')[0]})
+                      </td>
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          del.status === 'delivered'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : del.status === 'queued'
+                            ? 'bg-amber-100 text-amber-800'
+                            : del.status === 'sending'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {del.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right whitespace-nowrap">
+                        <button
+                          onClick={() => retryEmailDelivery(del.id)}
+                          className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[10px] transition-colors cursor-pointer"
+                        >
+                          Resend Alert
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ADD UNIVERSITY MODAL */}
       {showAddModal && (
+
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="p-6 bg-slate-900 text-white flex items-center justify-between">

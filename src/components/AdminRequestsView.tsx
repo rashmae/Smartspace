@@ -15,7 +15,10 @@ import {
   User,
   ArrowRight,
   Filter,
-  Globe
+  Globe,
+  KeyRound,
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 import { formatDateTime12Hour, formatTimeRange, formatTo12Hour } from '../utils/timeFormat';
 
@@ -26,6 +29,8 @@ export const AdminRequestsView: React.FC = () => {
     rejectBooking, 
     checkTimeConflict,
     currentInstitution,
+    institutionHandlers,
+    verifyAndExecuteHandlerApproval,
     setCurrentRole,
     setActiveView 
   } = useApp();
@@ -34,6 +39,13 @@ export const AdminRequestsView: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [selectedPresetReason, setSelectedPresetReason] = useState('');
   const [activeTab, setActiveTab] = useState<'pending' | 'all'>('pending');
+
+  // Handler PIN Verification Modal State
+  const [handlerPinBooking, setHandlerPinBooking] = useState<BookingRequest | null>(null);
+  const [selectedHandlerId, setSelectedHandlerId] = useState<string>('');
+  const [enteredPin, setEnteredPin] = useState<string>('');
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [isVerifyingPin, setIsVerifyingPin] = useState<boolean>(false);
 
   const pendingRequests = institutionBookings.filter((b) => b.status === 'pending');
   const allRequests = institutionBookings;
@@ -278,7 +290,27 @@ export const AdminRequestsView: React.FC = () => {
                       className="px-3.5 py-1.5 rounded-lg border border-red-300 text-red-700 hover:bg-red-50 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <XCircle className="w-4 h-4 text-red-600" />
-                      <span>Reject with Reason</span>
+                      <span>Reject</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setHandlerPinBooking(booking);
+                        const assignedHandler = institutionHandlers.find((h) =>
+                          h.assignedFacilityIds.includes(booking.facilityId)
+                        ) || institutionHandlers[0];
+                        setSelectedHandlerId(assignedHandler ? assignedHandler.id : '');
+                        setEnteredPin('123456');
+                        setPinError(null);
+                      }}
+                      disabled={conflict.hasConflict}
+                      className={`px-3.5 py-1.5 rounded-lg border border-purple-300 text-purple-800 bg-purple-50 hover:bg-purple-100 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                        conflict.hasConflict ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      title="Authenticate approval using designated facility custodian PIN"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Handler PIN Sign-Off</span>
                     </button>
 
                     <button
@@ -292,11 +324,13 @@ export const AdminRequestsView: React.FC = () => {
                       title={conflict.hasConflict ? 'Cannot approve due to conflicting reservation' : 'Approve reservation'}
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>Approve Reservation</span>
+                      <span>Direct Approve</span>
                     </button>
                   </div>
                 </div>
               )}
+
+
 
               {/* Recorded Rejection Reason display if already rejected */}
               {booking.status === 'rejected' && booking.rejectionReason && (
@@ -411,6 +445,130 @@ export const AdminRequestsView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Handler PIN Verification Modal */}
+      {handlerPinBooking && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                  <KeyRound className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900">Personnel PIN Verification</h3>
+                  <p className="text-[11px] text-slate-500">Atomic attribution for permit issuance</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setHandlerPinBooking(null)}
+                className="text-slate-400 hover:text-slate-600 text-lg font-bold px-2 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+              <div className="font-bold text-slate-800">{handlerPinBooking.eventName}</div>
+              <div className="text-slate-600 flex items-center justify-between">
+                <span>{handlerPinBooking.facilityName}</span>
+                <span className="font-semibold">{handlerPinBooking.date}</span>
+              </div>
+              <div className="text-[11px] text-purple-700 font-medium">
+                {formatTo12Hour(handlerPinBooking.startTime)} – {formatTo12Hour(handlerPinBooking.endTime)} ({handlerPinBooking.requesterName})
+              </div>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setPinError(null);
+                setIsVerifyingPin(true);
+
+                const res = await verifyAndExecuteHandlerApproval({
+                  handlerId: selectedHandlerId,
+                  facilityId: handlerPinBooking.facilityId,
+                  bookingId: handlerPinBooking.id,
+                  accessCode: enteredPin,
+                  decision: 'approve',
+                });
+
+                setIsVerifyingPin(false);
+                if (res.success) {
+                  setHandlerPinBooking(null);
+                } else {
+                  setPinError(res.error || 'Invalid credentials.');
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Designated Facility Handler *
+                </label>
+                <select
+                  value={selectedHandlerId}
+                  onChange={(e) => setSelectedHandlerId(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 font-medium"
+                >
+                  {institutionHandlers.map((h) => (
+                    <option key={h.id} value={h.id}>
+                      {h.name} ({h.isPrimary ? 'Primary' : 'Backup'} · {h.department})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Handler Security PIN Code *
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter 6-digit access code"
+                    value={enteredPin}
+                    onChange={(e) => setEnteredPin(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 font-mono tracking-widest text-center"
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                  <span>Authorized custodian verification</span>
+                  <span className="text-purple-600 font-medium">Demo PIN: 123456</span>
+                </div>
+              </div>
+
+              {pinError && (
+                <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                  <span>{pinError}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setHandlerPinBooking(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isVerifyingPin}
+                  className="px-4 py-2 text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{isVerifyingPin ? 'Verifying PIN...' : 'Authenticate & Issue Permit'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
+
   );
 };

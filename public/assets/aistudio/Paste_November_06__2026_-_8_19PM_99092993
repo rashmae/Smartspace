@@ -1,0 +1,688 @@
+MASTER DESIGN PROMPT — SMARTSPACE PREMIUM SaaS WEBSITE REDESIGN
+Project Overview
+Act as an award-winning SaaS product designer, senior UI/UX designer, creative director, and expert React developer specializing in premium enterprise software, university platforms, and modern SaaS experiences.
+Your task is to significantly enhance the existing SmartSpace website and platform using the visual sophistication, animation techniques, typography hierarchy, layout composition, image treatments, and interaction patterns inspired by the provided Naturally skincare website design prompt.
+IMPORTANT: SmartSpace is an existing application. This is a design enhancement and modernization project, NOT a complete rebuild.
+Retain the existing SmartSpace application, source code, architecture, database integrations, routes, authentication, business logic, and features.
+Do not replace existing functionality with mockups or static demonstrations.
+The objective is to transform SmartSpace into a visually outstanding, premium, professional, and highly usable university facility reservation SaaS platform.
+1. ABSOLUTE BRAND PRESERVATION RULES
+These requirements are mandatory.
+Preserve the SmartSpace identity
+Preserve the exact existing SmartSpace logo.
+Preserve the exact existing SmartSpace name.
+Preserve the existing SmartSpace tagline without rewriting it.
+Preserve the established SmartSpace brand colors and theme.
+Preserve the existing brand identity and visual symbolism.
+Preserve existing logos, brand marks, and institutional identity assets.
+Do not create an alternative logo.
+Do not replace the logo with an icon, text, or generic illustration.
+Do not modify the logo's proportions, colors, typography, or composition.
+Do not introduce a different branding concept.
+Use the actual existing SmartSpace logo and assets already available in the project.
+If the logo exists in the source code, locate and reuse it.
+If the logo is stored in an asset folder, use the existing asset path.
+Do not generate a substitute logo.
+SmartSpace visual identity
+SmartSpace must continue to look like SmartSpace.
+The design should communicate:
+Innovation
+University collaboration
+Smart campus technology
+Professionalism
+Trust
+Efficiency
+Digital transformation
+Enterprise-grade SaaS
+Do not turn SmartSpace into a generic template website.
+The Naturally design prompt is being used ONLY as inspiration for its design techniques, not its branding, color palette, or business concept.
+2. VISUAL DESIGN SYSTEM
+2.1 Color Palette
+Use the existing SmartSpace brand colors as the primary source of truth.
+Do not replace the current brand palette with Naturally's green colors.
+Inspect the existing logo, Tailwind configuration, CSS variables, and current application styling to identify the official SmartSpace colors.
+Establish a consistent design token system containing:
+SmartSpace primary brand color
+SmartSpace secondary brand color
+Primary accent color
+Background colors
+Surface colors
+Text colors
+Border colors
+Hover states
+Active states
+Success colors
+Warning colors
+Error colors
+Disabled states
+Use the existing brand colors throughout the interface.
+Color contrast requirements
+Accessibility and readability are mandatory.
+Use dark text on light surfaces.
+Use light text on dark surfaces.
+Never place dark text over a dark background.
+Never place light text over a light background.
+Maintain WCAG AA contrast wherever practical.
+Ensure buttons, navigation links, labels, and form inputs remain readable.
+Use subtle gradients only when they improve visual hierarchy.
+Do not introduce unnecessary dark overlays over important text.
+Preserve the existing SmartSpace dark/light theme functionality if implemented.
+For login and authentication screens, ensure the logo, SMARTSPACE branding, headings, and input labels remain clearly visible.
+3. TYPOGRAPHY SYSTEM
+Create a premium, professional typography hierarchy inspired by modern enterprise SaaS websites.
+Use the existing brand typography if already established.
+Otherwise, consider:
+Inter
+Manrope
+DM Sans
+Plus Jakarta Sans
+Recommended typography:
+Navigation
+14px–16px
+Medium font weight
+Clear letter spacing
+Hero headline
+48px–76px desktop
+36px–52px tablet
+30px–42px mobile
+Bold or semibold
+Tight line height
+Strong visual hierarchy
+Section headings
+32px–48px desktop
+24px–34px mobile
+Body text
+16px–18px desktop
+14px–16px mobile
+Comfortable line spacing
+Dashboard typography
+Clean sans-serif
+Highly readable
+Consistent numerical formatting
+Clear distinction between titles, labels, metrics, and descriptions
+Do not use excessively decorative fonts.
+SmartSpace is an enterprise SaaS platform, so typography must feel modern, trustworthy, and professional.
+4. GLOBAL LAYOUT SYSTEM
+Use a modern, spacious SaaS layout.
+Container
+Maximum width: approximately 1280px–1440px.
+Desktop horizontal padding: 32px–64px.
+Tablet horizontal padding: 24px–32px.
+Mobile horizontal padding: 16px–24px.
+Spacing
+Use consistent spacing throughout the interface.
+Large section spacing: 80px–120px desktop.
+Medium section spacing: 48px–72px.
+Mobile section spacing: 40px–64px.
+Layout
+Use:
+Flexbox
+CSS Grid
+Responsive containers
+Consistent alignment
+Controlled whitespace
+Strong visual hierarchy
+Avoid unnecessarily crowded interfaces.
+Do not make the entire page consist of small cards.
+Use a combination of:
+Large visual sections
+Editorial-style layouts
+Dashboard previews
+Image-and-text compositions
+Floating interface elements
+Full-width backgrounds
+Structured grids
+The design should feel like a premium SaaS company rather than a basic student project.
+5. SMARTSPACE LANDING PAGE
+The public landing page must be separate from the authenticated SaaS platform.
+The landing page must not look like an administrator dashboard.
+Its purpose is to introduce SmartSpace, communicate its value, showcase the platform, and encourage visitors to request a demo or access the application.
+5.1 Navigation Bar
+Create a premium, responsive navigation bar.
+Desktop
+Left:
+Existing SmartSpace logo.
+Existing SmartSpace brand name, if part of the current design.
+Center:
+Features
+How It Works
+Universities
+Facilities
+About SmartSpace
+Right:
+Log In
+Request Demo
+Preserve existing route names and navigation behavior.
+Do not create duplicate login systems.
+Navigation animations
+Transparent or subtle background at the top.
+On scroll, transition into a solid or translucent brand-compatible surface.
+Use backdrop blur where appropriate.
+Smoothly transition shadows and spacing.
+Add subtle hover effects to navigation links.
+Use an animated underline or color transition.
+Keep navigation accessible and readable.
+Mobile
+Use a hamburger menu.
+Animate the menu opening and closing.
+Keep the SmartSpace logo visible.
+Make navigation items easy to tap.
+Avoid horizontal overflow.
+6. HERO SECTION
+The hero section should become the most visually impressive part of the landing page.
+Use the premium visual composition techniques from the Naturally website prompt.
+However, SmartSpace must use university and facility reservation imagery instead of skincare imagery.
+Layout
+Create a visually rich hero section using either:
+Large left-aligned text with a right-side visual composition.
+Centered headline with an immersive background.
+Split-screen hero with text and a floating SaaS dashboard.
+Choose the composition that best fits the existing SmartSpace brand.
+Hero content
+Preserve the existing SmartSpace tagline exactly.
+Do not rewrite it.
+Use the existing tagline as a prominent visual element when appropriate.
+The hero should communicate the SmartSpace mission: modernizing university facility reservations and campus space management.
+Hero visuals
+Use realistic, high-quality imagery related to:
+University campuses
+Modern lecture halls
+University auditoriums
+Campus sports facilities
+Smart campus environments
+University event spaces
+Digital facility scheduling
+Combine imagery with actual SmartSpace interface previews.
+Examples:
+Floating booking calendar
+Facility availability panel
+Reservation status card
+Campus facility dashboard
+Booking confirmation interface
+University facility analytics
+These interface previews must visually resemble the actual SmartSpace application.
+Do not invent features that do not exist.
+Hero CTA
+Primary button:
+Request Demo
+Secondary button:
+Explore Facilities
+Preserve the existing functionality and routes for these actions.
+Hero animation
+Use Framer Motion for:
+Fade-in headline.
+Staggered subtitle appearance.
+Button entrance animation.
+Floating dashboard preview.
+Subtle background movement.
+Gentle parallax effects.
+Animated visual elements.
+Animations must remain subtle and professional.
+Avoid excessive movement that distracts from the message.
+7. SMARTSPACE FEATURES SECTION
+Create a visually rich feature showcase inspired by the Naturally website's category and product sections.
+Do not create ecommerce categories or shopping cards.
+Instead, showcase actual SmartSpace capabilities.
+Suggested features:
+Smart Facility Discovery
+Allow users to discover facilities across participating universities.
+Real-Time Availability
+Show facility availability and reservation scheduling.
+Automated Conflict Prevention
+Explain how SmartSpace prevents overlapping facility bookings.
+Digital QR Permits
+Show the digital permit process for approved reservations.
+Facility Management
+Show how university administrators manage facilities.
+Secure Approval Workflow
+Show how designated facility handlers approve or reject requests.
+Multi-University Collaboration
+Explain how users can discover facilities across institutions.
+Analytics and Reporting
+Show actual SmartSpace reporting capabilities.
+Use a combination of:
+Feature cards
+Large illustrations
+UI screenshots
+Floating data visualizations
+Image backgrounds
+Animated interface previews
+Avoid making all feature sections look identical.
+Use varied layouts to create visual interest.
+8. INTERACTIVE FACILITY SHOWCASE
+Create an immersive showcase of university facilities.
+Use actual facility-related images.
+Possible categories:
+Lecture halls
+Conference rooms
+University gymnasiums
+Auditoriums
+Laboratories
+Open courts
+Sports facilities
+Event venues
+Use realistic photography rather than generic abstract AI-generated graphics.
+Visual design
+Large image cards.
+Smooth image zoom on hover.
+Elegant text overlays.
+Subtle brand-colored overlays.
+Animated facility details.
+Capacity and equipment information when supported by existing data.
+Use authentic SmartSpace facility data when available.
+Do not fabricate actual availability, capacity, or university information.
+9. HOW SMARTSPACE WORKS
+Create an elegant workflow section explaining the reservation process.
+Use a timeline or connected steps.
+Step 1
+Discover a facility.
+Step 2
+Check availability.
+Step 3
+Submit a reservation request.
+Step 4
+The assigned facility administrator reviews the request.
+Step 5
+Receive approval and a digital permit.
+Use:
+Animated workflow illustrations.
+Smooth transitions.
+Icons.
+Timeline graphics.
+Booking interface previews.
+The workflow must accurately reflect the existing application.
+10. UNIVERSITY AND INSTITUTION SHOWCASE
+Create a section demonstrating SmartSpace's multi-university capabilities.
+Use a sophisticated grid or visual layout.
+Show participating institutions using their official logos and information when available.
+Do not invent institutional partnerships.
+Use actual institutional records if available.
+The section should communicate that SmartSpace supports multiple universities within a centralized SaaS platform.
+Make this section visually impressive without compromising accuracy.
+11. TRUST, SECURITY, AND ADMINISTRATION
+Create a professional section explaining the administrative and security capabilities of SmartSpace.
+Use real platform features such as:
+Role-based access control.
+University administration.
+Facility-specific approval permissions.
+Authentication security.
+Login monitoring.
+Audit logging.
+Reservation tracking.
+Administrative dashboards.
+Visual presentation:
+Large dashboard preview.
+Security status indicators.
+Subtle data visualization.
+Clear typography.
+Premium enterprise styling.
+Do not expose administrator credentials or private information.
+Do not display provisioned initial accounts anywhere in the public landing page.
+12. TESTIMONIALS AND SOCIAL PROOF
+Create a testimonials section only if actual testimonials are available.
+Do not invent student, university, or administrator testimonials.
+If authentic testimonials are unavailable, replace this section with:
+Platform benefits.
+SmartSpace statistics based on verified data.
+A campus facility management visual.
+An institutional collaboration showcase.
+Do not fabricate usage statistics, university partnerships, or customer numbers.
+13. FINAL CTA SECTION
+Create a visually compelling final call-to-action section.
+Use a brand-compatible background with elegant visual effects.
+Content should encourage universities and potential customers to explore SmartSpace.
+Primary CTA:
+Request Demo
+Secondary CTA:
+Explore SmartSpace
+Preserve existing CTA functionality.
+14. FOOTER
+Create a premium SaaS footer.
+Include:
+Existing SmartSpace logo.
+Existing SmartSpace name.
+Existing SmartSpace tagline.
+Navigation links.
+Platform information.
+Contact information if already available.
+Privacy Policy.
+Terms of Service.
+Copyright information.
+Do not invent email addresses, social media accounts, or legal information.
+Maintain consistent branding and visual hierarchy.
+15. ANIMATION SYSTEM — FRAMER MOTION
+Use Framer Motion for professional animations.
+The animation quality should resemble premium SaaS websites.
+Scroll Reveal
+Sections should reveal themselves when they enter the viewport.
+Example:
+Tsx
+<motion.div
+  initial={{ opacity: 0, y: 24 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true, amount: 0.2 }}
+  transition={{
+    duration: 0.65,
+    ease: "easeOut"
+  }}
+>
+Staggered Animations
+Feature cards should appear sequentially.
+Use:
+Fade-in.
+Vertical movement.
+Staggered delays.
+Smooth easing.
+Image Hover Effects
+Scale images slightly on hover.
+Use duration around 500–700ms.
+Avoid excessive zoom.
+Button Interactions
+Smooth color transitions.
+Subtle scale or lift.
+Animated underline.
+Elegant hover states.
+Dashboard Preview Animations
+Floating cards.
+Subtle movement.
+Gentle opacity transitions.
+Small animated status indicators.
+Accessibility
+Respect:
+CSS
+@media (prefers-reduced-motion: reduce) {
+  /* Reduce or disable nonessential animations */
+}
+Animations must never interfere with navigation, reading, or usability.
+16. RESPONSIVE DESIGN
+SmartSpace must be professionally optimized for:
+Laptop
+Desktop
+iPhone
+Android phones
+iPad
+Android tablets
+Desktop
+Spacious layout.
+Full navigation.
+Large hero typography.
+Multi-column feature sections.
+Rich visual compositions.
+Large dashboard previews.
+Tablet
+Responsive navigation.
+Two-column layouts where appropriate.
+Proper spacing.
+Optimized typography.
+Balanced image proportions.
+Mobile
+Single-column layouts.
+Compact navigation.
+Readable text.
+Full-width or appropriately sized CTA buttons.
+Proper image cropping.
+Touch-friendly interactions.
+Optimized dashboard previews.
+No horizontal overflow.
+Test responsive behavior at:
+375px
+390px
+430px
+768px
+1024px
+1280px
+1440px
+Do not simply shrink the desktop design.
+Create intentional mobile layouts.
+17. IMAGE AND ASSET REQUIREMENTS
+Use relevant, realistic, high-quality images related to SmartSpace.
+Image categories:
+University campuses.
+Lecture halls.
+University gymnasiums.
+Laboratories.
+Auditorium interiors.
+Campus events.
+Sports facilities.
+University conference rooms.
+Modern educational environments.
+Image guidelines
+Do not use skincare images.
+Do not use ecommerce product images.
+Do not use irrelevant stock imagery.
+Do not use generic technology illustrations unrelated to campus management.
+Do not replace the SmartSpace logo.
+Avoid images with excessive text embedded inside them.
+Ensure images are visually consistent.
+Use suitable image cropping.
+Optimize loading performance.
+Use meaningful alt text.
+Prefer existing project assets whenever possible.
+If external images are used, use reliable sources and provide appropriate fallbacks.
+Do not let unavailable images break the interface.
+18. TECHNICAL IMPLEMENTATION
+Preserve the existing SmartSpace technical architecture.
+Inspect the project before making changes.
+Existing architecture may include:
+React
+TypeScript
+Vite
+Tailwind CSS
+Framer Motion
+Firebase
+Google Cloud Firestore
+Express
+Existing custom routing
+Existing React Context
+Do not blindly replace existing dependencies.
+Required approach
+Inspect the current project.
+Identify the existing landing page components.
+Identify the existing logo and brand assets.
+Identify the current color palette.
+Identify existing routes and CTA behavior.
+Identify the current authentication system.
+Identify reusable components.
+Implement the redesign incrementally.
+Preserve existing functionality.
+Verify the application after changes.
+Use modular components where appropriate.
+Do not create unnecessary duplicate components.
+Do not replace the existing application with a completely new scaffold.
+19. IMPORTANT APPLICATION SEPARATION
+SmartSpace consists of distinct interfaces:
+Public Landing Page
+Campus End-User Portal
+University Administrator Portal
+Platform Super Administrator Portal
+These interfaces must remain separated.
+Public landing page
+The landing page must not display authenticated dashboards or private administrative information.
+Campus End-User Portal
+Must remain dedicated to students, faculty, and campus organizations.
+University Administrator Portal
+Must remain dedicated to university administrators and facility handlers.
+Super Administrator Portal
+Must remain dedicated to authorized SmartSpace platform super administrators.
+Do not merge these interfaces.
+Do not modify authentication permissions while performing visual enhancements.
+Preserve existing role-based access control.
+20. PERFORMANCE AND QUALITY
+The website must be:
+Fast.
+Responsive.
+Accessible.
+Maintainable.
+Professional.
+SEO-friendly.
+Visually consistent.
+Compatible with Vercel deployment.
+Avoid:
+Excessive animations.
+Large unoptimized images.
+Unnecessary dependencies.
+Layout shifts.
+Broken routes.
+Placeholder content.
+Fake functionality.
+Unreadable contrast.
+Generic AI-generated SaaS design.
+Optimize image loading and component rendering.
+Use lazy loading for images below the fold.
+21. FINAL EXECUTION INSTRUCTIONS
+Before implementation:
+Analyze the existing SmartSpace codebase.
+Identify its existing design and functionality.
+Review the available assets.
+Review the logo and brand colors.
+Determine the best way to integrate the new visual design.
+Then implement the redesign directly into the existing application.
+Do not merely describe the design.
+Do not provide only a static mockup.
+Do not replace SmartSpace with a new unrelated project.
+The final result must be a functional SmartSpace website with a premium SaaS landing page, sophisticated animations, realistic campus imagery, polished typography, and responsive layouts.
+The final design must still unmistakably be SmartSpace, using its original logo, brand name, tagline, theme, identity, and application functionality.
+Prioritize exceptional visual quality, usability, accessibility, responsiveness, and brand consistency.
+Make SmartSpace look like a professionally funded enterprise SaaS product ready for university customers.
+below is the original/referrence only:
+Ultimate AI Prompt for Recreating "Naturally" Skincare Website
+Act as an award-winning designer and expert web developer. Your objective is to recreate a high-end, modern, and highly-performant e-commerce landing page called "Naturally" with 100% pixel-perfect accuracy. The site focuses on natural, sustainable skincare and beauty products.
+You must build this application using React, Vite, Tailwind CSS, and Framer Motion. Follow the comprehensive design system and technical specifications outlined below to ensure exact replication of the aesthetic, structure, and functionality.
+1. Visual Design System
+1.1 Color Palette
+The color palette evokes nature, health, and premium organic quality.
+Naturally Green (Primary Action & Accents): #6A8F4A
+Naturally Dark (Headings, Branding, Footers): #2E4018
+Naturally Light (Subtle Backgrounds): #F4F7F2
+White (Backgrounds & Cards): #FFFFFF
+Black (Overlays & Subtle Shadows): #000000
+Text Gray (Body Text): text-gray-600 (#4B5563), text-gray-500 (#6B7280)
+1.2 Typography
+Serif Font (Headings & Logos): "Playfair Display", serif
+Sans-Serif Font (Body text, Buttons, Labels): 'Inter', sans-serif
+Typographic Scale:
+Nav Logo: 2xl (24px), font-serif, tracking-wide, text-naturally-dark
+Hero Headline: 5xl (48px) to 7xl (72px) on md/lg, font-serif, leading-tight, text-naturally-dark
+Section Headings: 3xl (30px) to 5xl (48px), font-serif, text-naturally-dark
+Hero Subtitle: xl (20px), font-sans, text-gray-800
+Body Text: lg (18px) to base (16px), font-sans, text-gray-600/700, leading-relaxed
+Buttons/Nav Links: sm (14px) to base (16px), font-medium
+2. Layout Structure & Grid System
+Container Width: Max width of max-w-7xl (80rem / 1280px) with horizontal padding px-6 (mobile) to px-12 (desktop).
+Spacing Scale: Standard Tailwind spacing.
+Section padding: py-24 (96px).
+Margin bottom for section headers: mb-16 (64px).
+Component gap in grids: gap-8 (32px).
+Responsive Grids:
+1 column on mobile (grid-cols-1).
+2 columns on tablet (sm:grid-cols-2 or md:grid-cols-2).
+3 or 4 columns on desktop depending on the section (lg:grid-cols-4, md:grid-cols-3).
+3. Section-by-Section Hierarchy & Content
+3.1 Navigation Bar (Navbar.tsx)
+Fixed Position: fixed top-0 w-full z-50.
+Scroll Behavior:
+Transparent background with py-6 padding at top of page.
+On scroll (>50px), transition to bg-white/70 backdrop-blur-md shadow-sm py-4.
+Layout: Flex container (justify-between items-center).
+Left: Logo containing a Leaf icon (rotating 12deg on hover) and "Naturally" in serif.
+Center: Desktop navigation links (Shop, Categories, About Us, Sustainability, Blog). Hover effect changes color to #6A8F4A. Links scroll smoothly to their respective anchors (#shop, #categories, etc.).
+Right: Icons for Search, User, ShoppingCart (with a green notification badge showing "2").
+Mobile Menu: Hamburger icon opening an animated AnimatePresence dropdown menu.
+3.2 Hero Section (Hero.tsx)
+Height: Full viewport height (min-h-screen relative).
+Background: HTML5 Video playing automatically, muted, and looping in the background (object-cover). There is NO dark background overlay to keep the video bright and natural.
+Content: Centered text.
+Headline: "Pure, Natural Beauty." (text-naturally-dark).
+Subheadline: "Discover our new collection of sustainable, organic skincare products designed to enhance your natural glow." (text-gray-800).
+Buttons:
+Primary: "Shop Collection" (solid background #2E4018, text white, hovers to #1a250e).
+Secondary: "Our Story" (transparent background, text-naturally-dark, border-none, custom expanding underline animation on hover).
+3.3 Shop By Category (Categories.tsx) id="categories"
+Background: #E8EFE5.
+Header: "Shop by Category" centered above "Find exactly what your body needs with our specialized natural collections."
+Grid: 3 columns (Face Care, Body Care, Hair Care).
+Cards: Aspect ratio 4/5. Image fills the container.
+Overlay: bg-black/20 transitioning to bg-black/40 on hover.
+Text: Centered, white, serif, text-3xl.
+Image Hover: Scale image to 1.05 duration 700ms.
+3.4 Bestsellers / Shop (Products.tsx) id="shop"
+Background: White.
+Header Structure: Split layout. Title "Our Bestsellers" and subtitle on the left. "Shop All Products →" button on the right.
+Grid: 4 columns.
+Cards:
+Image Wrapper: Rounded-2xl, background bg-naturally-light, aspect ratio 4/5.
+Image Effect: Scale to 1.05 on hover.
+"Add to Cart" Button: Appears from the bottom on hover (translate-y-4 to translate-y-0), white backdrop blur, turns green on hover.
+Details: Product Name (hover green) and Price underneath.
+3.5 Sustainability / Features (Features.tsx) id="sustainability"
+Background: bg-naturally-light (#F4F7F2).
+Header: "Nature's Best, For You" centered.
+Grid: 3 columns.
+Features:
+100% Organic (Leaf icon)
+Sustainably Sourced (Recycle icon)
+Clinically Proven (ShieldCheck icon)
+Styling: Icons are wrapped in a w-16 h-16 white circle, centered, text centered underneath.
+3.6 About Us (About.tsx) id="about"
+Background: White.
+Layout: Split flex-col lg:flex-row.
+Left Side: A single large image with aspect ratio 4/5 or 1/1, rounded-2xl, with a subtle bg-naturally-green/10 overlay.
+Right Side:
+Headline: "Rooted in Nature. Backed by Science." (serif).
+Two paragraphs of text describing the brand's mission.
+Button: "Read Our Full Story".
+3.7 The Natural Journal / Blog (Blog.tsx) id="blog"
+Background: White.
+Header Structure: Split layout. Title "The Natural Journal" on left. "Read the Blog →" on right.
+Grid: 3 columns.
+Cards:
+Image: Aspect ratio 3/2, rounded-2xl, scales 1.05 on hover.
+Badge: Absolute positioned badge on top left (e.g. "Education", "Lifestyle") bg-white/90 backdrop-blur-sm.
+Date: text-sm, gray.
+Title: Serif, text-xl, hovers to green.
+3.8 Testimonials (Testimonials.tsx)
+Background: bg-naturally-dark (#2E4018), text white.
+Header: "Loved by our Community" (centered).
+Grid: 3 columns.
+Cards:
+Background: bg-white/5 (glassmorphism feel), rounded-2xl, backdrop-blur-sm.
+Content: 5-star rating (using Lucide React Star icons colored #6A8F4A), Quote text, Author Name, Author Title.
+3.9 Footer (Footer.tsx)
+Background: White, border-top gray-200.
+Layout: 4 columns on desktop (grid-cols-1 md:grid-cols-4).
+Column 1: Brand Logo (Leaf icon + "Naturally"), short paragraph text, Social Media Icons (raw SVG icons for Instagram, Twitter, Facebook with hover transition to green).
+Column 2, 3, 4: Link lists (Shop, About, Legal). Links hover to text-naturally-green.
+Bottom: Copyright text centered, border-top gray-200.
+4. Animations & Micro-Interactions (Framer Motion)
+Smooth Scrolling: The page uses native CSS smooth scrolling for all anchor links via html { scroll-behavior: smooth; }.
+Scroll Reveal (Section Content Animations): Every section header, paragraph, and grid item must fade in and slide up when scrolling into view using Framer Motion.
+Wrapper: <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+Staggering: Grid items should have an incremental delay delay: index * 0.15 to cascade in.
+Image Hovers: Product, Category, and Blog images scale up scale-105 over duration-700 ease-out.
+Button Hover States: Primary buttons transform colors (bg-naturally-dark to #1a250e). Secondary buttons use after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 hover:after:w-full after:bg-naturally-dark after:transition-all after:duration-300.
+Add to Cart Interaction: Slides up from translate-y-4 and fades in opacity-0 to opacity-100 on parent group hover.
+5. Required Images / Assets
+Use the following Unsplash URLs for 100% reliability (tested to return HTTP 200). Ensure ?q=80&w=800&auto=format&fit=crop is applied for optimization.
+Categories: photo-1598440947619-2c35fc9aa908 (Face Care), photo-1617897903246-719242758050 (Body Care), photo-1527799820374-dcf8d9d4a388 (Hair Care).
+Products: photo-1620916566398-39f1143ab7be (Face Serum), photo-1556228578-0d85b1a4d571 (Body Lotion), photo-1608248543803-ba4f8c70ae0b (Clay Mask), photo-1599305090598-fe179d501227 (Scrub).
+About: photo-1515377905703-c4788e51af15 (About Image).
+Blog: photo-1556228453-efd6c1ff04f6 (Blog 1), photo-1556228578-0d85b1a4d571 (Blog 2), photo-1608248543803-ba4f8c70ae0b (Blog 3).
+6. Technical Implementation Details
+Framework: React 18 with Vite. Use functional components and hooks.
+Styling: Tailwind CSS 3.x. Add custom fonts to Google Fonts via index.css (@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap');).
+Important CSS addition: Add html { scroll-behavior: smooth; } in index.css under @layer base to enable smooth scrolling for anchor links across the site.
+Icons: Use lucide-react. Note: Brand icons (Instagram, Facebook, Twitter) were removed from Lucide; implement them as raw inline SVGs in the Footer.
+File Architecture:
+/src/App.tsx (Main layout rendering all sections in order)
+/src/components/Navbar.tsx
+/src/components/Hero.tsx
+/src/components/Categories.tsx
+/src/components/Products.tsx
+/src/components/Features.tsx
+/src/components/About.tsx
+/src/components/Testimonials.tsx
+/src/components/Blog.tsx
+/src/components/Footer.tsx
+/src/index.css (Tailwind imports and custom fonts)
+/tailwind.config.js (Custom color tokens and font families)
+By following these instructions meticulously, you will yield an exact, award-winning replica of the "Naturally" Skincare landing page.

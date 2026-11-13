@@ -165,6 +165,92 @@ export interface PlatformSettings {
   autoConflictDetection: boolean;
 }
 
+// ========================================================
+// FACILITY PERSONNEL & SECURE HANDLER APPROVALS
+// ========================================================
+export interface FacilityHandler {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  institutionId: string;
+  department: string;
+  status: 'active' | 'suspended';
+  assignedFacilityIds: string[];
+  isPrimary: boolean;
+  hasAccessCode: boolean;
+  approvalCount: number;
+  lastActive?: string;
+  createdAt: string;
+}
+
+export interface HandlerApprovalVerificationRequest {
+  handlerId: string;
+  facilityId: string;
+  bookingId: string;
+  accessCode: string;
+  decision: 'approve' | 'reject';
+  rejectionReason?: string;
+}
+
+// ========================================================
+// AGENTIC AI AUTOMATION & BACKGROUND JOBS
+// ========================================================
+export type AutomationJobType = 
+  | 'demo_categorization'
+  | 'booking_notification'
+  | 'handler_alert'
+  | 'utilization_summary'
+  | 'reminder_dispatch';
+
+export type AutomationJobStatus = 
+  | 'queued'
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'requires_human_approval';
+
+export interface AIAutomationJob {
+  id: string;
+  type: AutomationJobType;
+  status: AutomationJobStatus;
+  title: string;
+  institutionId?: string;
+  relatedEntityId?: string; // bookingId or demoRequestId
+  aiSummary?: string;
+  aiDraftContent?: string;
+  aiCategory?: 'Enterprise Onboarding' | 'Public Pilot' | 'Collegiate Competition' | 'General Inquiry' | 'Standard Reservation';
+  suggestedSuperAdmin?: string;
+  executionLogs: string[];
+  retryCount: number;
+  maxRetries: number;
+  createdAt: string;
+  processedAt?: string;
+  approvedBy?: string;
+  error?: string;
+}
+
+// ========================================================
+// EMAIL DISPATCH & DELIVERY AUDIT RECORDS
+// ========================================================
+export type EmailDeliveryStatus = 'queued' | 'sending' | 'sent' | 'delivered' | 'failed' | 'retry_scheduled';
+
+export interface EmailDeliveryRecord {
+  id: string;
+  jobId?: string;
+  subject: string;
+  inquiryType?: string;
+  recipientCount: number; // Stored securely; addresses kept private
+  status: EmailDeliveryStatus;
+  timestamp: string;
+  formattedTime: string;
+  provider: 'Resend' | 'SmartSpace Cloud Dispatcher';
+  idempotencyKey: string;
+  errorMessage?: string;
+  retryAttempt: number;
+  isPrivateBcc: boolean;
+}
+
 export interface TaskDefinition {
   id: number;
   number: number;
