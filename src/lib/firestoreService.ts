@@ -19,6 +19,9 @@ import {
   FacilityHandler,
   FacilityAssignment,
   FacilityApprovalLog,
+  AIAutomationJob,
+  EmailDeliveryRecord,
+  AIWorkflowDefinition,
 } from '../types';
 import {
   DEMO_INSTITUTIONS,
@@ -27,6 +30,9 @@ import {
   INITIAL_FACILITY_HANDLERS,
   INITIAL_FACILITY_ASSIGNMENTS,
   INITIAL_FACILITY_APPROVAL_LOGS,
+  INITIAL_AI_AUTOMATION_JOBS,
+  INITIAL_EMAIL_DELIVERY_RECORDS,
+  INITIAL_AI_WORKFLOWS,
 } from '../data/initialData';
 
 const COLLECTIONS = {
@@ -365,6 +371,105 @@ export async function saveFacilityApprovalLogToCloud(log: FacilityApprovalLog): 
     await saveFacilityApprovalLogsToCloud(updated);
   } catch (err) {
     console.warn('Cloud sync facility approval log:', err);
+  }
+}
+
+// ==========================================
+// 11. AI WORKFLOWS, AUTOMATION JOBS & DISPATCH LOGS
+// ==========================================
+export async function getAIWorkflowsFromCloud(): Promise<AIWorkflowDefinition[]> {
+  try {
+    const snap = await getDoc(doc(db, COLLECTIONS.SETTINGS, 'ai_workflows'));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (Array.isArray(data?.items)) {
+        return data.items as AIWorkflowDefinition[];
+      }
+    }
+    return INITIAL_AI_WORKFLOWS;
+  } catch (err) {
+    console.warn('Failed to fetch AI workflows from cloud, using initial state:', err);
+    return INITIAL_AI_WORKFLOWS;
+  }
+}
+
+export async function saveAIWorkflowsToCloud(workflows: AIWorkflowDefinition[]): Promise<void> {
+  try {
+    await setDoc(
+      doc(db, COLLECTIONS.SETTINGS, 'ai_workflows'),
+      {
+        id: 'ai_workflows',
+        items: workflows,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    console.warn('Cloud sync AI workflows:', err);
+  }
+}
+
+export async function getAIAutomationJobsFromCloud(): Promise<AIAutomationJob[]> {
+  try {
+    const snap = await getDoc(doc(db, COLLECTIONS.SETTINGS, 'ai_automation_jobs'));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (Array.isArray(data?.items)) {
+        return data.items as AIAutomationJob[];
+      }
+    }
+    return INITIAL_AI_AUTOMATION_JOBS;
+  } catch (err) {
+    console.warn('Failed to fetch AI automation jobs from cloud, using initial state:', err);
+    return INITIAL_AI_AUTOMATION_JOBS;
+  }
+}
+
+export async function saveAIAutomationJobsToCloud(jobs: AIAutomationJob[]): Promise<void> {
+  try {
+    await setDoc(
+      doc(db, COLLECTIONS.SETTINGS, 'ai_automation_jobs'),
+      {
+        id: 'ai_automation_jobs',
+        items: jobs.slice(0, 100),
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    console.warn('Cloud sync AI automation jobs:', err);
+  }
+}
+
+export async function getEmailDeliveryRecordsFromCloud(): Promise<EmailDeliveryRecord[]> {
+  try {
+    const snap = await getDoc(doc(db, COLLECTIONS.SETTINGS, 'email_delivery_records'));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (Array.isArray(data?.items)) {
+        return data.items as EmailDeliveryRecord[];
+      }
+    }
+    return INITIAL_EMAIL_DELIVERY_RECORDS;
+  } catch (err) {
+    console.warn('Failed to fetch email delivery records from cloud, using initial state:', err);
+    return INITIAL_EMAIL_DELIVERY_RECORDS;
+  }
+}
+
+export async function saveEmailDeliveryRecordsToCloud(records: EmailDeliveryRecord[]): Promise<void> {
+  try {
+    await setDoc(
+      doc(db, COLLECTIONS.SETTINGS, 'email_delivery_records'),
+      {
+        id: 'email_delivery_records',
+        items: records.slice(0, 100),
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    console.warn('Cloud sync email delivery records:', err);
   }
 }
 

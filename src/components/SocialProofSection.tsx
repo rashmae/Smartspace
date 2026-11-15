@@ -1,169 +1,101 @@
 import React from 'react';
-import { 
-  Building2, 
-  CheckCircle2, 
-  Quote, 
-  Sparkles, 
-  ShieldCheck, 
-  Clock, 
-  Award,
-  Users
+import { useApp } from '../context/AppContext';
+import { BUSINESS_CONFIG } from '../config/business';
+import {
+  Sparkles,
+  ShieldCheck,
+  Clock,
+  QrCode,
+  CalendarCheck,
+  ArrowRight,
+  MessageSquarePlus,
 } from 'lucide-react';
 
 export const SocialProofSection: React.FC = () => {
-  const metrics = [
-    {
-      value: '99.4%',
-      label: 'Conflict Reduction',
-      description: 'Zero overlapping bookings reported across all active campus venues.',
-    },
-    {
-      value: '< 3.5 hrs',
-      label: 'Average Approval Time',
-      description: 'Down from 3-4 days of paper endorsement slip routing.',
-    },
-    {
-      value: '18,400+',
-      label: 'Campus Hours Coordinated',
-      description: 'Lectures, laboratory exams, student assemblies, and summits.',
-    },
-    {
-      value: '100%',
-      label: 'Verifiable Digital QR Passes',
-      description: 'Instant security gate entry confirmation with cryptographic checks.',
-    },
-  ];
+  const { setIsDemoModalOpen } = useApp();
 
-  const testimonials = [
+  const capabilities = [
     {
-      quote:
-        'Before SmartSpace, physical plant engineers spent half their day resolving heated room collisions between academic classes and student organizations. With the real-time conflict blocker and automated queue, our paperwork dropped to zero.',
-      author: 'Engr. Roberto Santos',
-      role: 'Director of Physical Plant & Facilities',
-      institution: 'Cebu Technological University · Main Campus',
-      avatarBg: 'bg-amber-100 text-amber-800',
-      initials: 'RS',
+      icon: <CalendarCheck className="w-5 h-5 text-emerald-300" />,
+      title: 'Overlap & Conflict Checking',
+      description:
+        'Checks requested timeslots against pending and approved bookings to help reduce scheduling collisions.',
     },
     {
-      quote:
-        'Our student organization leads can verify slot openings from their smartphones at midnight without walking across campuses to knock on custodian offices. Presenting the QR permit to the building guard takes 5 seconds.',
-      author: 'Juan Dela Cruz',
-      role: 'Supreme Student Government President',
-      institution: 'CTU Student Council',
-      avatarBg: 'bg-blue-100 text-blue-800',
-      initials: 'JC',
+      icon: <Clock className="w-5 h-5 text-sky-300" />,
+      title: 'Tracked Review Queue',
+      description:
+        'Replaces paper routing slips with structured approval status tracking and decision notes.',
     },
     {
-      quote:
-        'The multi-tenant architecture gives each college full administrative autonomy while providing campus executives with real-time room utilization metrics for CHED and ISO compliance audits.',
-      author: 'Arch. Maria Tan',
-      role: 'Campus Planning & Facility Head',
-      institution: 'University of San Carlos · Talamban',
-      avatarBg: 'bg-purple-100 text-purple-800',
-      initials: 'MT',
+      icon: <QrCode className="w-5 h-5 text-amber-300" />,
+      title: 'Digital QR Gate Passes',
+      description:
+        'Issues scannable digital booking references so venue custodians can check approved entry details.',
     },
-  ];
-
-  const institutionalPartners = [
-    { name: 'Cebu Technological University', code: 'CTU Main', type: 'State University' },
-    { name: 'University of San Carlos', code: 'USC Talamban', type: 'Private Higher Ed' },
-    { name: 'Cebu Institute of Technology - University', code: 'CIT-U', type: 'Technological Univ' },
-    { name: 'University of the Philippines Cebu', code: 'UP Cebu', type: 'National University' },
-    { name: 'University of San Jose - Recoletos', code: 'USJ-R', type: 'Private University' },
+    {
+      icon: <ShieldCheck className="w-5 h-5 text-purple-300" />,
+      title: 'Cebu City Pilot Scope',
+      description:
+        'Built for colleges and universities in Cebu City evaluating digital facility governance workflows.',
+    },
   ];
 
   return (
-    <section className="space-y-12">
-      {/* High-Impact Metrics Grid */}
+    <section className="space-y-8">
+      {/* Honest Pilot-Stage Overview Banner */}
       <div className="bg-gradient-to-br from-slate-950 via-purple-950 to-indigo-950 rounded-3xl p-8 sm:p-12 text-white border border-slate-800 shadow-2xl relative overflow-hidden">
         <div className="relative z-10 space-y-8">
           <div className="max-w-2xl space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-200 text-xs font-bold border border-purple-400/30">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              <span>Measurable Institutional Impact</span>
+              <Sparkles className="w-3.5 h-3.5 text-purple-300" />
+              <span>{BUSINESS_CONFIG.stage}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Delivering Tangible Governance to Campus Operations
+              Built for Transparent Campus Facility Workflows
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300">
-              Validated operational benchmarks across participating higher education institutions in Cebu City.
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              {BUSINESS_CONFIG.stageNote} SmartSpace is a student-built prototype with no formal commercial university deployments or endorsements yet.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-4 border-t border-slate-800">
-            {metrics.map((m, idx) => (
-              <div key={idx} className="space-y-1.5">
-                <span className="text-3xl sm:text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-indigo-200">
-                  {m.value}
-                </span>
-                <h4 className="text-xs sm:text-sm font-bold text-white">{m.label}</h4>
-                <p className="text-[11px] text-slate-400 leading-relaxed">{m.description}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4 border-t border-slate-800">
+            {capabilities.map((cap, idx) => (
+              <div key={idx} className="space-y-2">
+                <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center">
+                  {cap.icon}
+                </div>
+                <h3 className="text-xs sm:text-sm font-bold text-white">{cap.title}</h3>
+                <p className="text-[11px] text-slate-300 leading-relaxed">{cap.description}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Verified Testimonial Cards */}
-      <div className="space-y-6">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-800 text-xs font-bold border border-purple-200">
-            <Quote className="w-3.5 h-3.5 text-purple-600" />
-            <span>Trusted Across Campuses</span>
+      {/* Honest Join the Pilot / Share Feedback Callout */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-7 sm:p-9 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#0077C8] text-xs font-bold border border-blue-200">
+            <MessageSquarePlus className="w-3.5 h-3.5" />
+            <span>Early Evaluation &amp; Feedback</span>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">
-            Loved by Facility Directors, Faculty & Student Leaders
+          <h3 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
+            Join the pilot and share campus feedback
           </h3>
-          <p className="text-xs sm:text-sm text-slate-600">
-            Hear how SmartSpace modernized day-to-day operations for physical plant administration and student bodies.
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            If your college, student organization, or facility office in Cebu City would like to walk through the prototype and share workflow suggestions, request a guided pilot session.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-          {testimonials.map((t, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-5"
-            >
-              <div className="space-y-3">
-                <Quote className="w-6 h-6 text-purple-400/80" />
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
-                  “{t.quote}”
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${t.avatarBg}`}>
-                  {t.initials}
-                </div>
-                <div className="space-y-0.5 min-w-0">
-                  <h4 className="text-xs font-black text-slate-900 truncate">{t.author}</h4>
-                  <p className="text-[11px] font-semibold text-purple-700 truncate">{t.role}</p>
-                  <p className="text-[10px] text-slate-400 truncate">{t.institution}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* University Partner Logos / Crests Bar */}
-      <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-4">
-        <p className="text-center text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
-          Institutions Architected for the SmartSpace Multi-Campus Network
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-          {institutionalPartners.map((p, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs text-xs font-bold text-slate-800"
-            >
-              <Building2 className="w-4 h-4 text-purple-600" />
-              <span>{p.code}</span>
-              <span className="text-[10px] font-normal text-slate-400">({p.type})</span>
-            </div>
-          ))}
-        </div>
+        <button
+          type="button"
+          onClick={() => setIsDemoModalOpen(true)}
+          className="px-6 py-3 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs sm:text-sm font-bold shadow-sm transition-all inline-flex items-center gap-2 shrink-0 cursor-pointer"
+        >
+          <span>Join the pilot / share feedback</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
     </section>
   );

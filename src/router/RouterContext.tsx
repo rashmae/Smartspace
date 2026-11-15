@@ -11,7 +11,12 @@ export type AppRoute =
   | '/university/register'
   | '/university/dashboard'
   | '/superadmin/login'
-  | '/superadmin/dashboard';
+  | '/superadmin/dashboard'
+  | '/privacy'
+  | '/terms'
+  | '/cookies'
+  | '/refunds'
+  | '/accessibility';
 
 interface RouterContextType {
   currentPath: string;

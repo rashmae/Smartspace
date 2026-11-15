@@ -75,6 +75,17 @@ export const UsabilityTestingModule: React.FC = () => {
     addToast('info', 'Timer Logged', `Logged ${timerSeconds} seconds for Task ${taskId}.`);
   };
 
+  useEffect(() => {
+    if (!showResetConfirm) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowResetConfirm(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showResetConfirm]);
+
   const resetTaskTimer = () => {
     setTimerRunning(null);
     setTimerSeconds(0);
@@ -266,9 +277,10 @@ export const UsabilityTestingModule: React.FC = () => {
         {/* Quick Edit Participant Info */}
         <div className="flex items-center gap-2">
           <select
+            aria-label="Participant role"
             value={activeParticipant.userType}
             onChange={(e) => updateParticipantInfo(activeParticipant.id, e.target.value as any, activeParticipant.collegeOrDepartment)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none"
+            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700"
           >
             <option value="Student">Student Participant</option>
             <option value="Faculty">Faculty Participant</option>
@@ -276,49 +288,59 @@ export const UsabilityTestingModule: React.FC = () => {
 
           <input
             type="text"
+            aria-label="Department or college"
             placeholder="Department / College"
             value={activeParticipant.collegeOrDepartment}
             onChange={(e) => updateParticipantInfo(activeParticipant.id, activeParticipant.userType, e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 w-48 focus:outline-none"
+            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 w-48"
           />
         </div>
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex border-b border-slate-200 bg-white rounded-t-xl px-4 pt-2">
+      <div role="tablist" aria-label="Usability testing sections" className="flex border-b border-slate-200 bg-white rounded-t-xl px-4 pt-2">
         <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'tasks'}
           onClick={() => setActiveTab('tasks')}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 cursor-pointer transition-colors ${
             activeTab === 'tasks'
               ? 'border-amber-600 text-amber-800 bg-amber-50/50 rounded-t'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              : 'border-transparent text-slate-600 hover:text-slate-900'
           }`}
         >
-          <CheckCircle2 className="w-4 h-4 text-amber-600" />
+          <CheckCircle2 className="w-4 h-4 text-amber-700" aria-hidden="true" />
           <span>Tasks Walkthrough (Tasks 1 – 6)</span>
         </button>
 
         <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'questions'}
           onClick={() => setActiveTab('questions')}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 cursor-pointer transition-colors ${
             activeTab === 'questions'
               ? 'border-amber-600 text-amber-800 bg-amber-50/50 rounded-t'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              : 'border-transparent text-slate-600 hover:text-slate-900'
           }`}
         >
-          <QuestionIcon className="w-4 h-4 text-amber-600" />
+          <QuestionIcon className="w-4 h-4 text-amber-700" aria-hidden="true" />
           <span>Qualitative Questions & Subjective Ratings</span>
         </button>
 
         <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'summary'}
           onClick={() => setActiveTab('summary')}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 cursor-pointer transition-colors ${
             activeTab === 'summary'
               ? 'border-amber-600 text-amber-800 bg-amber-50/50 rounded-t'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              : 'border-transparent text-slate-600 hover:text-slate-900'
           }`}
         >
-          <BarChart2 className="w-4 h-4 text-amber-600" />
+          <BarChart2 className="w-4 h-4 text-amber-700" aria-hidden="true" />
           <span>5-Person Summary & Findings Matrix</span>
         </button>
       </div>
@@ -395,79 +417,83 @@ export const UsabilityTestingModule: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                     {/* 1. Success Toggle */}
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-700">
+                      <span id={`task-${task.id}-completed-label`} className="block text-xs font-bold text-slate-700">
                         1. Completed Successfully?
-                      </label>
-                      <div className="flex items-center gap-2">
+                      </span>
+                      <div role="group" aria-labelledby={`task-${task.id}-completed-label`} className="flex items-center gap-2">
                         <button
                           type="button"
+                          aria-pressed={obs.completed === true}
                           onClick={() => updateTaskObservation(activeParticipant.id, task.id, { completed: true })}
                           className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1 ${
                             obs.completed === true
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                              ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Yes</span>
                         </button>
                         <button
                           type="button"
+                          aria-pressed={obs.completed === false}
                           onClick={() => updateTaskObservation(activeParticipant.id, task.id, { completed: false })}
                           className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1 ${
                             obs.completed === false
-                              ? 'bg-red-600 text-white border-red-600 shadow-xs'
+                              ? 'bg-red-700 text-white border-red-700 shadow-xs'
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
-                          <XCircle className="w-3.5 h-3.5" />
+                          <XCircle className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>No</span>
                         </button>
                       </div>
                       {obs.completed === null && (
-                        <span className="text-[10px] text-slate-400 italic">Not recorded yet</span>
+                        <span className="text-[10px] text-slate-600 italic">Not recorded yet</span>
                       )}
                     </div>
 
                     {/* 2. Assistance Toggle */}
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-700">
+                      <span id={`task-${task.id}-assist-label`} className="block text-xs font-bold text-slate-700">
                         2. Needed Assistance?
-                      </label>
-                      <div className="flex items-center gap-2">
+                      </span>
+                      <div role="group" aria-labelledby={`task-${task.id}-assist-label`} className="flex items-center gap-2">
                         <button
                           type="button"
+                          aria-pressed={obs.neededAssistance === true}
                           onClick={() => updateTaskObservation(activeParticipant.id, task.id, { neededAssistance: true })}
                           className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1 ${
                             obs.neededAssistance === true
-                              ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                              ? 'bg-amber-700 text-white border-amber-700 shadow-xs'
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
-                          <HelpCircle className="w-3.5 h-3.5" />
+                          <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Yes</span>
                         </button>
                         <button
                           type="button"
+                          aria-pressed={obs.neededAssistance === false}
                           onClick={() => updateTaskObservation(activeParticipant.id, task.id, { neededAssistance: false })}
                           className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1 ${
                             obs.neededAssistance === false
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                              ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
-                          <Check className="w-3.5 h-3.5" />
+                          <Check className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>No (Independent)</span>
                         </button>
                       </div>
                       {obs.neededAssistance === null && (
-                        <span className="text-[10px] text-slate-400 italic">Not recorded yet</span>
+                        <span className="text-[10px] text-slate-600 italic">Not recorded yet</span>
                       )}
                     </div>
 
                     {/* 3. Timer & Time Measurement */}
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-700">
+                      <label htmlFor={`task-${task.id}-seconds`} className="block text-xs font-bold text-slate-700">
                         3. Completion Time (Seconds)
                       </label>
                       <div className="flex items-center gap-1.5">
@@ -479,7 +505,7 @@ export const UsabilityTestingModule: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => stopTaskTimer(task.id)}
-                              className="px-2.5 py-1.5 bg-red-600 text-white rounded text-xs font-bold hover:bg-red-700 cursor-pointer"
+                              className="px-2.5 py-1.5 bg-red-700 text-white rounded text-xs font-bold hover:bg-red-800 cursor-pointer"
                               title="Stop timer and record"
                             >
                               Stop
@@ -487,10 +513,11 @@ export const UsabilityTestingModule: React.FC = () => {
                             <button
                               type="button"
                               onClick={resetTaskTimer}
-                              className="p-1.5 text-slate-500 hover:text-slate-800 cursor-pointer"
+                              aria-label="Reset timer"
+                              className="p-1.5 text-slate-600 hover:text-slate-900 cursor-pointer"
                               title="Reset timer"
                             >
-                              <RotateCcw className="w-3.5 h-3.5" />
+                              <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                             </button>
                           </div>
                         ) : (
@@ -498,13 +525,14 @@ export const UsabilityTestingModule: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => startTaskTimer(task.id)}
-                              className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-xs font-semibold cursor-pointer flex items-center gap-1"
+                              className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded text-xs font-semibold cursor-pointer flex items-center gap-1"
                               title="Start automatic stopwatch"
                             >
-                              <Play className="w-3 h-3 text-blue-600" />
+                              <Play className="w-3 h-3 text-blue-700" aria-hidden="true" />
                               <span>Timer</span>
                             </button>
                             <input
+                              id={`task-${task.id}-seconds`}
                               type="number"
                               min="0"
                               placeholder="Seconds"
@@ -515,12 +543,12 @@ export const UsabilityTestingModule: React.FC = () => {
                               }}
                               className="w-20 px-2 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded text-slate-800 font-mono"
                             />
-                            <span className="text-[11px] text-slate-400">sec</span>
+                            <span className="text-[11px] text-slate-600">sec</span>
                           </div>
                         )}
                       </div>
                       {obs.completionTimeSeconds === null && !isTimingThis && (
-                        <span className="text-[10px] text-slate-400 italic">Not measured</span>
+                        <span className="text-[10px] text-slate-600 italic">Not measured</span>
                       )}
                     </div>
                   </div>
@@ -528,28 +556,30 @@ export const UsabilityTestingModule: React.FC = () => {
                   {/* Qualitative Observation Fields */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label htmlFor={`task-${task.id}-difficulty`} className="block text-xs font-medium text-slate-700 mb-1">
                         Observed Difficulty or Confusion:
                       </label>
                       <textarea
+                        id={`task-${task.id}-difficulty`}
                         rows={2}
                         placeholder="e.g. Hesitated when looking for the calendar slot, was unsure about pending vs approved distinction..."
                         value={obs.difficultyNotes}
                         onChange={(e) => updateTaskObservation(activeParticipant.id, task.id, { difficultyNotes: e.target.value })}
-                        className="w-full p-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                        className="w-full p-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label htmlFor={`task-${task.id}-comments`} className="block text-xs font-medium text-slate-700 mb-1">
                         Participant Verbal Comments / Quotes:
                       </label>
                       <textarea
+                        id={`task-${task.id}-comments`}
                         rows={2}
                         placeholder="e.g. 'It is much faster than queuing in the admin office', 'I like seeing room photos'..."
                         value={obs.participantComments}
                         onChange={(e) => updateTaskObservation(activeParticipant.id, task.id, { participantComments: e.target.value })}
-                        className="w-full p-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                        className="w-full p-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                       />
                     </div>
                   </div>
@@ -675,119 +705,127 @@ export const UsabilityTestingModule: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Q1: Find Facility */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
+                <label htmlFor="ut-q-find-facility" className="block text-xs font-bold text-slate-800">
                   1. Was it easy to find a suitable facility?
                 </label>
                 <textarea
+                  id="ut-q-find-facility"
                   rows={2}
                   placeholder="Participant's reaction to search, filters, room capacity, and photos..."
                   value={activeParticipant.openEnded.qFindFacilityEasy || ''}
                   onChange={(e) => updateOpenEnded(activeParticipant.id, { qFindFacilityEasy: e.target.value })}
-                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                 />
               </div>
 
               {/* Q2: Availability Clear */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
+                <label htmlFor="ut-q-availability" className="block text-xs font-bold text-slate-800">
                   2. Was the availability information clear?
                 </label>
                 <textarea
+                  id="ut-q-availability"
                   rows={2}
                   placeholder="Reaction to time slot schedule, booked vs available status, pending notices..."
                   value={activeParticipant.openEnded.qAvailabilityClear || ''}
                   onChange={(e) => updateOpenEnded(activeParticipant.id, { qAvailabilityClear: e.target.value })}
-                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                 />
               </div>
 
               {/* Q3: Booking Form Clear */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
+                <label htmlFor="ut-q-booking-form" className="block text-xs font-bold text-slate-800">
                   3. Was the booking form easy to understand?
                 </label>
                 <textarea
+                  id="ut-q-booking-form"
                   rows={2}
                   placeholder="Feedback on inputs, attendee limits, conflict warning messages..."
                   value={activeParticipant.openEnded.qBookingFormClear || ''}
                   onChange={(e) => updateOpenEnded(activeParticipant.id, { qBookingFormClear: e.target.value })}
-                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                 />
               </div>
 
               {/* Q4: Status Easy to Locate */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
+                <label htmlFor="ut-q-status" className="block text-xs font-bold text-slate-800">
                   4. Was the booking status easy to locate?
                 </label>
                 <textarea
+                  id="ut-q-status"
                   rows={2}
                   placeholder="Feedback on tracking pending requests, approved permit slips, rejection reasons..."
                   value={activeParticipant.openEnded.qStatusEasyToLocate || ''}
                   onChange={(e) => updateOpenEnded(activeParticipant.id, { qStatusEasyToLocate: e.target.value })}
-                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                 />
               </div>
 
               {/* Q5: Confusion or Difficulty */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
+                <label htmlFor="ut-q-confusion" className="block text-xs font-bold text-slate-800">
                   5. What caused confusion or difficulty?
                 </label>
                 <textarea
+                  id="ut-q-confusion"
                   rows={2}
                   placeholder="Specific points of hesitation, unexpected steps, or unclear terminology..."
                   value={activeParticipant.openEnded.qConfusionOrDifficulty || ''}
                   onChange={(e) => updateOpenEnded(activeParticipant.id, { qConfusionOrDifficulty: e.target.value })}
-                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                 />
               </div>
 
               {/* Q6: What to Change */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800">
+                <label htmlFor="ut-q-change" className="block text-xs font-bold text-slate-800">
                   6. What would you change about SmartSpace?
                 </label>
                 <textarea
+                  id="ut-q-change"
                   rows={2}
                   placeholder="Feature requests, layout changes, missing notification alerts, shortcuts..."
                   value={activeParticipant.openEnded.qWhatToChange || ''}
                   onChange={(e) => updateOpenEnded(activeParticipant.id, { qWhatToChange: e.target.value })}
-                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                 />
               </div>
             </div>
 
             {/* Context & Background Problem Questions */}
             <div className="pt-4 border-t border-slate-100 space-y-4">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">
                 Current Campus Reservation Process (Context)
               </span>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-800">
+                  <label htmlFor="ut-q-current-process" className="block text-xs font-bold text-slate-800">
                     How do you currently reserve university facilities?
                   </label>
                   <textarea
+                    id="ut-q-current-process"
                     rows={2}
                     placeholder="e.g. Paper slips, manual logbooks, visiting office in person..."
                     value={activeParticipant.openEnded.q1CurrentProcess}
                     onChange={(e) => updateOpenEnded(activeParticipant.id, { q1CurrentProcess: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                    className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-800">
+                  <label htmlFor="ut-q-current-difficulties" className="block text-xs font-bold text-slate-800">
                     What difficulties do you experience with the current process?
                   </label>
                   <textarea
+                    id="ut-q-current-difficulties"
                     rows={2}
                     placeholder="e.g. Accidental double bookings, unknown room schedules, delayed signatures..."
                     value={activeParticipant.openEnded.q2CurrentDifficulties}
                     onChange={(e) => updateOpenEnded(activeParticipant.id, { q2CurrentDifficulties: e.target.value })}
-                    className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                    className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                   />
                 </div>
               </div>
@@ -795,34 +833,36 @@ export const UsabilityTestingModule: React.FC = () => {
 
             {/* Tester Notes & Interview Summary */}
             <div className="pt-4 border-t border-slate-100 space-y-4">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">
                 Facilitator / Observer Notes
               </span>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-800">
+                  <label htmlFor="ut-tester-notes" className="block text-xs font-bold text-slate-800">
                     Tester Observation Notes:
                   </label>
                   <textarea
+                    id="ut-tester-notes"
                     rows={3}
                     placeholder="Observations on user behavior, eye movements, mouse hesitation, speed, confidence..."
                     value={activeParticipant.testerNotes || ''}
                     onChange={(e) => updateParticipantNotes(activeParticipant.id, e.target.value, activeParticipant.interviewSummary || '')}
-                    className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                    className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-800">
+                  <label htmlFor="ut-interview-summary" className="block text-xs font-bold text-slate-800">
                     Interview Summary / Debrief:
                   </label>
                   <textarea
+                    id="ut-interview-summary"
                     rows={3}
                     placeholder="High-level takeaway: did the participant see value in SmartSpace? Would they adopt it?..."
                     value={activeParticipant.interviewSummary || ''}
                     onChange={(e) => updateParticipantNotes(activeParticipant.id, activeParticipant.testerNotes || '', e.target.value)}
-                    className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white"
+                    className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-1 focus:ring-amber-500 focus:bg-white"
                   />
                 </div>
               </div>
@@ -1059,9 +1099,20 @@ export const UsabilityTestingModule: React.FC = () => {
 
       {/* Reset Confirmation Modal */}
       {showResetConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-200">
-            <h3 className="text-base font-bold text-slate-900">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowResetConfirm(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-testing-modal-title"
+            className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-200"
+          >
+            <h3 id="reset-testing-modal-title" className="text-base font-bold text-slate-900">
               Reset All Usability Testing Data?
             </h3>
             <p className="text-xs text-slate-600">
@@ -1069,17 +1120,19 @@ export const UsabilityTestingModule: React.FC = () => {
             </p>
             <div className="flex justify-end gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setShowResetConfirm(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-800 cursor-pointer"
+                className="px-3 py-1.5 text-xs font-medium text-slate-700 hover:text-slate-900 cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => {
                   resetParticipantsToDefault();
                   setShowResetConfirm(false);
                 }}
-                className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                className="px-3.5 py-1.5 bg-red-700 hover:bg-red-800 text-white rounded-lg text-xs font-semibold cursor-pointer"
               >
                 Confirm Reset
               </button>

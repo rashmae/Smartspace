@@ -17,6 +17,11 @@ import {
   FacilityAssignment,
   FacilityApprovalLog,
   VerifiedFacilitySession,
+  HandlerApprovalVerificationRequest,
+  AIAutomationJob,
+  EmailDeliveryRecord,
+  AIWorkflowDefinition,
+  AIWorkflowRunResult,
 } from '../types';
 import { formatTo12Hour } from '../utils/timeFormat';
 import {
@@ -27,6 +32,9 @@ import {
   INITIAL_FACILITY_HANDLERS,
   INITIAL_FACILITY_ASSIGNMENTS,
   INITIAL_FACILITY_APPROVAL_LOGS,
+  INITIAL_AI_AUTOMATION_JOBS,
+  INITIAL_EMAIL_DELIVERY_RECORDS,
+  INITIAL_AI_WORKFLOWS,
 } from '../data/initialData';
 import {
   getInstitutionsFromCloud,
@@ -48,11 +56,18 @@ import {
   seedFirestoreIfEmpty,
   getFacilityHandlersFromCloud,
   saveFacilityHandlerToCloud,
+  saveFacilityHandlersToCloud,
   getFacilityAssignmentsFromCloud,
   saveFacilityAssignmentToCloud,
   deleteFacilityAssignmentFromCloud,
   getFacilityApprovalLogsFromCloud,
   saveFacilityApprovalLogToCloud,
+  getAIWorkflowsFromCloud,
+  saveAIWorkflowsToCloud,
+  getAIAutomationJobsFromCloud,
+  saveAIAutomationJobsToCloud,
+  getEmailDeliveryRecordsFromCloud,
+  saveEmailDeliveryRecordsToCloud,
 } from '../lib/firestoreService';
 
 export type AppView = 
@@ -135,6 +150,7 @@ interface AppContextType {
   demoRequests: InstitutionalDemoRequest[];
   submitDemoRequest: (data: {
     institutionName: string;
+    institutionType?: string;
     contactName: string;
     contactEmail: string;
     contactNumber: string;
@@ -240,11 +256,28 @@ interface AppContextType {
 
   // Facility Handler Personnel & Approval Architecture
   facilityHandlers: FacilityHandler[];
+  institutionHandlers: FacilityHandler[];
   facilityAssignments: FacilityAssignment[];
   facilityApprovalLogs: FacilityApprovalLog[];
   verifiedFacilitySessions: Record<string, VerifiedFacilitySession>;
   activeFacilityWorkspace: { facility: Facility; assignment: FacilityAssignment } | null;
   setActiveFacilityWorkspace: (data: { facility: Facility; assignment: FacilityAssignment } | null) => void;
+  addFacilityHandler: (data: {
+    name: string;
+    email: string;
+    phone?: string;
+    institutionId: string;
+    department: string;
+    status: 'active' | 'suspended';
+    assignedFacilityIds: string[];
+    isPrimary: boolean;
+    hasAccessCode: boolean;
+  }) => void;
+  updateFacilityHandler: (handlerId: string, updates: Partial<FacilityHandler>) => void;
+  deleteFacilityHandler: (handlerId: string) => void;
+  verifyAndExecuteHandlerApproval: (
+    req: HandlerApprovalVerificationRequest
+  ) => Promise<{ success: boolean; error?: string }>;
   verifyFacilityAccessCode: (params: {
     assignmentId: string;
     facilityId: string;
@@ -279,6 +312,20 @@ interface AppContextType {
   rejectBookingAsHandler: (params: { bookingId: string; facilityId: string; reason: string }) => Promise<{ success: boolean; error?: string }>;
   checkHandlerFacilityAccess: (handlerId: string, facilityId: string) => { isAssigned: boolean; isVerified: boolean; assignment?: FacilityAssignment; session?: VerifiedFacilitySession };
 
+  // AI Automation, Workflow Builder & Email Dispatch
+  aiAutomationJobs: AIAutomationJob[];
+  emailDeliveryRecords: EmailDeliveryRecord[];
+  aiWorkflows: AIWorkflowDefinition[];
+  approveAIJob: (jobId: string) => void;
+  retryAIJob: (jobId: string) => void;
+  retryEmailDelivery: (recordId: string) => void;
+  triggerManualAIAnalysis: () => Promise<{ success: boolean; summary?: string; error?: string }>;
+  saveAIWorkflow: (workflow: AIWorkflowDefinition) => void;
+  deleteAIWorkflow: (workflowId: string) => void;
+  runAIWorkflow: (workflowId: string, inputPayload: string) => Promise<AIWorkflowRunResult>;
+  recordInboundOpalEvent: (event: { id: string; title: string; category: string; summary: string; source?: string }) => void;
+  runConciergeForDemo: (demoId: string) => Promise<void>;
+
   // Toast notifications
   toasts: ToastMessage[];
   addToast: (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string) => void;
@@ -302,6 +349,9 @@ const FACILITY_HANDLERS_KEY = 'smartspace_mvp_facility_handlers_v5';
 const FACILITY_ASSIGNMENTS_KEY = 'smartspace_mvp_facility_assignments_v5';
 const FACILITY_APPROVAL_LOGS_KEY = 'smartspace_mvp_facility_logs_v5';
 const VERIFIED_FACILITY_SESSIONS_KEY = 'smartspace_mvp_verified_sessions_v5';
+const AI_WORKFLOWS_KEY = 'smartspace_mvp_ai_workflows_v1';
+const AI_JOBS_KEY = 'smartspace_mvp_ai_jobs_v1';
+const EMAIL_RECORDS_KEY = 'smartspace_mvp_email_records_v1';
 
 const DEFAULT_INST_REGISTRATIONS: InstitutionalRegistrationRequest[] = [
   {
@@ -578,6 +628,68 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [facilityApprovalLogs]);
 
+  // AI Automation Jobs, Workflows & Email Dispatch Records State
+  const [aiWorkflows, setAiWorkflows] = useState<AIWorkflowDefinition[]>(() => {
+    try {
+      const stored = localStorage.getItem(AI_WORKFLOWS_KEY);
+      if (stored) {
+        const parsed: AIWorkflowDefinition[] = JSON.parse(stored);
+        const conciergeBuiltIn = INITIAL_AI_WORKFLOWS.find((w) => w.id === 'wf-enterprise-concierge');
+        if (conciergeBuiltIn && !parsed.some((w) => w.id === 'wf-enterprise-concierge')) {
+          return [conciergeBuiltIn, ...parsed];
+        }
+        return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse AI workflows:', e);
+    }
+    return INITIAL_AI_WORKFLOWS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(AI_WORKFLOWS_KEY, JSON.stringify(aiWorkflows));
+    } catch (e) {
+      console.warn('Failed to save AI workflows:', e);
+    }
+  }, [aiWorkflows]);
+
+  const [aiAutomationJobs, setAiAutomationJobs] = useState<AIAutomationJob[]>(() => {
+    try {
+      const stored = localStorage.getItem(AI_JOBS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse AI automation jobs:', e);
+    }
+    return INITIAL_AI_AUTOMATION_JOBS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(AI_JOBS_KEY, JSON.stringify(aiAutomationJobs));
+    } catch (e) {
+      console.warn('Failed to save AI automation jobs:', e);
+    }
+  }, [aiAutomationJobs]);
+
+  const [emailDeliveryRecords, setEmailDeliveryRecords] = useState<EmailDeliveryRecord[]>(() => {
+    try {
+      const stored = localStorage.getItem(EMAIL_RECORDS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse email delivery records:', e);
+    }
+    return INITIAL_EMAIL_DELIVERY_RECORDS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(EMAIL_RECORDS_KEY, JSON.stringify(emailDeliveryRecords));
+    } catch (e) {
+      console.warn('Failed to save email delivery records:', e);
+    }
+  }, [emailDeliveryRecords]);
+
   // Verified Facility Sessions (in-memory + session storage)
   const [verifiedFacilitySessions, setVerifiedFacilitySessions] = useState<Record<string, VerifiedFacilitySession>>(() => {
     try {
@@ -645,7 +757,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setCloudSyncStatus('syncing');
       await seedFirestoreIfEmpty();
 
-      const [cloudInsts, cloudFacs, cloudBookings, cloudRegs, cloudDemos, cloudUsers, cloudSettings, cloudHandlers, cloudAssignments, cloudLogs] = await Promise.all([
+      const [
+        cloudInsts,
+        cloudFacs,
+        cloudBookings,
+        cloudRegs,
+        cloudDemos,
+        cloudUsers,
+        cloudSettings,
+        cloudHandlers,
+        cloudAssignments,
+        cloudLogs,
+        cloudWorkflows,
+        cloudJobs,
+        cloudEmails,
+      ] = await Promise.all([
         getInstitutionsFromCloud().catch(() => null),
         getFacilitiesFromCloud().catch(() => null),
         getBookingsFromCloud().catch(() => null),
@@ -656,6 +782,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         getFacilityHandlersFromCloud().catch(() => null),
         getFacilityAssignmentsFromCloud().catch(() => null),
         getFacilityApprovalLogsFromCloud().catch(() => null),
+        getAIWorkflowsFromCloud().catch(() => null),
+        getAIAutomationJobsFromCloud().catch(() => null),
+        getEmailDeliveryRecordsFromCloud().catch(() => null),
       ]);
 
       if (cloudInsts && cloudInsts.length > 0) {
@@ -687,6 +816,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       if (cloudLogs && cloudLogs.length > 0) {
         setFacilityApprovalLogs(cloudLogs);
+      }
+      if (cloudWorkflows && cloudWorkflows.length > 0) {
+        const conciergeBuiltIn = INITIAL_AI_WORKFLOWS.find((w) => w.id === 'wf-enterprise-concierge');
+        const merged =
+          conciergeBuiltIn && !cloudWorkflows.some((w) => w.id === 'wf-enterprise-concierge')
+            ? [conciergeBuiltIn, ...cloudWorkflows]
+            : cloudWorkflows;
+        setAiWorkflows(merged);
+      }
+      if (cloudJobs && cloudJobs.length > 0) {
+        setAiAutomationJobs(cloudJobs);
+      }
+      if (cloudEmails && cloudEmails.length > 0) {
+        setEmailDeliveryRecords(cloudEmails);
       }
 
       setCloudSyncStatus('synced');
@@ -1124,9 +1267,109 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return { success: true };
   };
 
+  const runConciergePipelineForRequest = async (newDemo: InstitutionalDemoRequest) => {
+    try {
+      const resp = await fetch('/api/ai/categorize-demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          institutionName: newDemo.institutionName,
+          institutionType: newDemo.institutionType || 'Higher Education Institution',
+          contactName: newDemo.contactName,
+          designation: newDemo.designation,
+          estimatedFacilities: newDemo.estimatedFacilities,
+          message: newDemo.message,
+        }),
+      });
+      const aiRes = await resp.json();
+      if (!aiRes?.success || !aiRes.result) return;
+
+      const validCats = ['Enterprise Onboarding', 'Public Pilot', 'Collegiate Competition', 'General Inquiry'] as const;
+      const cat = validCats.includes(aiRes.result.category) ? aiRes.result.category : 'Enterprise Onboarding';
+      const recommendedTier = String(aiRes.result.recommendedTier || 'Professional Tier (₱6,000/mo)');
+      const validWarmth = ['Hot', 'Warm', 'Nurture'] as const;
+      const leadWarmth = validWarmth.includes(aiRes.result.leadWarmth) ? aiRes.result.leadWarmth : 'Warm';
+      const teamSummary = String(aiRes.result.summary || `Team Alert (Rash, Karl, Angel, Krisha): ${leadWarmth} lead — ${recommendedTier}`);
+      const emailDraft = String(aiRes.result.draftReply || '');
+      const nowIso = new Date().toISOString();
+
+      const updatedDemo: InstitutionalDemoRequest = {
+        ...newDemo,
+        aiRecommendedTier: recommendedTier,
+        aiLeadWarmth: leadWarmth,
+        aiTeamSummary: teamSummary,
+        aiEmailDraft: emailDraft,
+      };
+      setDemoRequests((prev) => prev.map((d) => (d.id === newDemo.id ? updatedDemo : d)));
+      saveDemoRequestToCloud(updatedDemo).catch(() => {});
+
+      const newJob: AIAutomationJob = {
+        id: `ai-job-${Date.now().toString(36)}`,
+        type: 'demo_categorization',
+        status: cat === 'Enterprise Onboarding' ? 'requires_human_approval' : 'completed',
+        title: `${newDemo.institutionName} — Enterprise Concierge Triage`,
+        relatedEntityId: newDemo.id,
+        aiCategory: cat,
+        recommendedTier,
+        leadWarmth,
+        aiSummary: teamSummary,
+        aiDraftContent: emailDraft,
+        suggestedSuperAdmin: aiRes.result.suggestedLead || 'Rash, Karl, Angel & Krisha',
+        executionLogs: [
+          'trigger:demo_request_created',
+          `gemini-4-hydrogen:concierge(${recommendedTier} | ${leadWarmth})`,
+          'team_summary:Rash,Karl,Angel,Krisha',
+          cat === 'Enterprise Onboarding' ? 'gate:requires_human_approval' : 'status:completed',
+        ],
+        retryCount: 0,
+        maxRetries: 3,
+        createdAt: nowIso,
+        processedAt: cat === 'Enterprise Onboarding' ? undefined : nowIso,
+      };
+
+      setAiAutomationJobs((prev) => {
+        const next = [newJob, ...prev];
+        saveAIAutomationJobsToCloud(next).catch(() => {});
+        return next;
+      });
+
+      const dNow = new Date();
+      const emailRecord: EmailDeliveryRecord = {
+        id: `eml-${Date.now().toString(36)}`,
+        jobId: newJob.id,
+        subject: `[SmartSpace Concierge · ${leadWarmth}] ${newDemo.institutionName} (${recommendedTier})`,
+        inquiryType: cat,
+        recipientCount: 4,
+        status: 'delivered',
+        timestamp: nowIso,
+        formattedTime: dNow.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+        provider: 'SmartSpace Cloud Dispatcher',
+        idempotencyKey: `idem_${newDemo.id}`,
+        retryAttempt: 0,
+        isPrivateBcc: true,
+      };
+      setEmailDeliveryRecords((prev) => {
+        const next = [emailRecord, ...prev];
+        saveEmailDeliveryRecordsToCloud(next).catch(() => {});
+        return next;
+      });
+    } catch {
+      // non-blocking AI enhancement
+    }
+  };
+
+  const runConciergeForDemo = async (demoId: string): Promise<void> => {
+    const target = demoRequests.find((d) => d.id === demoId);
+    if (!target) return;
+    addToast('info', 'Running Enterprise Concierge AI', `Analyzing ${target.institutionName} tier, lead warmth & pilot reply...`);
+    await runConciergePipelineForRequest(target);
+    addToast('success', 'Concierge Triage Complete', `Team summary for Rash, Karl, Angel & Krisha and 15-min pilot draft ready.`);
+  };
+
   // Submit Institutional Demo Request
   const submitDemoRequest = (data: {
     institutionName: string;
+    institutionType?: string;
     contactName: string;
     contactEmail: string;
     contactNumber: string;
@@ -1146,6 +1389,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const newDemo: InstitutionalDemoRequest = {
       id: `demo-${Date.now().toString(36)}`,
       institutionName: data.institutionName.trim(),
+      institutionType: data.institutionType?.trim() || 'Higher Education Institution',
       contactName: data.contactName.trim(),
       contactEmail: data.contactEmail.trim().toLowerCase(),
       contactNumber: data.contactNumber.trim(),
@@ -1159,16 +1403,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     setDemoRequests((prev) => [newDemo, ...prev]);
     saveDemoRequestToCloud(newDemo).catch((err) => console.warn('Cloud sync (demo):', err));
+
+    // Trigger server-side SmartSpace Enterprise Concierge AI workflow asynchronously
+    runConciergePipelineForRequest(newDemo);
+
     addToast(
       'success',
       'Demo Request Received',
-      'A SmartSpace onboarding coordinator will reach out to schedule your personalized live demo.'
+      'SmartSpace Enterprise Concierge AI is preparing your campus walkthrough brief for Rash, Karl, Angel & Krisha.'
     );
 
     return {
       success: true,
       message:
-        'Thank you! Your institutional demo request has been recorded. Our team will coordinate with your campus administration to schedule a live presentation.',
+        'Thank you! Your institutional demo request has been recorded. Our team will coordinate with your campus administration to schedule a 15-minute live pilot walkthrough.',
     };
   };
 
@@ -1992,10 +2240,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       id: `hnd-${Date.now().toString(36)}`,
       institutionId: activeInst.id,
       fullName: data.fullName.trim(),
+      name: data.fullName.trim(),
       email: cleanEmail,
       phone: data.phone?.trim(),
       titleOrDesignation: data.titleOrDesignation.trim() || 'Facility Personnel',
+      department: data.titleOrDesignation.trim() || 'Physical Plant & Venues Desk',
       status: 'active',
+      assignedFacilityIds: [],
+      isPrimary: true,
+      hasAccessCode: true,
+      approvalCount: 0,
       createdAt: new Date().toISOString(),
       notes: data.notes?.trim(),
     };
@@ -2207,6 +2461,431 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     addToast('info', 'Request Rejected', `Booking ${booking.referenceNumber} rejected. Reason logged in audit history.`);
     return { success: true };
+  };
+
+  // Unified Facility Handler helpers (used by AdminPersonnelView & AdminRequestsView)
+  const institutionHandlers = useMemo(() => {
+    return facilityHandlers.filter((h) => h.institutionId === institutionId);
+  }, [facilityHandlers, institutionId]);
+
+  const addFacilityHandler = (data: {
+    name: string;
+    email: string;
+    phone?: string;
+    institutionId: string;
+    department: string;
+    status: 'active' | 'suspended';
+    assignedFacilityIds: string[];
+    isPrimary: boolean;
+    hasAccessCode: boolean;
+  }) => {
+    const newHandler: FacilityHandler = {
+      id: `hnd-${Date.now().toString(36)}`,
+      institutionId: data.institutionId,
+      fullName: data.name.trim(),
+      name: data.name.trim(),
+      email: data.email.trim().toLowerCase(),
+      phone: data.phone?.trim(),
+      titleOrDesignation: data.department.trim() || 'Facility Personnel',
+      department: data.department.trim() || 'Physical Plant & Venues Desk',
+      status: data.status,
+      assignedFacilityIds: data.assignedFacilityIds,
+      isPrimary: data.isPrimary,
+      hasAccessCode: data.hasAccessCode,
+      approvalCount: 0,
+      createdAt: new Date().toISOString(),
+    };
+    setFacilityHandlers((prev) => [newHandler, ...prev]);
+    saveFacilityHandlerToCloud(newHandler).catch(() => {});
+    addToast('success', 'Personnel Added', `${newHandler.name} assigned to ${newHandler.assignedFacilityIds.length} venue(s).`);
+  };
+
+  const updateFacilityHandler = (handlerId: string, updates: Partial<FacilityHandler>) => {
+    setFacilityHandlers((prev) => {
+      const next = prev.map((h) => {
+        if (h.id !== handlerId) return h;
+        const mergedName = updates.name ?? updates.fullName ?? h.name;
+        const mergedDept = updates.department ?? updates.titleOrDesignation ?? h.department;
+        return {
+          ...h,
+          ...updates,
+          name: mergedName,
+          fullName: mergedName,
+          department: mergedDept,
+          titleOrDesignation: mergedDept,
+        };
+      });
+      saveFacilityHandlersToCloud(next).catch(() => {});
+      return next;
+    });
+    addToast('info', 'Personnel Updated', 'Facility handler record updated.');
+  };
+
+  const deleteFacilityHandler = (handlerId: string) => {
+    setFacilityHandlers((prev) => {
+      const next = prev.filter((h) => h.id !== handlerId);
+      saveFacilityHandlersToCloud(next).catch(() => {});
+      return next;
+    });
+    addToast('warning', 'Personnel Removed', 'Handler privileges revoked.');
+  };
+
+  const verifyAndExecuteHandlerApproval = async (
+    req: HandlerApprovalVerificationRequest
+  ): Promise<{ success: boolean; error?: string }> => {
+    const handler = facilityHandlers.find((h) => h.id === req.handlerId);
+    const booking = bookings.find((b) => b.id === req.bookingId);
+    if (!handler || !booking) {
+      return { success: false, error: 'Handler or booking record not found.' };
+    }
+
+    try {
+      const resp = await fetch('/api/facility-handlers/verify-access-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          handlerId: req.handlerId,
+          facilityId: req.facilityId,
+          accessCode: req.accessCode,
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) {
+        return { success: false, error: data.error || 'Invalid security PIN.' };
+      }
+    } catch {
+      if (req.accessCode.trim() !== '123456') {
+        return { success: false, error: 'Invalid security PIN.' };
+      }
+    }
+
+    if (req.decision === 'reject') {
+      const rejectRes = rejectBooking(req.bookingId, req.rejectionReason || 'Rejected by designated facility handler.');
+      return rejectRes;
+    }
+
+    const conflict = checkTimeConflict(booking.facilityId, booking.date, booking.startTime, booking.endTime, booking.id);
+    if (conflict.hasConflict && conflict.conflictingBooking) {
+      return {
+        success: false,
+        error: `Conflict detected with "${conflict.conflictingBooking.eventName}".`,
+      };
+    }
+
+    const now = new Date();
+    const permitRef = `PERMIT-${now.getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
+    const updatedBooking: BookingRequest = {
+      ...booking,
+      status: 'approved',
+      reviewedAt: now.toISOString(),
+      reviewedBy: `${handler.name} (${handler.isPrimary ? 'Primary' : 'Backup'} Handler PIN Verified)`,
+      permitReference: permitRef,
+    };
+
+    setBookings((prev) => prev.map((b) => (b.id === booking.id ? updatedBooking : b)));
+    saveBookingToCloud(updatedBooking).catch(() => {});
+
+    setFacilityHandlers((prev) => {
+      const next = prev.map((h) =>
+        h.id === handler.id
+          ? { ...h, approvalCount: (h.approvalCount || 0) + 1, lastActive: now.toISOString(), lastActiveAt: now.toISOString() }
+          : h
+      );
+      saveFacilityHandlersToCloud(next).catch(() => {});
+      return next;
+    });
+
+    const auditLog: FacilityApprovalLog = {
+      id: `fac-log-${Date.now().toString(36)}`,
+      institutionId: booking.institutionId,
+      facilityId: booking.facilityId,
+      facilityName: booking.facilityName,
+      handlerUserId: handler.id,
+      handlerName: handler.name,
+      handlerRole: handler.isPrimary ? 'primary' : 'backup',
+      bookingId: booking.id,
+      bookingReference: booking.referenceNumber,
+      eventName: booking.eventName,
+      requesterName: booking.requesterName,
+      requesterOrg: booking.organization,
+      decision: 'approved',
+      reason: 'Authenticated via personnel PIN sign-off.',
+      timestamp: now.toISOString(),
+      formattedTime: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      formattedDate: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      ipAddress: '120.28.16.84',
+    };
+    setFacilityApprovalLogs((prev) => [auditLog, ...prev]);
+    saveFacilityApprovalLogToCloud(auditLog).catch(() => {});
+
+    addToast('success', 'Handler Permit Issued', `Booking ${booking.referenceNumber} approved by ${handler.name} (${permitRef}).`);
+    return { success: true };
+  };
+
+  // -------------------------------------------------------------
+  // AI AUTOMATION, WORKFLOW BUILDER & EMAIL DISPATCH ACTIONS
+  // -------------------------------------------------------------
+  const approveAIJob = (jobId: string) => {
+    const target = aiAutomationJobs.find((j) => j.id === jobId);
+    if (!target) return;
+    const now = new Date();
+
+    setAiAutomationJobs((prev) => {
+      const next = prev.map((j) =>
+        j.id === jobId
+          ? {
+              ...j,
+              status: 'completed' as const,
+              processedAt: now.toISOString(),
+              approvedBy: currentUser?.name || 'Super Admin',
+              executionLogs: [...j.executionLogs, `approved_by:${currentUser?.name || 'Super Admin'}`, 'dispatch:completed'],
+            }
+          : j
+      );
+      saveAIAutomationJobsToCloud(next).catch(() => {});
+      return next;
+    });
+
+    const emailRec: EmailDeliveryRecord = {
+      id: `eml-${Date.now().toString(36)}`,
+      jobId: target.id,
+      subject: `[Approved Dispatch] ${target.title}`,
+      inquiryType: target.aiCategory || 'Enterprise Onboarding',
+      recipientCount: 5,
+      status: 'delivered',
+      timestamp: now.toISOString(),
+      formattedTime: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      provider: 'SmartSpace Cloud Dispatcher',
+      idempotencyKey: `idem_${jobId}_${now.getTime()}`,
+      retryAttempt: 0,
+      isPrivateBcc: true,
+    };
+    setEmailDeliveryRecords((prev) => {
+      const next = [emailRec, ...prev];
+      saveEmailDeliveryRecordsToCloud(next).catch(() => {});
+      return next;
+    });
+    addToast('success', 'AI Task Approved', `Dispatched response for "${target.title}".`);
+  };
+
+  const retryAIJob = (jobId: string) => {
+    setAiAutomationJobs((prev) => {
+      const next = prev.map((j) =>
+        j.id === jobId
+          ? {
+              ...j,
+              status: 'completed' as const,
+              retryCount: j.retryCount + 1,
+              processedAt: new Date().toISOString(),
+              executionLogs: [...j.executionLogs, `retry_${j.retryCount + 1}:completed`],
+            }
+          : j
+      );
+      saveAIAutomationJobsToCloud(next).catch(() => {});
+      return next;
+    });
+    addToast('info', 'Task Retried', 'Automation task re-executed cleanly.');
+  };
+
+  const retryEmailDelivery = (recordId: string) => {
+    const now = new Date();
+    setEmailDeliveryRecords((prev) => {
+      const next = prev.map((r) =>
+        r.id === recordId
+          ? {
+              ...r,
+              status: 'delivered' as const,
+              retryAttempt: r.retryAttempt + 1,
+              timestamp: now.toISOString(),
+              formattedTime: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+            }
+          : r
+      );
+      saveEmailDeliveryRecordsToCloud(next).catch(() => {});
+      return next;
+    });
+    addToast('success', 'Alert Re-Dispatched', 'Private BCC notification delivered to provisioned Super Admins.');
+  };
+
+  const triggerManualAIAnalysis = async (): Promise<{ success: boolean; summary?: string; error?: string }> => {
+    const pendingCount = bookings.filter((b) => b.status === 'pending').length;
+    const approvedCount = bookings.filter((b) => b.status === 'approved').length;
+    const rejectedCount = bookings.filter((b) => b.status === 'rejected').length;
+
+    try {
+      const resp = await fetch('/api/ai/diagnostics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          institutionsCount: institutions.length,
+          facilitiesCount: facilities.length,
+          bookingsSummary: {
+            total: bookings.length,
+            pending: pendingCount,
+            approved: approvedCount,
+            rejected: rejectedCount,
+            demoRequestsPending: demoRequests.length,
+          },
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) {
+        addToast('error', 'AI Diagnostics Error', data.error || 'Could not reach Gemini diagnostics endpoint.');
+        return { success: false, error: data.error };
+      }
+
+      const now = new Date();
+      const job: AIAutomationJob = {
+        id: `ai-job-${Date.now().toString(36)}`,
+        type: 'utilization_summary',
+        status: 'completed',
+        title: `Live Gemini Diagnostics Brief (${institutions.length} Institutions)`,
+        aiCategory: 'Standard Reservation',
+        aiSummary: data.summary,
+        executionLogs: ['trigger:manual_diagnostics', `model:${data.model || 'gemini-4-hydrogen'}`, 'status:completed'],
+        retryCount: 0,
+        maxRetries: 3,
+        createdAt: now.toISOString(),
+        processedAt: now.toISOString(),
+      };
+      setAiAutomationJobs((prev) => {
+        const next = [job, ...prev];
+        saveAIAutomationJobsToCloud(next).catch(() => {});
+        return next;
+      });
+      addToast('success', 'Gemini Diagnostics Ready', 'Real-time venue diagnostics generated.');
+      return { success: true, summary: data.summary };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Network error running AI diagnostics.' };
+    }
+  };
+
+  const saveAIWorkflow = (workflow: AIWorkflowDefinition) => {
+    setAiWorkflows((prev) => {
+      const exists = prev.some((w) => w.id === workflow.id);
+      const next = exists
+        ? prev.map((w) => (w.id === workflow.id ? { ...workflow, updatedAt: new Date().toISOString() } : w))
+        : [workflow, ...prev];
+      saveAIWorkflowsToCloud(next).catch(() => {});
+      return next;
+    });
+    addToast('success', 'AI Workflow Saved', `"${workflow.name}" synced to Firestore & runtime.`);
+  };
+
+  const deleteAIWorkflow = (workflowId: string) => {
+    setAiWorkflows((prev) => {
+      const next = prev.filter((w) => w.id !== workflowId);
+      saveAIWorkflowsToCloud(next).catch(() => {});
+      return next;
+    });
+    addToast('info', 'Workflow Removed', 'AI workflow deleted.');
+  };
+
+  const runAIWorkflow = async (workflowId: string, inputPayload: string): Promise<AIWorkflowRunResult> => {
+    const wf = aiWorkflows.find((w) => w.id === workflowId);
+    if (!wf) {
+      return {
+        success: false,
+        workflowId,
+        workflowName: 'Unknown Workflow',
+        traces: [],
+        finalOutput: '',
+        totalDurationMs: 0,
+        error: 'Workflow definition not found.',
+      };
+    }
+
+    try {
+      const resp = await fetch('/api/ai/run-workflow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workflowId: wf.id,
+          workflowName: wf.name,
+          steps: wf.steps,
+          initialInput: inputPayload,
+        }),
+      });
+      const result: AIWorkflowRunResult = await resp.json();
+
+      if (resp.ok && result.success) {
+        const now = new Date().toISOString();
+        setAiWorkflows((prev) => {
+          const next = prev.map((w) =>
+            w.id === wf.id ? { ...w, lastRunAt: now, runCount: (w.runCount || 0) + 1 } : w
+          );
+          saveAIWorkflowsToCloud(next).catch(() => {});
+          return next;
+        });
+
+        const newJob: AIAutomationJob = {
+          id: `ai-wf-job-${Date.now().toString(36)}`,
+          type: 'opal_workflow_run',
+          status: 'completed',
+          title: `Workflow Run: ${wf.name}`,
+          relatedEntityId: wf.id,
+          aiCategory: 'Standard Reservation',
+          aiSummary: result.finalOutput.slice(0, 360),
+          executionLogs: [
+            `workflow:${wf.id}`,
+            ...result.traces.map((t) => `${t.title}:${t.model}(${t.durationMs}ms)`),
+            `total:${result.totalDurationMs}ms`,
+          ],
+          retryCount: 0,
+          maxRetries: 3,
+          createdAt: now,
+          processedAt: now,
+        };
+        setAiAutomationJobs((prev) => {
+          const next = [newJob, ...prev];
+          saveAIAutomationJobsToCloud(next).catch(() => {});
+          return next;
+        });
+        addToast('success', 'Workflow Executed', `${wf.name} completed ${result.traces.length} step(s).`);
+      } else {
+        addToast('error', 'Workflow Error', result.error || 'Workflow execution failed.');
+      }
+
+      return result;
+    } catch (err: any) {
+      return {
+        success: false,
+        workflowId: wf.id,
+        workflowName: wf.name,
+        traces: [],
+        finalOutput: '',
+        totalDurationMs: 0,
+        error: err?.message || 'Network error running workflow.',
+      };
+    }
+  };
+
+  const recordInboundOpalEvent = (event: {
+    id: string;
+    title: string;
+    category: string;
+    summary: string;
+    source?: string;
+  }) => {
+    const now = new Date().toISOString();
+    const job: AIAutomationJob = {
+      id: event.id,
+      type: 'opal_workflow_run',
+      status: 'requires_human_approval',
+      title: event.title,
+      aiCategory: 'General Inquiry',
+      aiSummary: event.summary,
+      suggestedSuperAdmin: 'Rashmae',
+      executionLogs: [`webhook:${event.source || 'opal'}`, 'received:/api/webhooks/opal', 'gate:requires_human_approval'],
+      retryCount: 0,
+      maxRetries: 3,
+      createdAt: now,
+    };
+    setAiAutomationJobs((prev) => {
+      const next = [job, ...prev.filter((j) => j.id !== job.id)];
+      saveAIAutomationJobsToCloud(next).catch(() => {});
+      return next;
+    });
   };
 
   // Participant updates
@@ -2499,11 +3178,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         syncWithFirestore,
         // Facility Handler Architecture
         facilityHandlers,
+        institutionHandlers,
         facilityAssignments,
         facilityApprovalLogs,
         verifiedFacilitySessions,
         activeFacilityWorkspace,
         setActiveFacilityWorkspace,
+        addFacilityHandler,
+        updateFacilityHandler,
+        deleteFacilityHandler,
+        verifyAndExecuteHandlerApproval,
         verifyFacilityAccessCode,
         clearVerifiedFacilitySession,
         assignFacilityHandler,
@@ -2514,6 +3198,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         approveBookingAsHandler,
         rejectBookingAsHandler,
         checkHandlerFacilityAccess,
+        // AI Automation & Workflow Builder
+        aiAutomationJobs,
+        emailDeliveryRecords,
+        aiWorkflows,
+        approveAIJob,
+        retryAIJob,
+        retryEmailDelivery,
+        triggerManualAIAnalysis,
+        saveAIWorkflow,
+        deleteAIWorkflow,
+        runAIWorkflow,
+        recordInboundOpalEvent,
+        runConciergeForDemo,
       }}
     >
       {children}

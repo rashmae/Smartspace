@@ -55,11 +55,11 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
 
   const handleRoleLaunch = (role: 'student' | 'admin' | 'super_admin') => {
     if (role === 'super_admin') {
-      loginAs('super_admin', 'superadmin@smartspace.ph', 'SmartSpace Super Admin');
+      openAuthPortal('super_admin', 'login', 'login');
     } else if (role === 'admin') {
-      loginAs('university_admin', 'admin.facilities@ctu.edu.ph', 'Engr. R. Santos');
+      loginAs('university_admin', 'admin.facilities@ctu.edu.ph', 'Sample Facility Admin');
     } else {
-      loginAs('student', 'juan.delacruz@ctu.edu.ph', 'Juan Dela Cruz');
+      loginAs('student', 'juan.delacruz@ctu.edu.ph', 'Sample Student Officer');
     }
   };
 
@@ -159,7 +159,7 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
             <div className="pt-2 flex flex-wrap items-center gap-5 text-xs text-slate-300">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Zero Double Bookings</span>
+                <span>Conflict Checking</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -167,7 +167,7 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Encrypted QR Passes</span>
+                <span>Digital QR Passes</span>
               </div>
             </div>
           </div>
@@ -340,9 +340,9 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
             <div className="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-white text-sm">Institutional Isolation</h3>
+            <h3 className="font-bold text-white text-sm">Institutional Scope</h3>
             <p className="text-slate-400 leading-relaxed">
-              University administrators can only review requests and modify facilities within their assigned institution. No cross-tenant leakage.
+              University administrators review requests and manage facility catalogs scoped to their assigned workspace.
             </p>
           </div>
 
@@ -352,7 +352,7 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
             </div>
             <h3 className="font-bold text-white text-sm">Verifiable QR Permits</h3>
             <p className="text-slate-400 leading-relaxed">
-              Every approved booking generates an encrypted permit reference and QR code, readable by security guards at facility entrances.
+              Every approved booking generates a scannable permit reference and QR code, readable by security guards at facility entrances.
             </p>
           </div>
 
@@ -460,11 +460,11 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
             <div className="pt-2 flex flex-wrap gap-4 text-xs font-semibold text-slate-700">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-purple-600"></span>
-                <span>Active Anchor Campus: CTU Main</span>
+                <span>Pilot Focus: Higher Education in Cebu City</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-purple-600"></span>
-                <span>Multi-Campus Network: {allInstitutions.length} Campuses</span>
+                <span>Illustrative Sample Workspaces: {allInstitutions.length}</span>
               </div>
             </div>
           </div>
@@ -530,7 +530,7 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
               <ArrowRight className="w-3.5 h-3.5 text-blue-400 group-hover:translate-x-0.5 transition-transform" />
             </div>
             <p className="text-[11px] text-slate-400">
-              Juan Dela Cruz · SSG Officer (CTU Main)
+              Sample Student Sandbox · Requester View
             </p>
           </button>
 
@@ -547,7 +547,7 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
               <ArrowRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
             </div>
             <p className="text-[11px] text-slate-400">
-              Engr. R. Santos · Facilities Office (CTU Main)
+              Sample Admin Sandbox · Facility Office View
             </p>
           </button>
 
@@ -564,7 +564,7 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
               <ArrowRight className="w-3.5 h-3.5 text-purple-400 group-hover:translate-x-0.5 transition-transform" />
             </div>
             <p className="text-[11px] text-slate-400">
-              Multi-University Platform Operations & Tenant Review
+              Requires Super Admin Sign-In Credentials
             </p>
           </button>
         </div>

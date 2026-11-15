@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface LogoProps {
   className?: string;
   size?: number;
   showTagline?: boolean;
+  compact?: boolean;
   variant?: 'full' | 'mark-only' | 'horizontal' | 'banner' | 'image';
   theme?: 'light' | 'dark';
 }
@@ -17,6 +18,18 @@ export const SmartSpaceMark: React.FC<{ size?: number; className?: string }> = (
   className = '',
 }) => {
   const [hasError, setHasError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const el = imgRef.current;
+    if (!el) return;
+    const handleError = () => setHasError(true);
+    el.addEventListener('error', handleError);
+    if (el.complete && el.naturalWidth === 0) {
+      setHasError(true);
+    }
+    return () => el.removeEventListener('error', handleError);
+  }, []);
 
   if (hasError) {
     // Graceful SVG fallback preserving official palette
@@ -43,11 +56,11 @@ export const SmartSpaceMark: React.FC<{ size?: number; className?: string }> = (
 
   return (
     <img
+      ref={imgRef}
       src="/assets/aistudio/Logo_w_o_Name_07e7d282.png"
       alt="SmartSpace Logo Mark"
       width={size}
       height={size}
-      onError={() => setHasError(true)}
       className={`shrink-0 object-contain select-none ${className}`}
       style={{ width: `${size}px`, height: `${size}px` }}
       loading="eager"
@@ -59,6 +72,7 @@ export const SmartSpaceLogo: React.FC<LogoProps> = ({
   className = '',
   size = 38,
   showTagline = true,
+  compact = false,
   variant = 'horizontal',
   theme = 'light',
 }) => {
@@ -97,7 +111,7 @@ export const SmartSpaceLogo: React.FC<LogoProps> = ({
 
   // Standard horizontal branded lockup with authentic letter-colored branding & official tagline
   return (
-    <div className={`flex items-center gap-2.5 sm:gap-3 ${className}`}>
+    <div className={`flex items-center gap-2.5 sm:gap-3 whitespace-nowrap shrink-0 ${className}`}>
       <SmartSpaceMark size={size} />
       <div className="flex flex-col justify-center leading-none">
         <div className="flex items-center gap-1.5">
@@ -113,17 +127,19 @@ export const SmartSpaceLogo: React.FC<LogoProps> = ({
             <span className="text-[#8CC63F]">C</span>
             <span className="text-[#8CC63F]">E</span>
           </span>
-          <span
-            className={`text-[9px] sm:text-[10px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded border ${
-              isDark
-                ? 'bg-slate-800 text-slate-300 border-slate-700'
-                : 'bg-slate-100 text-slate-700 border-slate-200'
-            }`}
-          >
-            SaaS
-          </span>
+          {!compact && (
+            <span
+              className={`text-[9px] sm:text-[10px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded border ${
+                isDark
+                  ? 'bg-slate-800 text-slate-300 border-slate-700'
+                  : 'bg-slate-100 text-slate-700 border-slate-200'
+              }`}
+            >
+              SaaS
+            </span>
+          )}
         </div>
-        {showTagline && (
+        {showTagline && !compact && (
           <span
             className={`text-[9px] sm:text-[10px] font-extrabold tracking-wider uppercase italic pt-1 ${
               isDark ? 'text-slate-300' : 'text-slate-600'

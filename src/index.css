@@ -8,6 +8,10 @@
     --brand-green: #8CC63F;
     --brand-navy: #0B1528;
     --brand-navy-card: #0F1E36;
+    --surface-parchment: #FAF9F6;
+    --surface-notion-sidebar: #FBFBFA;
+    --hairline-border: rgba(15, 23, 42, 0.08);
+    --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   html {
@@ -20,5 +24,41 @@
     background-color: #FFFFFF;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  :where(a, button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid #0077C8;
+    outline-offset: 2px;
+  }
+}
+
+.font-editorial {
+  font-family: 'Lora', Georgia, serif;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

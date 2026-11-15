@@ -39,6 +39,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { formatDateTime12Hour, formatTimeOnly12Hour } from '../utils/timeFormat';
+import { AIWorkflowBuilderPanel } from './AIWorkflowBuilderPanel';
 
 export const SuperAdminView: React.FC = () => {
   const { 
@@ -66,6 +67,7 @@ export const SuperAdminView: React.FC = () => {
     retryAIJob,
     retryEmailDelivery,
     triggerManualAIAnalysis,
+    runConciergeForDemo,
   } = useApp();
 
   const [adminSection, setAdminSection] = useState<
@@ -866,8 +868,9 @@ export const SuperAdminView: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Platform Name</label>
+                  <label htmlFor="sa-platform-name" className="text-xs font-bold text-slate-700">Platform Name</label>
                   <input
+                    id="sa-platform-name"
                     type="text"
                     value={customPlatformName}
                     onChange={(e) => setCustomPlatformName(e.target.value)}
@@ -876,8 +879,9 @@ export const SuperAdminView: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Tagline / Motto</label>
+                  <label htmlFor="sa-platform-tagline" className="text-xs font-bold text-slate-700">Tagline / Motto</label>
                   <input
+                    id="sa-platform-tagline"
                     type="text"
                     value={customTagline}
                     onChange={(e) => setCustomTagline(e.target.value)}
@@ -887,8 +891,9 @@ export const SuperAdminView: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Global Announcement Banner</label>
+                <label htmlFor="sa-announcement-banner" className="text-xs font-bold text-slate-700">Global Announcement Banner</label>
                 <textarea
+                  id="sa-announcement-banner"
                   rows={2}
                   value={customAnnouncement}
                   onChange={(e) => setCustomAnnouncement(e.target.value)}
@@ -899,48 +904,47 @@ export const SuperAdminView: React.FC = () => {
             </div>
 
             <div className="space-y-4 pt-4 border-t border-slate-100">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
                 2. Cross-University Booking Governance
               </h3>
 
               <div className="space-y-3">
-                <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+                <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100">
                   <input
+                    id="sa-allow-cross-univ"
                     type="checkbox"
                     checked={customAllowCrossUniv}
                     onChange={(e) => setCustomAllowCrossUniv(e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded"
+                    className="w-4 h-4 mt-0.5 text-indigo-600 rounded shrink-0"
                   />
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block">
-                      Enable Cross-University Facility Discovery
-                    </span>
-                    <span className="text-[11px] text-slate-500">
+                  <label htmlFor="sa-allow-cross-univ" className="cursor-pointer flex-1 text-xs font-bold text-slate-800">
+                    Enable Cross-University Facility Discovery
+                    <span className="block text-[11px] font-normal text-slate-600 mt-0.5">
                       When enabled, End-Users can view participating university facilities across the platform network.
                     </span>
-                  </div>
-                </label>
+                  </label>
+                </div>
 
-                <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+                <div className="flex items-start gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100">
                   <input
+                    id="sa-auto-conflict"
                     type="checkbox"
                     checked={customAutoConflict}
                     onChange={(e) => setCustomAutoConflict(e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded"
+                    className="w-4 h-4 mt-0.5 text-indigo-600 rounded shrink-0"
                   />
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block">
-                      Automated Time Conflict Detection & Overlap Blocking
-                    </span>
-                    <span className="text-[11px] text-slate-500">
+                  <label htmlFor="sa-auto-conflict" className="cursor-pointer flex-1 text-xs font-bold text-slate-800">
+                    Automated Time Conflict Detection &amp; Overlap Blocking
+                    <span className="block text-[11px] font-normal text-slate-600 mt-0.5">
                       Instantly prevents double-booking of facilities on identical dates and time intervals.
                     </span>
-                  </div>
-                </label>
+                  </label>
+                </div>
 
                 <div className="space-y-1 pt-1">
-                  <label className="text-xs font-bold text-slate-700">Default Advance Reservation Window (Days)</label>
+                  <label htmlFor="sa-advance-days" className="text-xs font-bold text-slate-700">Default Advance Reservation Window (Days)</label>
                   <input
+                    id="sa-advance-days"
                     type="number"
                     min="1"
                     max="180"
@@ -1095,15 +1099,48 @@ export const SuperAdminView: React.FC = () => {
 
           <div className="space-y-3">
             {demoRequests.map((d) => (
-              <div key={d.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+              <div key={d.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-bold text-slate-900 text-sm">{d.institutionName}</span>
+                    {d.institutionType && (
+                      <span className="px-2 py-0.5 rounded bg-slate-200/70 text-slate-700 text-[10px] font-semibold">
+                        {d.institutionType}
+                      </span>
+                    )}
                     <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-bold">
                       {d.estimatedFacilities}
                     </span>
+                    {d.aiRecommendedTier && (
+                      <span className="px-2 py-0.5 rounded bg-[#0077C8]/10 text-[#0077C8] text-[10px] font-bold border border-[#0077C8]/20">
+                        {d.aiRecommendedTier}
+                      </span>
+                    )}
+                    {d.aiLeadWarmth && (
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          d.aiLeadWarmth === 'Hot'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : d.aiLeadWarmth === 'Warm'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        Lead: {d.aiLeadWarmth}
+                      </span>
+                    )}
                   </div>
-                  <span className="text-[11px] text-slate-400">Submitted: {d.submittedAt}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-slate-400">Submitted: {d.submittedAt}</span>
+                    <button
+                      type="button"
+                      onClick={() => runConciergeForDemo(d.id)}
+                      className="px-2.5 py-1 rounded-lg bg-[#0077C8] hover:bg-[#0060a3] text-white font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      <span>{d.aiTeamSummary ? 'Re-run Concierge AI' : 'Run Concierge AI'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-slate-600">
@@ -1116,6 +1153,27 @@ export const SuperAdminView: React.FC = () => {
                   <p className="text-[11px] text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200">
                     "{d.message}"
                   </p>
+                )}
+
+                {(d.aiTeamSummary || d.aiEmailDraft) && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1">
+                    {d.aiTeamSummary && (
+                      <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200 space-y-1">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900">
+                          Internal Summary (Rash, Karl, Angel, Krisha)
+                        </div>
+                        <p className="text-[11px] text-slate-700 leading-relaxed">{d.aiTeamSummary}</p>
+                      </div>
+                    )}
+                    {d.aiEmailDraft && (
+                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-[#0077C8]">
+                          Draft Institutional Reply (15-Min Pilot Offer)
+                        </div>
+                        <p className="text-[11px] text-slate-700 whitespace-pre-line leading-relaxed">{d.aiEmailDraft}</p>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
@@ -1275,13 +1333,13 @@ export const SuperAdminView: React.FC = () => {
             <div className="relative z-10 max-w-3xl space-y-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold border border-indigo-400/30">
                 <Bot className="w-4 h-4 text-indigo-400" />
-                <span>Autonomous Operations & Gemini 3.8 Flash Agent</span>
+                <span>Gemini 4 Workflow Engine &amp; Opal Webhook Bridge</span>
               </div>
               <h2 className="text-xl sm:text-3xl font-black text-white tracking-tight">
-                AI Automation Task Queue & Email Dispatcher
+                AI Workflow Builder, Automation Queue &amp; Dispatch
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Server-side AI models autonomously classify institutional demo requests, construct 12-hour AM/PM gate permits, and alert provisioned Super Admins. Human-in-the-Loop review is required for non-standard enterprise inquiries.
+                Express + Firebase Firestore backend with server-side Gemini prompt chaining, Google Opal JSON export &amp; inbound webhook receiver, and 12-hour AM/PM governance workflows.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-3">
@@ -1330,6 +1388,9 @@ export const SuperAdminView: React.FC = () => {
             </div>
           )}
 
+          {/* Visual AI Workflow Builder & Opal Webhook Bridge */}
+          <AIWorkflowBuilderPanel />
+
           {/* Human-in-the-Loop Review Queue */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1361,22 +1422,32 @@ export const SuperAdminView: React.FC = () => {
                       className="p-4 rounded-xl border border-amber-200 bg-amber-50/50 space-y-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div className="space-y-1.5 max-w-2xl">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-200 text-amber-900">
                             {job.aiCategory || 'Enterprise Onboarding'}
                           </span>
+                          {job.recommendedTier && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#0077C8]/10 text-[#0077C8] border border-[#0077C8]/20">
+                              {job.recommendedTier}
+                            </span>
+                          )}
+                          {job.leadWarmth && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                              {job.leadWarmth} Lead
+                            </span>
+                          )}
                           <span className="font-bold text-sm text-slate-900">{job.title}</span>
                         </div>
                         <p className="text-xs text-slate-700 leading-relaxed font-medium">
                           {job.aiSummary}
                         </p>
                         {job.aiDraftContent && (
-                          <div className="text-[11px] text-slate-600 bg-white/80 p-2.5 rounded-lg border border-amber-200/80 italic">
+                          <div className="text-[11px] text-slate-600 bg-white/80 p-2.5 rounded-lg border border-amber-200/80 italic whitespace-pre-line">
                             "{job.aiDraftContent}"
                           </div>
                         )}
                         <div className="text-[10px] text-slate-500 flex items-center gap-3">
-                          <span>Suggested Lead: <strong>{job.suggestedSuperAdmin || 'Rashmae'}</strong></span>
+                          <span>Suggested Lead: <strong>{job.suggestedSuperAdmin || 'Rash, Karl, Angel & Krisha'}</strong></span>
                           <span>·</span>
                           <span>Logged: {formatDateTime12Hour(job.createdAt)}</span>
                         </div>
@@ -1482,7 +1553,7 @@ export const SuperAdminView: React.FC = () => {
                 </p>
               </div>
               <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                100% Dispatch Reliability
+                Delivery Audit Log
               </span>
             </div>
 
@@ -1553,25 +1624,39 @@ export const SuperAdminView: React.FC = () => {
       {/* ADD UNIVERSITY MODAL */}
       {showAddModal && (
 
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAddModal(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sa-add-univ-title"
+            className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          >
             <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold">Register New Higher Education Institution</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Enroll an accredited university onto SmartSpace multi-tenant network.</p>
+                <h3 id="sa-add-univ-title" className="text-base font-bold">Register New Higher Education Institution</h3>
+                <p className="text-xs text-slate-300 mt-0.5">Enroll an accredited university onto SmartSpace multi-tenant network.</p>
               </div>
               <button
+                type="button"
                 onClick={() => setShowAddModal(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Close register institution modal"
+                className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
             <form onSubmit={handleRegisterUniversity} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Official Institution Name *</label>
+                <label htmlFor="sa-add-inst-name" className="text-xs font-bold text-slate-700">Official Institution Name *</label>
                 <input
+                  id="sa-add-inst-name"
                   type="text"
                   required
                   placeholder="e.g. Southwestern University PHINMA"
@@ -1583,8 +1668,9 @@ export const SuperAdminView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Acronym / Code *</label>
+                  <label htmlFor="sa-add-inst-short" className="text-xs font-bold text-slate-700">Acronym / Code *</label>
                   <input
+                    id="sa-add-inst-short"
                     type="text"
                     required
                     placeholder="e.g. SWU"
@@ -1594,8 +1680,9 @@ export const SuperAdminView: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Campus Location *</label>
+                  <label htmlFor="sa-add-inst-campus" className="text-xs font-bold text-slate-700">Campus Location *</label>
                   <input
+                    id="sa-add-inst-campus"
                     type="text"
                     required
                     placeholder="e.g. Urgello Campus"
@@ -1608,8 +1695,9 @@ export const SuperAdminView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Institution Type</label>
+                  <label htmlFor="sa-add-inst-type" className="text-xs font-bold text-slate-700">Institution Type</label>
                   <select
+                    id="sa-add-inst-type"
                     value={instType}
                     onChange={(e) => setInstType(e.target.value as any)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg"
@@ -1620,8 +1708,9 @@ export const SuperAdminView: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">External Booking Policy</label>
+                  <label htmlFor="sa-add-inst-policy" className="text-xs font-bold text-slate-700">External Booking Policy</label>
                   <select
+                    id="sa-add-inst-policy"
                     value={policy}
                     onChange={(e) => {
                       const p = e.target.value as any;
@@ -1677,25 +1766,39 @@ export const SuperAdminView: React.FC = () => {
 
       {/* EDIT UNIVERSITY MODAL */}
       {editingInst && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setEditingInst(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sa-edit-univ-title"
+            className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          >
             <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold">Edit University Configuration</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Configure institutional workspace, policies, and credentials.</p>
+                <h3 id="sa-edit-univ-title" className="text-base font-bold">Edit University Configuration</h3>
+                <p className="text-xs text-slate-300 mt-0.5">Configure institutional workspace, policies, and credentials.</p>
               </div>
               <button
+                type="button"
                 onClick={() => setEditingInst(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Close edit university modal"
+                className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
             <form onSubmit={handleUpdateUniversity} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">University Name</label>
+                <label htmlFor="sa-edit-inst-name" className="text-xs font-bold text-slate-700">University Name</label>
                 <input
+                  id="sa-edit-inst-name"
                   type="text"
                   value={editingInst.name}
                   onChange={(e) => setEditingInst({ ...editingInst, name: e.target.value })}
@@ -1705,8 +1808,9 @@ export const SuperAdminView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Subscription Tier</label>
+                  <label htmlFor="sa-edit-inst-tier" className="text-xs font-bold text-slate-700">Subscription Tier</label>
                   <select
+                    id="sa-edit-inst-tier"
                     value={editingInst.subscriptionPlan || 'Standard'}
                     onChange={(e) => setEditingInst({ ...editingInst, subscriptionPlan: e.target.value as any })}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg"
@@ -1717,8 +1821,9 @@ export const SuperAdminView: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Account Status</label>
+                  <label htmlFor="sa-edit-inst-status" className="text-xs font-bold text-slate-700">Account Status</label>
                   <select
+                    id="sa-edit-inst-status"
                     value={editingInst.status}
                     onChange={(e) => setEditingInst({ ...editingInst, status: e.target.value as any })}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg"
@@ -1733,13 +1838,14 @@ export const SuperAdminView: React.FC = () => {
               {/* Cross-University Booking Policy Controls */}
               <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200 space-y-2">
                 <span className="text-[11px] font-bold text-blue-900 block flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-blue-600" />
+                  <Globe className="w-3.5 h-3.5 text-blue-700" aria-hidden="true" />
                   Cross-University Booking Policy
                 </span>
                 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-slate-700">Policy Mode</label>
+                  <label htmlFor="sa-edit-inst-policy" className="text-[10px] font-semibold text-slate-700">Policy Mode</label>
                   <select
+                    id="sa-edit-inst-policy"
                     value={editingInst.bookingPolicy}
                     onChange={(e) => {
                       const pol = e.target.value as any;
@@ -1758,8 +1864,9 @@ export const SuperAdminView: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-semibold text-slate-700">Notice Shown to External Requesters</label>
+                  <label htmlFor="sa-edit-inst-notice" className="text-[10px] font-semibold text-slate-700">Notice Shown to External Requesters</label>
                   <textarea
+                    id="sa-edit-inst-notice"
                     rows={2}
                     value={editingInst.externalBookingNotice || ''}
                     onChange={(e) => setEditingInst({ ...editingInst, externalBookingNotice: e.target.value })}

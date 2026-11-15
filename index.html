@@ -4,152 +4,107 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/assets/aistudio/Logo_w_o_Name_07e7d282.png" />
-    <link rel="canonical" href="https://smartspace.ph/" />
-    
-    <title>SmartSpace | University Facility Booking & Management</title>
-    <meta name="description" content="SmartSpace is a multi-university facility booking and resource management SaaS platform. Book It, Track It, Use It." />
-    
+
+    <title>SmartSpace | Campus Facility Booking &amp; Management</title>
+    <meta name="description" content="A software-as-a-service platform for facility search, availability checking, booking requests, approvals, reservation records and utilization reports for colleges and universities in Cebu City." />
+
     <!-- OpenGraph Social Share Preview -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://smartspace.ph/" />
     <meta property="og:site_name" content="SmartSpace" />
-    <meta property="og:title" content="SmartSpace | University Facility Booking & Management" />
-    <meta property="og:description" content="SmartSpace is a multi-university facility booking and resource management SaaS platform. Book It, Track It, Use It." />
-    <meta property="og:image" content="https://smartspace.ph/smartspace-og.png" />
-    <meta property="og:image:secure_url" content="https://smartspace.ph/smartspace-og.png" />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="SmartSpace - University Facility Booking & Campus Resource Management" />
-    
+    <meta property="og:title" content="SmartSpace | Campus Facility Booking &amp; Management" />
+    <meta property="og:description" content="A software-as-a-service platform for facility search, availability checking, booking requests, approvals, reservation records and utilization reports for colleges and universities in Cebu City." />
+
     <!-- Twitter Social Share Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="SmartSpace | University Facility Booking & Management" />
-    <meta name="twitter:description" content="SmartSpace is a multi-university facility booking and resource management SaaS platform. Book It, Track It, Use It." />
-    <meta name="twitter:image" content="https://smartspace.ph/smartspace-og.png" />
-    <meta name="twitter:image:alt" content="SmartSpace - University Facility Booking & Campus Resource Management" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="SmartSpace | Campus Facility Booking &amp; Management" />
+    <meta name="twitter:description" content="A software-as-a-service platform for facility search, availability checking, booking requests, approvals, reservation records and utilization reports for colleges and universities in Cebu City." />
 
-    <!-- Google Web Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- Self-hosted fonts bundled via @fontsource in src/main.tsx (zero external font CDN requests) -->
 
-    <!-- JSON-LD Structured Data Schema for AI & Search Engines -->
+    <!-- JSON-LD Structured Data Schema -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@graph": [
         {
           "@type": "Organization",
-          "@id": "https://smartspace.ph/#organization",
           "name": "SmartSpace",
-          "url": "https://smartspace.ph/",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://smartspace.ph/assets/aistudio/Logo_w__Name_00c2f4c4.png",
-            "width": 2000,
-            "height": 2000
-          },
+          "legalName": "[TO BE CONFIRMED: legal entity name]",
           "slogan": "Book It, Track It, Use It.",
-          "description": "Multi-university facility booking and physical campus resource management SaaS platform.",
+          "description": "A software-as-a-service platform for facility search, availability checking, booking requests, approvals, reservation records and utilization reports for colleges and universities in Cebu City.",
           "areaServed": {
             "@type": "AdministrativeArea",
-            "name": "Philippines and Southeast Asian Universities"
+            "name": "Higher-education institutions in Cebu City, Philippines"
           },
           "address": {
             "@type": "PostalAddress",
-            "streetAddress": "M.J. Cuenco Ave. cor. R. Palma St.",
+            "streetAddress": "[TO BE CONFIRMED: registered business address]",
             "addressLocality": "Cebu City",
-            "postalCode": "6000",
             "addressCountry": "PH"
           },
           "contactPoint": [
             {
               "@type": "ContactPoint",
-              "telephone": "+63-32-415-5555",
               "contactType": "customer service",
-              "email": "support@smartspace.ph",
-              "areaServed": "PH",
-              "availableLanguage": ["English", "Filipino", "Cebuano"]
+              "email": "[TO BE CONFIRMED: support email]",
+              "telephone": "[TO BE CONFIRMED: support phone]",
+              "areaServed": "PH"
             }
-          ],
-          "sameAs": [
-            "https://twitter.com/smartspace_ph",
-            "https://linkedin.com/company/smartspace-ph"
           ]
         },
         {
           "@type": "WebSite",
-          "@id": "https://smartspace.ph/#website",
-          "url": "https://smartspace.ph/",
           "name": "SmartSpace",
-          "publisher": {
-            "@id": "https://smartspace.ph/#organization"
-          },
-          "description": "Multi-university facility booking and resource management SaaS platform.",
-          "dateModified": "2026-11-08",
-          "inLanguage": "en-US"
+          "description": "A software-as-a-service platform for facility search, availability checking, booking requests, approvals, reservation records and utilization reports for colleges and universities in Cebu City.",
+          "inLanguage": "en-PH"
         },
         {
           "@type": "SoftwareApplication",
-          "@id": "https://smartspace.ph/#software",
-          "name": "SmartSpace Campus Booking SaaS",
+          "name": "SmartSpace Campus Facility Booking SaaS (Pilot-stage prototype)",
           "operatingSystem": "Web Browser (Chrome, Safari, Firefox, Edge)",
-          "applicationCategory": "BusinessApplication",
-          "url": "https://smartspace.ph/",
-          "author": {
-            "@id": "https://smartspace.ph/#organization"
-          },
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "PHP",
-            "availability": "https://schema.org/InStock",
-            "description": "Institutional demo and pilot provisioning available for higher education systems."
-          }
+          "applicationCategory": "BusinessApplication"
         },
         {
           "@type": "FAQPage",
-          "@id": "https://smartspace.ph/#faq",
           "mainEntity": [
             {
               "@type": "Question",
-              "name": "How does SmartSpace prevent double bookings across university venues?",
+              "name": "How does SmartSpace help prevent overlapping bookings across university venues?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "SmartSpace employs a real-time reservation conflict engine. The moment a timeslot is reserved or approved by a university facility administrator, that specific room and hour block is locked against conflicting submissions across all departments, student organizations, and academic colleges."
+                "text": "SmartSpace checks proposed timeslots against existing approved and pending reservations in the configured schedule so administrators and requesters can spot overlaps before confirmation."
               }
             },
             {
               "@type": "Question",
-              "name": "Can student organizations book facilities across partner universities?",
+              "name": "Can student organizations request facilities across configured campus workspaces?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Yes. SmartSpace supports cross-university facility reservations. Each participating institution defines its own booking clearance policy (e.g. host college dean endorsement or accredited student council clearance). Partner campus organizations can request spaces transparently."
+                "text": "Yes. Each participating institution workspace defines its own booking clearance rules and endorsement steps, allowing authorized users to submit requests according to host rules."
               }
             },
             {
               "@type": "Question",
-              "name": "How are physical campus gates and keys managed on event day?",
+              "name": "How are physical campus gates and check-ins supported on event day?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Once an institutional administrator approves a reservation, SmartSpace generates a time-bounded, encrypted QR Gate Pass. Campus security and building custodians scan this pass with any mobile device to immediately confirm authorized venue occupancy."
+                "text": "Once an administrator approves a reservation, SmartSpace generates a digital QR gate pass code that campus custodians and security staff can inspect on a mobile device to verify reservation details."
               }
             },
             {
               "@type": "Question",
-              "name": "What equipment and operating constraints can administrators set?",
+              "name": "What equipment and operating rules can administrators configure?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Institutional administrators can customize advance booking windows (e.g. 48h to 5 days), required endorsement attachments (such as adviser signatures or physical therapist coverage for gym events), maximum capacities, and operating schedules per space."
+                "text": "Administrators can configure advance notice expectations, required endorsement notes, maximum room capacities, equipment inventories, and operating hours per facility."
               }
             },
             {
               "@type": "Question",
-              "name": "How can a university or college system onboard with SmartSpace?",
+              "name": "How can a college or university try the SmartSpace pilot?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Higher education institutions can onboard in under 48 hours. Simply request a demo or submit an institutional registration application. Our deployment team provisions your dedicated campus facility sandbox with custom approval hierarchies."
+                "text": "SmartSpace is currently a pilot-stage prototype. Higher-education teams in Cebu City can request a guided walkthrough or join the pilot to evaluate the workflow with sample campus spaces."
               }
             }
           ]
@@ -158,35 +113,10 @@
     }
     </script>
 
-    <script>
-      // Suppress Vite HMR WebSocket connection errors per AI Studio environment constraints
-      function isWsError(msg) {
-        return typeof msg === 'string' && (
-          msg.indexOf('WebSocket') !== -1 ||
-          msg.indexOf('vite:ws') !== -1 ||
-          msg.indexOf('closed without opened') !== -1 ||
-          msg.indexOf('@vite/client') !== -1
-        );
-      }
-      window.addEventListener('unhandledrejection', function (e) {
-        var reason = (e && e.reason && (e.reason.message || String(e.reason))) || '';
-        if (isWsError(reason)) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-        }
-      }, true);
-      window.addEventListener('error', function (e) {
-        var msg = (e && e.message) || '';
-        var src = (e && e.filename) || '';
-        if (isWsError(msg) || isWsError(src)) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-        }
-      }, true);
-    </script>
+    <script src="/ws-guard.js"></script>
   </head>
   <body>
-    <!-- Pre-rendered crawlable HTML inside #root for AI crawlers & SEO bots before JavaScript hydration -->
+    <!-- Pre-rendered crawlable HTML inside #root before JavaScript hydration -->
     <div id="root">
       <header>
         <nav aria-label="Main Navigation">
@@ -203,85 +133,86 @@
 
       <main>
         <section aria-labelledby="hero-heading">
-          <p>BOOK IT, TRACK IT, USE IT.</p>
-          <h1 id="hero-heading">SmartSpace — University Facility Booking & Campus Resource Management Platform</h1>
+          <p>BOOK IT, TRACK IT, USE IT. · PILOT-STAGE PROTOTYPE</p>
+          <h1 id="hero-heading">SmartSpace — Campus Facility Booking &amp; Management Platform</h1>
           <p>
-            SmartSpace is an enterprise SaaS platform built for higher education institutions. Discover, reserve, and manage university facilities—including auditoriums, gymnasiums, sports courts, computer laboratories, lecture halls, and conference venues—across participating campuses through one intelligent booking system.
+            A software-as-a-service platform for facility search, availability checking, booking requests, approvals, reservation records and utilization reports for colleges and universities in Cebu City.
           </p>
           <div>
-            <a href="/request-demo">Request Institutional Demo</a>
+            <a href="/request-demo">Request Demo</a>
             <a href="/access">Log In to SmartSpace</a>
           </div>
         </section>
 
         <section id="features" aria-labelledby="features-heading">
-          <h2 id="features-heading">Unified Campus Facility Reservation & Real-Time Availability</h2>
+          <h2 id="features-heading">Unified Campus Facility Reservation &amp; Availability Checking</h2>
           <p>
-            Eliminate double bookings, lost paper requisition slips, and scheduling confusion. SmartSpace gives academic departments, faculty organizers, and student councils instant visibility into venue schedules, capacity constraints, audio-visual equipment packages, and custodial cleaning windows.
+            Designed to reduce double bookings, misplaced paper requisition slips, and scheduling confusion. SmartSpace gives academic departments, faculty organizers, and student organizations visibility into venue schedules, capacity limits, equipment summaries, and custodial buffers.
           </p>
           <ul>
-            <li><strong>Sub-Second Conflict Engine:</strong> Timeslot locking ensures zero double-bookings across campus venues.</li>
-            <li><strong>Multi-Tier Endorsements:</strong> Department Chair, College Dean, Physical Plant Director, and Safety Officer approvals.</li>
-            <li><strong>Digital QR Gate Pass:</strong> Scannable entry pass for campus security and building custodians on event day.</li>
-            <li><strong>Cross-University Collaboration:</strong> Reserve certified spaces across public and private partner universities.</li>
+            <li><strong>Conflict-Checked Scheduling:</strong> Checks requested time blocks against existing reservations to help prevent overlaps.</li>
+            <li><strong>Multi-Tier Approvals:</strong> Configurable review steps for advisers, department chairs, facility administrators, and security staff.</li>
+            <li><strong>Digital QR Gate Pass:</strong> Scannable reservation pass for campus custodians and guards on event day.</li>
+            <li><strong>Utilization &amp; Audit Records:</strong> Track reservation history and room usage across configured campus facilities.</li>
           </ul>
         </section>
 
         <section id="how-it-works" aria-labelledby="workflow-heading">
-          <h2 id="workflow-heading">How SmartSpace Works: 5-Step Academic Booking Lifecycle</h2>
+          <h2 id="workflow-heading">How SmartSpace Works: 5-Step Booking Lifecycle</h2>
           <ol>
-            <li><strong>Discover & Filter:</strong> Explore vetted auditoriums, gyms, laboratories, and lecture theaters with transparent capacity, rules, and gear specifications.</li>
-            <li><strong>Submit Reservation:</strong> Pick your exact date, time block, event title, expected headcount, and upload required academic adviser endorsement slips.</li>
-            <li><strong>Automated Institutional Clearance:</strong> Sequential review pipeline routing through Department Chairs and Physical Plant officers.</li>
-            <li><strong>Encrypted QR Gate Pass:</strong> Instantly receive a digital gate pass with countdown clock and verification code.</li>
-            <li><strong>Campus Security Check-in:</strong> Building guards scan the pass at venue entrance to confirm authorized access.</li>
+            <li><strong>Discover &amp; Filter:</strong> Browse campus auditoriums, gyms, laboratories, and lecture rooms with capacity, rules, and equipment details.</li>
+            <li><strong>Submit Reservation:</strong> Choose your date, time block, event title, expected headcount, and required endorsement details.</li>
+            <li><strong>Institutional Clearance:</strong> Structured review workflow through configured academic and physical plant approvers.</li>
+            <li><strong>Digital QR Gate Pass:</strong> Generate a reservation QR code and verification reference upon approval.</li>
+            <li><strong>Campus Security Check-in:</strong> Building custodians scan or check the pass at the venue entrance to confirm reservation details.</li>
           </ol>
         </section>
 
         <section id="universities" aria-labelledby="universities-heading">
-          <h2 id="universities-heading">Participating Higher Education Institutions & Campus Sectors</h2>
+          <h2 id="universities-heading">Built for Higher-Education Institutions in Cebu City</h2>
           <p>
-            SmartSpace connects leading State Universities and Colleges (SUCs) and private higher education institutions under a unified academic governance model, including Cebu Technological University (CTU Main Campus, Danao, Argao), University of San Carlos (USC), and regional partner colleges.
+            SmartSpace is currently a pilot-stage prototype built for colleges and universities in Cebu City, Philippines. Venue profiles shown on the landing page are illustrative sample spaces demonstrating how public and private institutions can configure their own workspaces.
           </p>
         </section>
 
         <section id="faq" aria-labelledby="faq-heading">
           <h2 id="faq-heading">Frequently Asked Questions</h2>
           <article>
-            <h3>How does SmartSpace prevent double bookings across university venues?</h3>
-            <p>SmartSpace employs a real-time reservation conflict engine. The moment a timeslot is reserved or approved by a university facility administrator, that specific room and hour block is locked against conflicting submissions across all departments, student organizations, and academic colleges.</p>
+            <h3>How does SmartSpace help prevent overlapping bookings across university venues?</h3>
+            <p>SmartSpace checks proposed timeslots against existing approved and pending reservations in the configured schedule so administrators and requesters can spot overlaps before confirmation.</p>
           </article>
           <article>
-            <h3>Can student organizations book facilities across partner universities?</h3>
-            <p>Yes. SmartSpace supports cross-university facility reservations. Each participating institution defines its own booking clearance policy (e.g. host college dean endorsement or accredited student council clearance). Partner campus organizations can request spaces transparently.</p>
+            <h3>Can student organizations request facilities across configured campus workspaces?</h3>
+            <p>Yes. Each participating institution workspace defines its own booking clearance rules and endorsement steps, allowing authorized users to submit requests according to host rules.</p>
           </article>
           <article>
-            <h3>How are physical campus gates and keys managed on event day?</h3>
-            <p>Once an institutional administrator approves a reservation, SmartSpace generates a time-bounded, encrypted QR Gate Pass. Campus security and building custodians scan this pass with any mobile device to immediately confirm authorized venue occupancy.</p>
+            <h3>How are physical campus gates and check-ins supported on event day?</h3>
+            <p>Once an administrator approves a reservation, SmartSpace generates a digital QR gate pass code that campus custodians and security staff can inspect on a mobile device to verify reservation details.</p>
           </article>
           <article>
-            <h3>What equipment and operating constraints can administrators set?</h3>
-            <p>Institutional administrators can customize advance booking windows (e.g. 48h to 5 days), required endorsement attachments (such as adviser signatures or physical therapist coverage for gym events), maximum capacities, and operating schedules per space.</p>
+            <h3>What equipment and operating rules can administrators configure?</h3>
+            <p>Administrators can configure advance notice expectations, required endorsement notes, maximum room capacities, equipment inventories, and operating hours per facility.</p>
           </article>
           <article>
-            <h3>How can a university or college system onboard with SmartSpace?</h3>
-            <p>Higher education institutions can onboard in under 48 hours. Simply request a demo or submit an institutional registration application. Our deployment team provisions your dedicated campus facility sandbox with custom approval hierarchies.</p>
+            <h3>How can a college or university try the SmartSpace pilot?</h3>
+            <p>SmartSpace is currently a pilot-stage prototype. Higher-education teams in Cebu City can request a guided walkthrough or join the pilot to evaluate the workflow with sample campus spaces.</p>
           </article>
         </section>
 
         <section id="contact" aria-labelledby="contact-heading">
-          <h2 id="contact-heading">Contact SmartSpace & University Support</h2>
-          <p>Have questions about university onboarding, facility governance, or institutional partnerships?</p>
+          <h2 id="contact-heading">Contact SmartSpace</h2>
+          <p>Have questions about the pilot prototype or institutional walkthroughs in Cebu City?</p>
           <p>
-            Email: <a href="mailto:support@smartspace.ph">support@smartspace.ph</a><br />
-            Phone: <a href="tel:+63324155555">+63 32 415 5555</a><br />
-            Campus Office: Cebu Technological University Main Campus / University Innovation Hub, M.J. Cuenco Ave. cor. R. Palma St., Cebu City, 6000, Philippines
+            Legal Entity: [TO BE CONFIRMED: legal entity name]<br />
+            Email: [TO BE CONFIRMED: support email]<br />
+            Phone: [TO BE CONFIRMED: support phone]<br />
+            Address: [TO BE CONFIRMED: registered business address]
           </p>
         </section>
       </main>
 
       <footer>
-        <p>© 2026 SmartSpace. All rights reserved. “Book It, Track It, Use It.”</p>
+        <p>© 2026 SmartSpace (Pilot-stage prototype). “Book It, Track It, Use It.”</p>
       </footer>
     </div>
 
@@ -289,9 +220,9 @@
       <div style="padding: 24px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
         <h2>JavaScript is disabled in your browser</h2>
         <p>
-          SmartSpace is an interactive SaaS platform for university facility reservations. You are currently viewing the static accessibility text. To use the full interactive venue calendar, booking submission engine, and administrative portals, please enable JavaScript.
+          SmartSpace is an interactive SaaS platform for campus facility reservations. You are currently viewing the static accessibility text. To use the interactive venue search, booking submission form, and administrative portals, please enable JavaScript.
         </p>
-        <p>Contact support at <a href="mailto:support@smartspace.ph">support@smartspace.ph</a> or call <a href="tel:+63324155555">+63 32 415 5555</a>.</p>
+        <p>Support email: [TO BE CONFIRMED: support email] · Support phone: [TO BE CONFIRMED: support phone]</p>
       </div>
     </noscript>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Facility } from '../types';
 import { useApp } from '../context/AppContext';
 import { AvailabilitySchedule } from './AvailabilitySchedule';
@@ -16,6 +16,7 @@ import {
   Globe
 } from 'lucide-react';
 import { formatTimeRange } from '../utils/timeFormat';
+import { ResilientImage } from './ResilientImage';
 
 interface FacilityDetailModalProps {
   facility: Facility | null;
@@ -30,6 +31,49 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
 }) => {
   const { allInstitutions, currentInstitution } = useApp();
   const [activeTab, setActiveTab] = useState<'details' | 'availability'>('details');
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!facility) return;
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    setTimeout(() => closeBtnRef.current?.focus(), 0);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusables = Array.from(
+          dialogRef.current.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+          )
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+    };
+  }, [facility, onClose]);
 
   if (!facility) return null;
 
@@ -46,28 +90,40 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
   const isBlocked = isExternal && (!hostInstitution.allowExternalBookings || hostInstitution.bookingPolicy === 'internal_only');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div 
+    <div
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+    >
+      <div
+        ref={dialogRef}
         className="bg-white rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden border border-slate-200 my-8 animate-in fade-in zoom-in-95 duration-150"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="facility-detail-title"
       >
         {/* Modal Header Image & Details */}
         <div className="relative h-48 sm:h-56 w-full bg-slate-800 overflow-hidden">
-          <img
+          <ResilientImage
             src={facility.imageUrl}
             alt={facility.name}
             className="w-full h-full object-cover opacity-85"
+            loading="eager"
+            fallbackLabel={facility.name}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent" />
           
           {/* Close button */}
           <button
+            ref={closeBtnRef}
+            type="button"
             onClick={onClose}
-            className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition-colors cursor-pointer"
-            aria-label="Close modal"
+            className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-900/80 text-white hover:bg-slate-900 transition-colors cursor-pointer"
+            aria-label="Close facility details modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
 
           {/* Header Title & Badges */}
@@ -83,33 +139,39 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
                 {hostInstitution.name} ({hostInstitution.shortName})
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            <h2 id="facility-detail-title" className="text-xl sm:text-2xl font-bold tracking-tight text-white">
               {facility.name}
             </h2>
           </div>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-slate-200 bg-slate-50 px-6 pt-2">
+        <div role="tablist" aria-label="Facility information sections" className="flex border-b border-slate-200 bg-slate-50 px-6 pt-2">
           <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'details'}
             onClick={() => setActiveTab('details')}
             className={`px-4 py-2.5 text-xs font-semibold border-b-2 cursor-pointer transition-colors ${
               activeTab === 'details'
-                ? 'border-blue-600 text-blue-700 bg-white rounded-t'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-blue-600 text-blue-800 bg-white rounded-t'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
-            Facility Details & Rules
+            Facility Details &amp; Rules
           </button>
           <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'availability'}
             onClick={() => setActiveTab('availability')}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 cursor-pointer transition-colors ${
               activeTab === 'availability'
-                ? 'border-blue-600 text-blue-700 bg-white rounded-t'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-blue-600 text-blue-800 bg-white rounded-t'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
-            <CalendarDays className="w-3.5 h-3.5 text-blue-600" />
+            <CalendarDays className="w-3.5 h-3.5 text-blue-700" aria-hidden="true" />
             Check Availability Schedule
           </button>
         </div>
@@ -150,43 +212,43 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
               {/* Quick Spec Metrics */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                  <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-1">
-                    <Users className="w-4 h-4 text-blue-600" />
+                  <div className="flex items-center gap-1.5 text-slate-600 text-xs mb-1">
+                    <Users className="w-4 h-4 text-blue-700" aria-hidden="true" />
                     <span>Seating Capacity</span>
                   </div>
-                  <div className="text-lg font-bold text-slate-800">
-                    {facility.capacity} <span className="text-xs font-normal text-slate-500">attendees max</span>
+                  <div className="text-lg font-bold text-slate-900">
+                    {facility.capacity} <span className="text-xs font-normal text-slate-600">attendees max</span>
                   </div>
                 </div>
 
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                  <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-1">
-                    <Clock className="w-4 h-4 text-blue-600" />
+                  <div className="flex items-center gap-1.5 text-slate-600 text-xs mb-1">
+                    <Clock className="w-4 h-4 text-blue-700" aria-hidden="true" />
                     <span>Operating Hours</span>
                   </div>
-                  <div className="text-sm font-bold text-slate-800">
+                  <div className="text-sm font-bold text-slate-900">
                     {formatTimeRange(facility.operatingHours.open, facility.operatingHours.close)}
                   </div>
-                  <div className="text-[11px] text-slate-500">{facility.operatingHours.days}</div>
+                  <div className="text-[11px] text-slate-600">{facility.operatingHours.days}</div>
                 </div>
 
                 <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 col-span-2 sm:col-span-1">
-                  <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-1">
-                    <MapPin className="w-4 h-4 text-blue-600" />
+                  <div className="flex items-center gap-1.5 text-slate-600 text-xs mb-1">
+                    <MapPin className="w-4 h-4 text-blue-700" aria-hidden="true" />
                     <span>Exact Location</span>
                   </div>
-                  <div className="text-xs font-semibold text-slate-800">
+                  <div className="text-xs font-semibold text-slate-900">
                     {facility.building}
                   </div>
-                  <div className="text-[11px] text-slate-500">{facility.floor} · {hostInstitution.shortName}</div>
+                  <div className="text-[11px] text-slate-600">{facility.floor} · {hostInstitution.shortName}</div>
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
                   About This Space
-                </h4>
+                </h3>
                 <p className="text-sm text-slate-700 leading-relaxed">
                   {facility.description}
                 </p>
@@ -194,13 +256,13 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
 
               {/* Equipment & Resources */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                  Available Equipment & Infrastructure
-                </h4>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                  Available Equipment &amp; Infrastructure
+                </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {facility.equipment.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-xs text-slate-700">
-                      <CheckSquare className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <CheckSquare className="w-3.5 h-3.5 text-emerald-700 shrink-0" aria-hidden="true" />
                       <span>{item}</span>
                     </div>
                   ))}
@@ -209,11 +271,11 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
 
               {/* Usage Rules */}
               <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-blue-700" aria-hidden="true" />
                   Facility Usage Regulations
-                </h4>
-                <ul className="space-y-1.5 text-xs text-slate-600 list-disc list-inside">
+                </h3>
+                <ul className="space-y-1.5 text-xs text-slate-700 list-disc list-inside">
                   {facility.rules.map((rule, idx) => (
                     <li key={idx} className="leading-normal">{rule}</li>
                   ))}
@@ -222,10 +284,10 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
 
               {/* Booking Requirements */}
               <div className="bg-amber-50/60 border border-amber-200 rounded-lg p-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-amber-700" />
-                  Reservation Requirements & Approvals Needed
-                </h4>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-900 mb-2 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-amber-700" aria-hidden="true" />
+                  Reservation Requirements &amp; Approvals Needed
+                </h3>
                 <ul className="space-y-1.5 text-xs text-amber-900 list-disc list-inside">
                   {facility.bookingRequirements.map((req, idx) => (
                     <li key={idx} className="leading-normal">{req}</li>
@@ -247,8 +309,9 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
         {/* Modal Footer */}
         <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-3.5">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-950 transition-colors cursor-pointer"
           >
             Close
           </button>
@@ -256,6 +319,7 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
           <div className="flex items-center gap-2">
             {activeTab === 'details' && (
               <button
+                type="button"
                 onClick={() => setActiveTab('availability')}
                 className="px-3.5 py-2 text-xs font-semibold rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
@@ -263,20 +327,21 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
               </button>
             )}
             <button
+              type="button"
               onClick={() => {
                 if (isBlocked) return;
                 onClose();
                 onBookNow(facility);
               }}
               disabled={isBlocked}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-xs font-semibold shadow-xs transition-colors ${
                 isBlocked
-                  ? 'bg-slate-400 cursor-not-allowed opacity-75'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                  ? 'bg-slate-600 cursor-not-allowed'
+                  : 'bg-blue-700 hover:bg-blue-800 cursor-pointer'
               }`}
             >
               <span>{isBlocked ? 'External Bookings Restricted' : 'Book Facility Request'}</span>
-              {!isBlocked && <ArrowRight className="w-3.5 h-3.5" />}
+              {!isBlocked && <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />}
             </button>
           </div>
         </div>

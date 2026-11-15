@@ -9,6 +9,9 @@ import { UniversityAdminPortal } from './portals/UniversityAdminPortal';
 import { SuperAdminPortal } from './portals/SuperAdminPortal';
 import { AccessDeniedScreen } from './components/AccessDeniedScreen';
 import { ToastContainer } from './components/ToastContainer';
+import { LegalPagesPortal } from './portals/LegalPagesPortal';
+import { ConsentProvider } from './context/ConsentContext';
+import { ConsentBanner } from './components/ConsentBanner';
 
 const AppRouteDispatcher: React.FC = () => {
   const { currentPath, navigate } = useRouter();
@@ -36,6 +39,25 @@ const AppRouteDispatcher: React.FC = () => {
   // -------------------------------------------------------------
   if (path === '/access') {
     return <AccessGatewayPortal />;
+  }
+
+  // -------------------------------------------------------------
+  // ROUTE 3B: LEGAL & GOVERNANCE PAGES
+  // -------------------------------------------------------------
+  if (path === '/privacy') {
+    return <LegalPagesPortal page="privacy" />;
+  }
+  if (path === '/terms') {
+    return <LegalPagesPortal page="terms" />;
+  }
+  if (path === '/cookies') {
+    return <LegalPagesPortal page="cookies" />;
+  }
+  if (path === '/refunds') {
+    return <LegalPagesPortal page="refunds" />;
+  }
+  if (path === '/accessibility') {
+    return <LegalPagesPortal page="accessibility" />;
   }
 
   // -------------------------------------------------------------
@@ -127,10 +149,13 @@ const AppRouteDispatcher: React.FC = () => {
 export default function App() {
   return (
     <AppProvider>
-      <RouterProvider>
-        <AppRouteDispatcher />
-        <ToastContainer />
-      </RouterProvider>
+      <ConsentProvider>
+        <RouterProvider>
+          <AppRouteDispatcher />
+          <ConsentBanner />
+          <ToastContainer />
+        </RouterProvider>
+      </ConsentProvider>
     </AppProvider>
   );
 }

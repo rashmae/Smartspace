@@ -314,23 +314,22 @@ export const AdminRequestsView: React.FC = () => {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => approveBooking(booking.id)}
                       disabled={conflict.hasConflict}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer ${
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs transition-colors flex items-center gap-1.5 ${
                         conflict.hasConflict
-                          ? 'bg-slate-400 cursor-not-allowed opacity-60'
-                          : 'bg-emerald-600 hover:bg-emerald-700'
+                          ? 'bg-slate-600 cursor-not-allowed'
+                          : 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
                       }`}
                       title={conflict.hasConflict ? 'Cannot approve due to conflicting reservation' : 'Approve reservation'}
                     >
-                      <CheckCircle2 className="w-4 h-4" />
+                      <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
                       <span>Direct Approve</span>
                     </button>
                   </div>
                 </div>
               )}
-
-
 
               {/* Recorded Rejection Reason display if already rejected */}
               {booking.status === 'rejected' && booking.rejectionReason && (
@@ -346,12 +345,13 @@ export const AdminRequestsView: React.FC = () => {
         {/* Empty state */}
         {displayList.length === 0 && (
           <div className="bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center space-y-3">
-            <ClipboardCheck className="w-10 h-10 text-slate-300 mx-auto" />
+            <ClipboardCheck className="w-10 h-10 text-slate-400 mx-auto" aria-hidden="true" />
             <h3 className="text-sm font-bold text-slate-800">No Pending Requests</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            <p className="text-xs text-slate-600 max-w-sm mx-auto">
               All submitted facility requests for {currentInstitution.shortName} have been reviewed.
             </p>
             <button
+              type="button"
               onClick={() => {
                 setCurrentRole('student');
                 setActiveView('new-booking');
@@ -366,11 +366,22 @@ export const AdminRequestsView: React.FC = () => {
 
       {/* Rejection Reason Modal */}
       {rejectingBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-slate-200">
-            <div className="flex items-center gap-2 text-red-600 border-b border-slate-100 pb-3">
-              <XCircle className="w-5 h-5 shrink-0" />
-              <h3 className="text-base font-bold text-slate-900">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setRejectingBooking(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reject-req-modal-title"
+            className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-slate-200"
+          >
+            <div className="flex items-center gap-2 text-red-700 border-b border-slate-100 pb-3">
+              <XCircle className="w-5 h-5 shrink-0" aria-hidden="true" />
+              <h3 id="reject-req-modal-title" className="text-base font-bold text-slate-900">
                 Reject Reservation Request
               </h3>
             </div>
@@ -380,10 +391,10 @@ export const AdminRequestsView: React.FC = () => {
             </p>
 
             {/* Quick Presets */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+            <div role="group" aria-labelledby="reject-preset-label">
+              <span id="reject-preset-label" className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
                 Select Common Reason Preset:
-              </label>
+              </span>
               <div className="space-y-1.5 max-h-40 overflow-y-auto">
                 {presetReasons.map((preset, idx) => (
                   <button
@@ -407,10 +418,11 @@ export const AdminRequestsView: React.FC = () => {
 
             {/* Custom Reason */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
-                Or Write Custom Justification <span className="text-red-500">*</span>:
+              <label htmlFor="admin-reject-custom-reason" className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
+                Or Write Custom Justification <span className="text-red-700" aria-hidden="true">*</span>:
               </label>
               <textarea
+                id="admin-reject-custom-reason"
                 rows={3}
                 placeholder="Enter specific administrative reasons for denying this booking..."
                 value={rejectionReason}
@@ -425,18 +437,20 @@ export const AdminRequestsView: React.FC = () => {
             {/* Modal Actions */}
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
               <button
+                type="button"
                 onClick={() => setRejectingBooking(null)}
-                className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 cursor-pointer"
+                className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleConfirmReject}
                 disabled={!rejectionReason.trim()}
-                className={`px-4 py-2 rounded-lg text-xs font-bold text-white transition-colors cursor-pointer ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold text-white transition-colors ${
                   !rejectionReason.trim()
-                    ? 'bg-slate-400 cursor-not-allowed opacity-60'
-                    : 'bg-red-600 hover:bg-red-700'
+                    ? 'bg-slate-600 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700 cursor-pointer'
                 }`}
               >
                 Confirm Rejection
@@ -448,21 +462,34 @@ export const AdminRequestsView: React.FC = () => {
 
       {/* Handler PIN Verification Modal */}
       {handlerPinBooking && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setHandlerPinBooking(null);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="handler-pin-modal-title"
+            className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-200"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
-                  <KeyRound className="w-4 h-4" />
+                  <KeyRound className="w-4 h-4" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-900">Personnel PIN Verification</h3>
-                  <p className="text-[11px] text-slate-500">Atomic attribution for permit issuance</p>
+                  <h3 id="handler-pin-modal-title" className="text-sm font-black text-slate-900">Personnel PIN Verification</h3>
+                  <p className="text-[11px] text-slate-600">Atomic attribution for permit issuance</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setHandlerPinBooking(null)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold px-2 cursor-pointer"
+                aria-label="Close PIN verification modal"
+                className="text-slate-600 hover:text-slate-900 text-lg font-bold px-2 cursor-pointer"
               >
                 ✕
               </button>
@@ -503,10 +530,11 @@ export const AdminRequestsView: React.FC = () => {
               className="space-y-4"
             >
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="admin-req-handler-select" className="block text-xs font-bold text-slate-700 mb-1">
                   Designated Facility Handler *
                 </label>
                 <select
+                  id="admin-req-handler-select"
                   value={selectedHandlerId}
                   onChange={(e) => setSelectedHandlerId(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 font-medium"
@@ -520,12 +548,13 @@ export const AdminRequestsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="admin-req-handler-pin" className="block text-xs font-bold text-slate-700 mb-1">
                   Handler Security PIN Code *
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
                   <input
+                    id="admin-req-handler-pin"
                     type="password"
                     required
                     placeholder="Enter 6-digit access code"
@@ -534,15 +563,15 @@ export const AdminRequestsView: React.FC = () => {
                     className="w-full pl-9 pr-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 font-mono tracking-widest text-center"
                   />
                 </div>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                <div className="flex items-center justify-between text-[10px] text-slate-600 mt-1">
                   <span>Authorized custodian verification</span>
-                  <span className="text-purple-600 font-medium">Demo PIN: 123456</span>
+                  <span className="text-purple-700 font-medium">Demo PIN: 123456</span>
                 </div>
               </div>
 
               {pinError && (
-                <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                <div role="alert" className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-700 shrink-0" aria-hidden="true" />
                   <span>{pinError}</span>
                 </div>
               )}
@@ -551,7 +580,7 @@ export const AdminRequestsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setHandlerPinBooking(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -560,7 +589,7 @@ export const AdminRequestsView: React.FC = () => {
                   disabled={isVerifyingPin}
                   className="px-4 py-2 text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
-                  <ShieldCheck className="w-4 h-4" />
+                  <ShieldCheck className="w-4 h-4" aria-hidden="true" />
                   <span>{isVerifyingPin ? 'Verifying PIN...' : 'Authenticate & Issue Permit'}</span>
                 </button>
               </div>

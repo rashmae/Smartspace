@@ -70,76 +70,73 @@ export const UtilizationReportsView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                Institutional Analytics
-              </span>
-              <span className="text-xs text-slate-500">{currentInstitution.shortName}</span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              Basic Facility Utilization Report
-            </h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Dynamic overview of reservation demand, facility popularity, and administrative clearance metrics computed directly from active session records.
-            </p>
+      {/* Notion Workspace Header */}
+      <div className="border-b border-slate-200 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <span className="font-semibold text-[#0077C8]">Institutional Analytics</span>
+            <span aria-hidden="true">·</span>
+            <span>{currentInstitution.shortName}</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
+            Facility Utilization Report
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl">
+            Dynamic overview of reservation demand, venue popularity, and clearance metrics computed from active session records.
+          </p>
+        </div>
 
-          <div className="text-xs text-slate-400 bg-slate-50 p-2.5 rounded-lg border border-slate-200 max-w-xs">
-            <span className="font-semibold text-slate-700 block">Demonstration Dataset:</span>
-            Figures update automatically when new bookings are submitted, approved, or rejected in this workspace.
-          </div>
+        <div className="text-xs text-slate-500 border-l border-slate-200 pl-4 max-w-xs">
+          <span className="font-semibold text-slate-800 block">Live Session Dataset</span>
+          Updates automatically when requests are submitted, approved, or rejected.
         </div>
       </div>
 
-      {/* KPI Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      {/* Linear Hairline KPI Matrix */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 bg-slate-200 gap-px rounded-xl overflow-hidden border border-slate-200">
+        <div className="bg-white p-4">
           <div className="flex items-center justify-between text-slate-500 text-xs mb-1">
             <span>Total Requests</span>
-            <BarChart3 className="w-4 h-4 text-blue-600" />
+            <BarChart3 className="w-4 h-4 text-[#0077C8]" />
           </div>
-          <div className="text-2xl font-black text-slate-900">{totalRequests}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">All logged requests</div>
+          <div className="text-2xl font-extrabold text-slate-950 font-mono tabular-nums">{totalRequests}</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">Logged submissions</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white p-4">
           <div className="flex items-center justify-between text-amber-700 text-xs mb-1">
             <span>Pending Review</span>
             <Clock className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-2xl font-black text-amber-800">{pendingRequests}</div>
-          <div className="text-[11px] text-amber-700/80 mt-0.5">Awaiting action</div>
+          <div className="text-2xl font-extrabold text-amber-700 font-mono tabular-nums">{pendingRequests}</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">Awaiting clearance</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white p-4">
           <div className="flex items-center justify-between text-emerald-700 text-xs mb-1">
-            <span>Approved Bookings</span>
+            <span>Approved</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-black text-emerald-800">{approvedReservations}</div>
-          <div className="text-[11px] text-emerald-700/80 mt-0.5">Permits issued</div>
+          <div className="text-2xl font-extrabold text-emerald-700 font-mono tabular-nums">{approvedReservations}</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">Permits issued</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white p-4">
           <div className="flex items-center justify-between text-red-700 text-xs mb-1">
-            <span>Rejected Requests</span>
+            <span>Rejected</span>
             <XCircle className="w-4 h-4 text-red-600" />
           </div>
-          <div className="text-2xl font-black text-red-800">{rejectedRequests}</div>
-          <div className="text-[11px] text-red-700/80 mt-0.5">With recorded reason</div>
+          <div className="text-2xl font-extrabold text-red-700 font-mono tabular-nums">{rejectedRequests}</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">With recorded reason</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs col-span-2 lg:col-span-1">
-          <div className="flex items-center justify-between text-blue-700 text-xs mb-1">
+        <div className="bg-white p-4 col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between text-[#0077C8] text-xs mb-1">
             <span>Approval Rate</span>
-            <TrendingUp className="w-4 h-4 text-blue-600" />
+            <TrendingUp className="w-4 h-4 text-[#0077C8]" />
           </div>
-          <div className="text-2xl font-black text-blue-800">{approvalRate}%</div>
-          <div className="text-[11px] text-blue-700/80 mt-0.5">Of completed reviews</div>
+          <div className="text-2xl font-extrabold text-[#0077C8] font-mono tabular-nums">{approvalRate}%</div>
+          <div className="text-[11px] text-slate-400 mt-0.5">Completed reviews</div>
         </div>
       </div>
 

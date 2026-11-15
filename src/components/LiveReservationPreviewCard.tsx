@@ -51,10 +51,10 @@ export const LiveReservationPreviewCard: React.FC = () => {
       </div>
 
       {/* Interactive Venue Picker */}
-      <div className="space-y-2">
-        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+      <div className="space-y-2" role="group" aria-labelledby="preview-venue-heading">
+        <span id="preview-venue-heading" className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block">
           1. Select Campus Space
-        </label>
+        </span>
         <div className="grid grid-cols-1 gap-2">
           {venues.map((venue) => (
             <button
@@ -64,15 +64,15 @@ export const LiveReservationPreviewCard: React.FC = () => {
               className={`p-2.5 rounded-xl text-left border text-xs transition-all flex items-center justify-between cursor-pointer ${
                 selectedVenue === venue.id
                   ? 'bg-purple-900/50 border-purple-500 text-white shadow-xs ring-1 ring-purple-500/50'
-                  : 'bg-slate-800/60 border-slate-700/60 text-slate-300 hover:bg-slate-800'
+                  : 'bg-slate-800/60 border-slate-700/60 text-slate-200 hover:bg-slate-800'
               }`}
             >
               <div className="space-y-0.5">
                 <span className="font-bold block">{venue.name}</span>
-                <span className="text-[10px] text-slate-400 block">{venue.floor} · {venue.cap}</span>
+                <span className="text-[10px] text-slate-300 block">{venue.floor} · {venue.cap}</span>
               </div>
               {selectedVenue === venue.id && (
-                <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-purple-300 shrink-0" aria-hidden="true" />
               )}
             </button>
           ))}
@@ -82,10 +82,11 @@ export const LiveReservationPreviewCard: React.FC = () => {
       {/* Date & Time Slot Selector */}
       <div className="grid grid-cols-2 gap-2 text-xs">
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+          <label htmlFor="preview-target-date" className="text-[10px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
             Target Date
           </label>
           <select
+            id="preview-target-date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
             className="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-white focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
@@ -96,10 +97,11 @@ export const LiveReservationPreviewCard: React.FC = () => {
           </select>
         </div>
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+          <label htmlFor="preview-target-slot" className="text-[10px] font-bold uppercase tracking-wider text-slate-300 block mb-1">
             Timeslot
           </label>
           <select
+            id="preview-target-slot"
             value={selectedSlot}
             onChange={(e) => setSelectedSlot(e.target.value)}
             className="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-semibold text-white focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
@@ -114,13 +116,13 @@ export const LiveReservationPreviewCard: React.FC = () => {
       {/* Live Verification Result Box */}
       <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-xs space-y-2">
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
-            <CheckCircle2 className="w-4 h-4" />
+          <span className="flex items-center gap-1.5 text-emerald-300 font-bold">
+            <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
             <span>Instant Slot Verification Passed</span>
           </span>
-          <span className="text-[10px] font-mono text-emerald-300">0.02s check</span>
+          <span className="text-[10px] font-mono text-emerald-200">0.02s check</span>
         </div>
-        <p className="text-[11px] text-slate-300 leading-relaxed">
+        <p className="text-[11px] text-slate-200 leading-relaxed">
           <strong>{activeVenueData.name}</strong> is clear on <strong>{selectedDate}</strong> for <strong>{selectedSlot}</strong>. No overlapping bookings.
         </p>
       </div>
@@ -132,11 +134,11 @@ export const LiveReservationPreviewCard: React.FC = () => {
           onClick={handleLaunchBooking}
           className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
         >
-          <CalendarCheck className="w-4 h-4" />
+          <CalendarCheck className="w-4 h-4" aria-hidden="true" />
           <span>Complete Booking Request for {activeVenueData.name.split(' ')[0]}</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </button>
-        <p className="text-[10px] text-center text-slate-400">
+        <p className="text-[10px] text-center text-slate-300">
           Submits directly to {currentInstitution.name} facility review queue.
         </p>
       </div>

@@ -22,6 +22,8 @@ import {
   CalendarCheck2
 } from 'lucide-react';
 import { formatOperatingHours, TIME_OPTIONS } from '../utils/timeFormat';
+import { FACILITY_IMAGES } from '../data/facilityImages';
+import { ResilientImage } from './ResilientImage';
 
 const FACILITY_TYPES: FacilityType[] = [
   'Lecture Room',
@@ -33,11 +35,14 @@ const FACILITY_TYPES: FacilityType[] = [
 ];
 
 const PRESET_IMAGES = [
-  { label: 'Lecture Hall', url: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80' },
-  { label: 'Computer Lab', url: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80' },
-  { label: 'Conference Room', url: 'https://images.unsplash.com/photo-1517502884422-41eaead166d4?auto=format&fit=crop&w=1200&q=80' },
-  { label: 'Auditorium', url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80' },
-  { label: 'Activity Complex', url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Lecture Hall', url: FACILITY_IMAGES.lectureHall },
+  { label: 'Computer Lab', url: FACILITY_IMAGES.computingLab },
+  { label: 'Conference Room', url: FACILITY_IMAGES.boardroom },
+  { label: 'Auditorium', url: FACILITY_IMAGES.auditorium },
+  { label: 'Activity Complex', url: FACILITY_IMAGES.multipurposeHall },
+  { label: 'Sports Arena', url: FACILITY_IMAGES.sportsArena },
+  { label: 'Engineering Lab', url: FACILITY_IMAGES.engineeringLab },
+  { label: 'Tennis Courts', url: FACILITY_IMAGES.tennisCourts },
 ];
 
 export const AdminFacilitiesView: React.FC = () => {
@@ -56,6 +61,7 @@ export const AdminFacilitiesView: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
+  const [deletingFacility, setDeletingFacility] = useState<Facility | null>(null);
 
   // Add Facility Form State
   const [name, setName] = useState('');
@@ -152,17 +158,16 @@ export const AdminFacilitiesView: React.FC = () => {
 
   return (
     <div className="space-y-6 py-2">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 text-xs font-bold uppercase tracking-wider">
-              {currentInstitution.shortName} Facilities Office
-            </span>
-            <span className="text-xs text-slate-400">Inventory Management</span>
+      {/* Notion Document Header */}
+      <div className="border-b border-slate-200 pb-5 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <span className="font-semibold text-[#0077C8]">{currentInstitution.shortName} Facilities Office</span>
+            <span aria-hidden="true">·</span>
+            <span>Inventory Management</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Campus Spaces & Facility Catalog
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
+            Campus Spaces &amp; Facility Catalog
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-2xl">
             Configure room capacities, equipment specifications, operating hours, and usage rules for {currentInstitution.name}.
@@ -170,30 +175,31 @@ export const AdminFacilitiesView: React.FC = () => {
         </div>
 
         <button
+          type="button"
           onClick={() => setShowAddModal(true)}
-          className="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98 self-start md:self-auto"
+          className="px-4 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer active:scale-[0.98] self-start md:self-auto shrink-0"
         >
           <PlusCircle className="w-4 h-4 text-emerald-400" />
-          <span>Add New Campus Facility</span>
+          <span>Add Campus Facility</span>
         </button>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
+      {/* Linear Hairline Metrics Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 bg-slate-200 gap-px rounded-xl overflow-hidden border border-slate-200">
+        <div className="p-4 bg-white">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Spaces</span>
-          <span className="text-2xl font-black text-slate-900">{totalCount}</span>
+          <span className="text-2xl font-extrabold text-slate-950 font-mono tabular-nums block mt-0.5">{totalCount}</span>
           <span className="text-[11px] text-slate-500 block mt-0.5">Under {currentInstitution.shortName} management</span>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
+        <div className="p-4 bg-white">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Active Venues</span>
-          <span className="text-2xl font-black text-emerald-600">{activeCount}</span>
+          <span className="text-2xl font-extrabold text-emerald-700 font-mono tabular-nums block mt-0.5">{activeCount}</span>
           <span className="text-[11px] text-slate-500 block mt-0.5">Available for scheduling</span>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs">
+        <div className="p-4 bg-white">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Seating Capacity</span>
-          <span className="text-2xl font-black text-indigo-600">{totalCapacity}</span>
-          <span className="text-[11px] text-slate-500 block mt-0.5">Concurrent student seats</span>
+          <span className="text-2xl font-extrabold text-[#0077C8] font-mono tabular-nums block mt-0.5">{totalCapacity}</span>
+          <span className="text-[11px] text-slate-500 block mt-0.5">Concurrent campus seats</span>
         </div>
       </div>
 
@@ -237,26 +243,26 @@ export const AdminFacilitiesView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredFacilities.map((fac) => (
           <div key={fac.id} className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col">
-            <div className="relative h-40 bg-slate-100 overflow-hidden">
-              <img
+            <div className="relative aspect-[3/2] bg-slate-900 overflow-hidden">
+              <ResilientImage
                 src={fac.imageUrl}
                 alt={fac.name}
                 className="w-full h-full object-cover"
+                fallbackLabel={fac.name}
               />
-              <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs ${
-                  fac.status === 'active' || !fac.status 
-                    ? 'bg-emerald-500/90 text-white' 
-                    : fac.status === 'maintenance'
-                    ? 'bg-amber-500/90 text-slate-950'
-                    : 'bg-slate-700/90 text-white'
-                }`}>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent" />
+              <div className="absolute bottom-3 left-3.5 right-3.5 flex items-center justify-between text-xs text-white">
+                <span className="text-[11px] font-semibold text-white/95 truncate">{fac.type}</span>
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider ${
+                    fac.status === 'active' || !fac.status
+                      ? 'text-emerald-300'
+                      : fac.status === 'maintenance'
+                      ? 'text-amber-300'
+                      : 'text-slate-300'
+                  }`}
+                >
                   {fac.status || 'Active'}
-                </span>
-              </div>
-              <div className="absolute bottom-3 left-3">
-                <span className="px-2 py-0.5 rounded bg-slate-900/80 text-white text-[10px] font-semibold backdrop-blur-xs">
-                  {fac.type}
                 </span>
               </div>
             </div>
@@ -264,71 +270,64 @@ export const AdminFacilitiesView: React.FC = () => {
             <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-bold text-slate-900 text-base leading-snug">
+                  <h3 className="font-bold text-slate-950 text-base leading-snug">
                     {fac.name}
                   </h3>
-                  <div className="flex items-center gap-1 text-xs text-slate-700 font-bold shrink-0 bg-slate-100 px-2 py-0.5 rounded">
-                    <Users className="w-3.5 h-3.5 text-slate-500" />
+                  <div className="flex items-center gap-1 text-xs text-slate-700 font-mono font-bold tabular-nums shrink-0">
+                    <Users className="w-3.5 h-3.5 text-slate-400" />
                     <span>{fac.capacity}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                  <MapPin className="w-3.5 h-3.5 text-slate-600 shrink-0" aria-hidden="true" />
                   <span>{fac.building} · {fac.floor}</span>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 tabular-nums">
+                  <Clock className="w-3.5 h-3.5 text-slate-600 shrink-0" aria-hidden="true" />
                   <span>{formatOperatingHours(fac.operatingHours.open, fac.operatingHours.close, fac.operatingHours.days)}</span>
                 </div>
 
-                <div className="pt-2 flex flex-wrap gap-1">
-                  {fac.equipment.slice(0, 3).map((eq, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-slate-50 border border-slate-200 text-slate-600 rounded text-[10px]">
-                      {eq}
-                    </span>
-                  ))}
-                  {fac.equipment.length > 3 && (
-                    <span className="px-1.5 py-0.5 text-slate-400 text-[10px]">
-                      +{fac.equipment.length - 3} more
-                    </span>
-                  )}
+                <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-600">
+                  {fac.equipment.slice(0, 3).join(' · ')}
+                  {fac.equipment.length > 3 ? ` · +${fac.equipment.length - 3} more` : ''}
                 </div>
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                 <button
+                  type="button"
                   onClick={() => setEditingFacility(fac)}
-                  className="flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-blue-600 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-[#005A9C] transition-colors cursor-pointer"
                 >
-                  <Edit3 className="w-3.5 h-3.5" />
+                  <Edit3 className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Edit Specs</span>
                 </button>
 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <button
+                    type="button"
                     onClick={() => {
                       updateFacility(fac.id, {
-                        status: fac.status === 'active' || !fac.status ? 'maintenance' : 'active'
+                        status: fac.status === 'active' || !fac.status ? 'maintenance' : 'active',
                       });
                     }}
-                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs transition-colors cursor-pointer"
+                    aria-label={fac.status === 'maintenance' ? `Set ${fac.name} active` : `Mark ${fac.name} under maintenance`}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs transition-colors cursor-pointer"
                     title={fac.status === 'maintenance' ? 'Set Active' : 'Mark Maintenance'}
                   >
-                    <Wrench className="w-3.5 h-3.5" />
+                    <Wrench className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
 
                   <button
-                    onClick={() => {
-                      if (confirm(`Remove ${fac.name} from campus inventory?`)) {
-                        deleteFacility(fac.id);
-                      }
-                    }}
-                    className="p-1.5 rounded-lg border border-red-200 hover:bg-red-50 text-red-600 text-xs transition-colors cursor-pointer"
+                    type="button"
+                    onClick={() => setDeletingFacility(fac)}
+                    aria-label={`Delete ${fac.name}`}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:border-red-300 hover:bg-red-50 text-red-700 text-xs transition-colors cursor-pointer"
                     title="Delete space"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -339,26 +338,40 @@ export const AdminFacilitiesView: React.FC = () => {
 
       {/* Add Facility Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAddModal(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-facility-modal-title"
+            className="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          >
             <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold">Add Campus Facility</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Enrolling new bookable space in {currentInstitution.shortName}.</p>
+                <h3 id="add-facility-modal-title" className="text-base font-bold">Add Campus Facility</h3>
+                <p className="text-xs text-slate-300 mt-0.5">Enrolling new bookable space in {currentInstitution.shortName}.</p>
               </div>
               <button
+                type="button"
                 onClick={() => setShowAddModal(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Close add facility modal"
+                className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
             <form onSubmit={handleAddSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Space Name *</label>
+                  <label htmlFor="add-fac-name" className="text-xs font-bold text-slate-700">Space Name *</label>
                   <input
+                    id="add-fac-name"
                     type="text"
                     required
                     placeholder="e.g. Multimedia Presentation Hall B"
@@ -368,8 +381,9 @@ export const AdminFacilitiesView: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Type *</label>
+                  <label htmlFor="add-fac-type" className="text-xs font-bold text-slate-700">Type *</label>
                   <select
+                    id="add-fac-type"
                     value={type}
                     onChange={(e) => setType(e.target.value as FacilityType)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-800"
@@ -383,8 +397,9 @@ export const AdminFacilitiesView: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1 col-span-2">
-                  <label className="text-xs font-bold text-slate-700">Building *</label>
+                  <label htmlFor="add-fac-building" className="text-xs font-bold text-slate-700">Building *</label>
                   <input
+                    id="add-fac-building"
                     type="text"
                     required
                     placeholder="e.g. Technology & Engineering Wing"
@@ -394,8 +409,9 @@ export const AdminFacilitiesView: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Capacity *</label>
+                  <label htmlFor="add-fac-capacity" className="text-xs font-bold text-slate-700">Capacity *</label>
                   <input
+                    id="add-fac-capacity"
                     type="number"
                     min="1"
                     required
@@ -408,8 +424,9 @@ export const AdminFacilitiesView: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Opening (AM/PM)</label>
+                  <label htmlFor="add-fac-open" className="text-xs font-bold text-slate-700">Opening (AM/PM)</label>
                   <select
+                    id="add-fac-open"
                     value={openTime}
                     onChange={(e) => setOpenTime(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg cursor-pointer"
@@ -422,8 +439,9 @@ export const AdminFacilitiesView: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Closing (AM/PM)</label>
+                  <label htmlFor="add-fac-close" className="text-xs font-bold text-slate-700">Closing (AM/PM)</label>
                   <select
+                    id="add-fac-close"
                     value={closeTime}
                     onChange={(e) => setCloseTime(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg cursor-pointer"
@@ -436,8 +454,9 @@ export const AdminFacilitiesView: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Operating Days</label>
+                  <label htmlFor="add-fac-days" className="text-xs font-bold text-slate-700">Operating Days</label>
                   <input
+                    id="add-fac-days"
                     type="text"
                     value={days}
                     onChange={(e) => setDays(e.target.value)}
@@ -447,8 +466,9 @@ export const AdminFacilitiesView: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Equipment Available (comma-separated)</label>
+                <label htmlFor="add-fac-equipment" className="text-xs font-bold text-slate-700">Equipment Available (comma-separated)</label>
                 <input
+                  id="add-fac-equipment"
                   type="text"
                   placeholder="Ceiling Projector, HDMI Podium, Sound System, Whiteboard"
                   value={equipmentInput}
@@ -458,8 +478,9 @@ export const AdminFacilitiesView: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Usage Rules (one per line)</label>
+                <label htmlFor="add-fac-rules" className="text-xs font-bold text-slate-700">Usage Rules (one per line)</label>
                 <textarea
+                  id="add-fac-rules"
                   rows={2}
                   placeholder="Turn off projector after use&#10;No beverages inside"
                   value={rulesInput}
@@ -472,7 +493,7 @@ export const AdminFacilitiesView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -490,25 +511,39 @@ export const AdminFacilitiesView: React.FC = () => {
 
       {/* Edit Modal */}
       {editingFacility && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setEditingFacility(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-facility-modal-title"
+            className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          >
             <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold">Edit Facility Specifications</h3>
-                <p className="text-xs text-slate-400 mt-0.5">{editingFacility.name}</p>
+                <h3 id="edit-facility-modal-title" className="text-base font-bold">Edit Facility Specifications</h3>
+                <p className="text-xs text-slate-300 mt-0.5">{editingFacility.name}</p>
               </div>
               <button
+                type="button"
                 onClick={() => setEditingFacility(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Close edit facility modal"
+                className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
             <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Space Name</label>
+                <label htmlFor="edit-fac-name" className="text-xs font-bold text-slate-700">Space Name</label>
                 <input
+                  id="edit-fac-name"
                   type="text"
                   value={editingFacility.name}
                   onChange={(e) => setEditingFacility({ ...editingFacility, name: e.target.value })}
@@ -518,8 +553,9 @@ export const AdminFacilitiesView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Capacity</label>
+                  <label htmlFor="edit-fac-capacity" className="text-xs font-bold text-slate-700">Capacity</label>
                   <input
+                    id="edit-fac-capacity"
                     type="number"
                     value={editingFacility.capacity}
                     onChange={(e) => setEditingFacility({ ...editingFacility, capacity: Number(e.target.value) })}
@@ -527,13 +563,14 @@ export const AdminFacilitiesView: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Operating Status</label>
+                  <label htmlFor="edit-fac-status" className="text-xs font-bold text-slate-700">Operating Status</label>
                   <select
+                    id="edit-fac-status"
                     value={editingFacility.status || 'active'}
                     onChange={(e) => setEditingFacility({ ...editingFacility, status: e.target.value as any })}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg"
                   >
-                    <option value="active">Active & Available</option>
+                    <option value="active">Active &amp; Available</option>
                     <option value="maintenance">Under Maintenance</option>
                     <option value="inactive">Suspended / Inactive</option>
                   </select>
@@ -541,8 +578,9 @@ export const AdminFacilitiesView: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Building / Location</label>
+                <label htmlFor="edit-fac-building" className="text-xs font-bold text-slate-700">Building / Location</label>
                 <input
+                  id="edit-fac-building"
                   type="text"
                   value={editingFacility.building}
                   onChange={(e) => setEditingFacility({ ...editingFacility, building: e.target.value })}
@@ -554,7 +592,7 @@ export const AdminFacilitiesView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setEditingFacility(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -566,6 +604,51 @@ export const AdminFacilitiesView: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom In-App Delete Confirmation Modal (replaces native confirm()) */}
+      {deletingFacility && (
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setDeletingFacility(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-facility-modal-title"
+            className="bg-white rounded-xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4"
+          >
+            <div className="flex items-center gap-2.5 text-red-700">
+              <ShieldAlert className="w-5 h-5 shrink-0" aria-hidden="true" />
+              <h3 id="delete-facility-modal-title" className="text-base font-bold text-slate-950">Remove Campus Facility</h3>
+            </div>
+            <p className="text-xs text-slate-700 leading-relaxed">
+              Are you sure you want to remove <strong className="text-slate-900">{deletingFacility.name}</strong> from {currentInstitution.shortName}'s inventory?
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setDeletingFacility(null)}
+                className="px-3.5 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteFacility(deletingFacility.id);
+                  setDeletingFacility(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer"
+              >
+                Remove Space
+              </button>
+            </div>
           </div>
         </div>
       )}

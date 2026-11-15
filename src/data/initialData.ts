@@ -7,7 +7,11 @@ import {
   FacilityHandler,
   FacilityAssignment,
   FacilityApprovalLog,
+  AIAutomationJob,
+  EmailDeliveryRecord,
+  AIWorkflowDefinition,
 } from '../types';
+import { FACILITY_IMAGES } from './facilityImages';
 
 export const DEMO_INSTITUTIONS: Institution[] = [
   {
@@ -161,7 +165,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'Department endorsement or recognized student organization officer signature.',
       'Minimum 24 hours advance submission.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.lectureHall,
     description: 'Standard 40-seat academic lecture venue equipped with an overhead digital projector and wide whiteboard for classes, seminars, and organization meetings.',
   },
   {
@@ -192,7 +196,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'College of Computer Studies / Engineering endorsement.',
       'Minimum 48 hours advance notice.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.computingLab,
     description: 'Dedicated 30-seat computer laboratory optimized for coding workshops, hands-on computer science drills, programming team practice, and digital skill trainings.',
   },
   {
@@ -222,7 +226,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'Faculty adviser or department head sign-off.',
       'Minimum 2 days notice.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1517502884422-41eaead166d4?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.boardroom,
     description: 'Collaborative 25-capacity seminar space with modular tables and comfortable chairs, suited for focus groups, defense panels, and committee deliberations.',
   },
   {
@@ -253,7 +257,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'Supreme Student Government (SSG) or accredited organization clearance.',
       'Designated student marshal on site.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.multipurposeHall,
     description: 'Spacious 100-capacity open multipurpose hall with a professional sound system, projectors, and flexible seating for student assemblies, workshops, and exhibitions.',
   },
   {
@@ -284,7 +288,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'College of Engineering faculty supervisor present during entire session.',
       'Minimum 3 days advance clearance.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.engineeringLab,
     description: 'Technical 35-capacity laboratory stocked with specialized engineering testing apparatus, calibrated test benches, and demonstration equipment.',
   },
   {
@@ -314,7 +318,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'Dean / Campus Director endorsement letter.',
       'Minimum 5 business days advance booking.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.auditorium,
     description: 'Large-scale 450-seat grand auditorium for university-wide convocations, research symposiums, and cultural presentations.',
   },
   {
@@ -345,7 +349,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'University Dean or Administrative Director clearance.',
       'Minimum 48 hours advance notice.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1517502884422-41eaead166d4?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.boardroom,
     description: 'Executive 120-capacity air-conditioned function hall for institutional conferences, academic forums, and formal recognition ceremonies.',
   },
   {
@@ -376,7 +380,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'Department of Physical Education & Sports Affairs endorsement.',
       'Minimum 3 business days advance reservation.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.sportsArena,
     description: 'Premier 800-capacity university gymnasium for inter-collegiate tournaments, university intrams, general assemblies, and cheering rehearsals.',
   },
   {
@@ -405,7 +409,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'SSG or accredited organization officer clearance.',
       '24 hours advance registration.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.sportsArena,
     description: 'Outdoor lighted multipurpose hard court for basketball, volleyball, drill exhibitions, and open-air student community events.',
   },
   {
@@ -433,7 +437,7 @@ export const INITIAL_FACILITIES: Facility[] = [
     bookingRequirements: [
       'Accredited organization permit or PE instructor sign-off.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1526676037777-05a232554f77?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.multipurposeHall,
     description: 'Secondary outdoor athletic court dedicated to volleyball training, badminton tournaments, and active student drills.',
   },
   {
@@ -462,7 +466,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'CTU Varsity / Sports Club permit or athletic pass.',
       'Minimum 24 hours advance notice.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.tennisCourts,
     description: 'Standard regulation acrylic hard tennis court with night lighting for collegiate drills, varsity practices, and recreation.',
   },
 
@@ -479,7 +483,7 @@ export const INITIAL_FACILITIES: Facility[] = [
     operatingHours: { open: '08:00', close: '19:00', days: 'Mon - Fri' },
     rules: ['No food or beverages', 'Keep aisleways clear'],
     bookingRequirements: ['Department endorsement'],
-    imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.lectureHall,
     description: 'Fictional demo venue for multi-institution testing.',
   },
   {
@@ -494,7 +498,7 @@ export const INITIAL_FACILITIES: Facility[] = [
     operatingHours: { open: '08:00', close: '18:00', days: 'Mon - Fri' },
     rules: ['Safety goggles mandatory', 'Lab attendant supervision required'],
     bookingRequirements: ['Engineering faculty lead'],
-    imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.engineeringLab,
     description: 'Fictional demo venue for multi-institution testing.',
   },
 
@@ -511,7 +515,7 @@ export const INITIAL_FACILITIES: Facility[] = [
     operatingHours: { open: '08:00', close: '20:00', days: 'Mon - Sat' },
     rules: ['No food permitted', 'Security clearance needed'],
     bookingRequirements: ['Student Affairs Office permit'],
-    imageUrl: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.auditorium,
     description: 'Premier university venue for institutional symposiums and academic conferences.',
   },
 
@@ -528,7 +532,7 @@ export const INITIAL_FACILITIES: Facility[] = [
     operatingHours: { open: '08:00', close: '18:00', days: 'Mon - Fri' },
     rules: ['Turn off equipment after session', 'Register all guests at guard desk'],
     bookingRequirements: ['Faculty recommendation', '24h advance request'],
-    imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.boardroom,
     description: 'Modern conference facility for faculty research forums, thesis defenses, and academic presentations.',
   },
   {
@@ -543,7 +547,7 @@ export const INITIAL_FACILITIES: Facility[] = [
     operatingHours: { open: '08:30', close: '17:30', days: 'Mon - Fri' },
     rules: ['Certified safety briefing required', 'Material usage logs required'],
     bookingRequirements: ['InIT lab head approval'],
-    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.engineeringLab,
     description: 'High-tech fabrication space for computer science innovation, prototyping, and design sprints.',
   },
 
@@ -560,7 +564,7 @@ export const INITIAL_FACILITIES: Facility[] = [
     operatingHours: { open: '07:30', close: '19:30', days: 'Mon - Sat' },
     rules: ['No rehearsals past 19:30', 'Strict adherence to decorum'],
     bookingRequirements: ['Campus Ministry or College endorsement'],
-    imageUrl: 'https://images.unsplash.com/photo-1469488865564-c2de10f69f96?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.auditorium,
     description: 'Amphitheater venue for university ceremonies, student assemblies, and cultural arts events.',
   },
   {
@@ -588,7 +592,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'Athletics Department endorsement or accredited sports club clearance.',
       'Minimum 72 hours advance notice.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.sportsArena,
     description: 'Premier 800-capacity university indoor arena equipped with hardwood flooring, bleachers, and digital scoreboards for tournaments, pep rallies, and varsity training.',
   },
   {
@@ -615,7 +619,7 @@ export const INITIAL_FACILITIES: Facility[] = [
       'Student or faculty sports organization affiliation.',
       'Minimum 24 hours advance submission.',
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: FACILITY_IMAGES.tennisCourts,
     description: 'Dual outdoor tournament-grade hardcourt facilities with full night illumination for university tennis practices, inter-college tournaments, and open drills.',
   },
 ];
@@ -849,11 +853,18 @@ export const INITIAL_FACILITY_HANDLERS: FacilityHandler[] = [
     id: 'hnd-ctu-julia',
     institutionId: 'ctu-main',
     fullName: 'Ms. Julia',
+    name: 'Ms. Julia',
     email: 'julia.facilities@ctu.edu.ph',
     phone: '+63 917 555 0101',
     titleOrDesignation: 'Executive Hall & Arena Facility Officer',
+    department: 'Executive Hall & Arena Operations',
     status: 'active',
+    assignedFacilityIds: ['ctu-fac-cn-hall', 'ctu-fac-gym'],
+    isPrimary: true,
+    hasAccessCode: true,
+    approvalCount: 14,
     createdAt: '2026-02-01T08:00:00Z',
+    lastActive: '2026-03-30T09:15:00Z',
     lastActiveAt: '2026-03-30T09:15:00Z',
     notes: 'Primary handler for CN Function Hall and CTU Gymnasium.',
   },
@@ -861,11 +872,18 @@ export const INITIAL_FACILITY_HANDLERS: FacilityHandler[] = [
     id: 'hnd-ctu-jomel',
     institutionId: 'ctu-main',
     fullName: 'Mr. Jomel',
+    name: 'Mr. Jomel',
     email: 'jomel.facilities@ctu.edu.ph',
     phone: '+63 918 555 0102',
     titleOrDesignation: 'Outdoor Sports Quadrangle Coordinator',
+    department: 'Outdoor Sports Quadrangle',
     status: 'active',
+    assignedFacilityIds: ['ctu-fac-opencourt-1', 'ctu-fac-opencourt-2'],
+    isPrimary: true,
+    hasAccessCode: true,
+    approvalCount: 9,
     createdAt: '2026-02-01T08:30:00Z',
+    lastActive: '2026-03-30T10:45:00Z',
     lastActiveAt: '2026-03-30T10:45:00Z',
     notes: 'Primary handler for Open Court 1 and Open Court 2.',
   },
@@ -873,11 +891,18 @@ export const INITIAL_FACILITY_HANDLERS: FacilityHandler[] = [
     id: 'hnd-ctu-daniel',
     institutionId: 'ctu-main',
     fullName: 'Mr. Daniel',
+    name: 'Mr. Daniel',
     email: 'daniel.facilities@ctu.edu.ph',
     phone: '+63 919 555 0103',
     titleOrDesignation: 'Computing & Digital Laboratories In-Charge',
+    department: 'Computing & Digital Laboratories',
     status: 'active',
+    assignedFacilityIds: ['ctu-fac-commlab-1'],
+    isPrimary: true,
+    hasAccessCode: true,
+    approvalCount: 11,
     createdAt: '2026-02-01T09:00:00Z',
+    lastActive: '2026-03-29T16:20:00Z',
     lastActiveAt: '2026-03-29T16:20:00Z',
     notes: 'Primary handler for Computer Laboratories.',
   },
@@ -885,11 +910,18 @@ export const INITIAL_FACILITY_HANDLERS: FacilityHandler[] = [
     id: 'hnd-ctu-angela',
     institutionId: 'ctu-main',
     fullName: 'Ms. Angela',
+    name: 'Ms. Angela',
     email: 'angela.facilities@ctu.edu.ph',
     phone: '+63 920 555 0104',
     titleOrDesignation: 'Recreation & Auxiliary Sports Facility Officer',
+    department: 'Recreation & Auxiliary Sports',
     status: 'active',
+    assignedFacilityIds: ['ctu-fac-tennis', 'ctu-fac-gym'],
+    isPrimary: false,
+    hasAccessCode: true,
+    approvalCount: 6,
     createdAt: '2026-02-01T09:30:00Z',
+    lastActive: '2026-03-30T08:10:00Z',
     lastActiveAt: '2026-03-30T08:10:00Z',
     notes: 'Primary handler for Tennis Court, Backup for CTU Gymnasium.',
   },
@@ -1262,5 +1294,227 @@ export const INITIAL_PARTICIPANTS: ParticipantRecord[] = [
     testerNotes: '',
     interviewSummary: '',
     isCompleted: false,
+  },
+];
+
+export const INITIAL_AI_WORKFLOWS: AIWorkflowDefinition[] = [
+  {
+    id: 'wf-enterprise-concierge',
+    name: 'SmartSpace Enterprise Concierge AI',
+    description:
+      'Automated institutional onboarding agent for Cebu City higher-education leads (starting with CTU Main Campus): classifies tier & warmth, notifies Rash, Karl, Angel & Krisha, and drafts a 15-minute live pilot email.',
+    triggerType: 'demo_request',
+    isActive: true,
+    opalCompatibleVersion: 'opal-workflow-v1',
+    createdAt: '2026-10-30T08:00:00Z',
+    updatedAt: '2026-11-14T21:47:00Z',
+    lastRunAt: '2026-11-14T21:47:00Z',
+    runCount: 1,
+    steps: [
+      {
+        id: 'step-concierge-triage',
+        order: 1,
+        kind: 'structured_extract',
+        title: 'Classify Tier, Lead Warmth & Internal Team Summary (Rash, Karl, Angel, Krisha)',
+        model: 'gemini-4-hydrogen',
+        systemInstruction:
+          'You are the SmartSpace Enterprise Concierge AI, an automated institutional onboarding agent for SmartSpace—a SaaS facility booking and management platform built for higher education institutions in Cebu City (starting with CTU Main Campus). Pricing Reference (Monthly Institutional Subscriptions): Basic Tier (₱3,000/mo) for essential digital facility profiles and conflict-checked booking for smaller colleges; Professional Tier (₱6,000/mo) for advanced administrative workflows, multi-tier approvals, and utilization reports; Enterprise Tier (₱10,000/mo) for full cross-campus governance, audit logs, QR gate pass integration, and priority support; Student Organizations & Faculty: ₱0 per-booking fee access under institutional license.',
+        promptTemplate: `Analyze the demo request below and return JSON with: recommendedTier, leadWarmth (Hot | Warm | Nurture), rationale, and internalTeamSummary (addressed to Rash, Karl, Angel, and Krisha highlighting lead warmth and recommended subscription tier):
+
+INPUT DATA PROVIDED BY USER:
+- Name: {{applicant_name}}
+- Institution: {{institution_name}}
+- Sector: {{institution_type}}
+- Scope: {{estimated_spaces}}`,
+        outputFormat: 'json',
+      },
+      {
+        id: 'step-concierge-email',
+        order: 2,
+        kind: 'dispatch_action',
+        title: 'Draft Institutional Response & 15-Minute Live Pilot Walkthrough Offer',
+        model: 'gemini-4-hydrogen',
+        systemInstruction:
+          'You are the SmartSpace Enterprise Concierge AI. Draft polite, professional, and persuasive email responses addressed to university administrators or student organization leaders in Cebu City.',
+        promptTemplate: `Using the classification and internal summary below:
+{{prev_output}}
+
+Original Lead Details:
+- Name: {{applicant_name}}
+- Institution: {{institution_name}}
+- Sector: {{institution_type}}
+- Scope: {{estimated_spaces}}
+
+Draft a polite, professional, and persuasive email response addressed to {{applicant_name}}, acknowledging {{institution_name}}'s specific campus needs, outlining the recommended SmartSpace subscription tier and pricing benefits (including ₱0 per-booking access for recognized Student Organizations & Faculty under an institutional license), and offering a 15-minute live pilot walkthrough.`,
+        outputFormat: 'text',
+      },
+    ],
+  },
+  {
+    id: 'wf-demo-triage',
+    name: 'Institutional Demo Triage & SLA Drafter',
+    description:
+      'Chained 2-step Gemini workflow that classifies inbound university demo inquiries and drafts a personalized onboarding briefing.',
+    triggerType: 'demo_request',
+    isActive: true,
+    opalCompatibleVersion: 'opal-workflow-v1',
+    createdAt: '2026-10-29T08:00:00Z',
+    updatedAt: '2026-10-30T09:00:00Z',
+    lastRunAt: '2026-10-30T09:15:00Z',
+    runCount: 4,
+    steps: [
+      {
+        id: 'step-classify',
+        order: 1,
+        kind: 'structured_extract',
+        title: 'Classify Inquiry Tier & Campus Scope',
+        model: 'gemini-4-hydrogen',
+        systemInstruction:
+          'You classify SmartSpace higher-education onboarding requests concisely in JSON with category, priority, and keyRequirements.',
+        promptTemplate:
+          'Analyze this university inquiry and summarize institutional size, urgency, and category (Enterprise Onboarding, Public Pilot, Collegiate Competition, or General Inquiry):\n\n{{input}}',
+        outputFormat: 'json',
+      },
+      {
+        id: 'step-draft',
+        order: 2,
+        kind: 'gemini_generate',
+        title: 'Draft Executive Response & Demo Agenda',
+        model: 'gemini-4-hydrogen',
+        systemInstruction:
+          'You write crisp, warm, executive-ready demo onboarding replies for SmartSpace university administrators.',
+        promptTemplate:
+          'Based on this triage classification:\n{{prev_output}}\n\nWrite a 4-sentence onboarding confirmation email proposing a tailored walkthrough of SmartSpace conflict prevention, custodian PIN sign-off, and multi-campus catalogs.',
+        outputFormat: 'text',
+      },
+    ],
+  },
+  {
+    id: 'wf-utilization-brief',
+    name: 'Campus Capacity & Conflict Audit Brief',
+    description:
+      'Reviews current facility booking loads, pending queues, and peak-hour overlap risks across institutions.',
+    triggerType: 'manual',
+    isActive: true,
+    opalCompatibleVersion: 'opal-workflow-v1',
+    createdAt: '2026-10-29T10:00:00Z',
+    updatedAt: '2026-10-30T10:00:00Z',
+    lastRunAt: '2026-10-30T11:00:00Z',
+    runCount: 2,
+    steps: [
+      {
+        id: 'step-analyze',
+        order: 1,
+        kind: 'gemini_generate',
+        title: 'Synthesize Facility Demand & Bottlenecks',
+        model: 'gemini-4-hydrogen',
+        systemInstruction:
+          'You are a university operations analyst for SmartSpace. Provide actionable, concise facility scheduling insights.',
+        promptTemplate:
+          'Inspect the following SmartSpace booking and facility snapshot and output 3 bulleted operational recommendations:\n\n{{input}}',
+        outputFormat: 'text',
+      },
+    ],
+  },
+  {
+    id: 'wf-opal-webhook-bridge',
+    name: 'External Opal / Gemini Gem Webhook Handler',
+    description:
+      'Normalizes external payloads arriving from /api/webhooks/opal into custodian readiness briefs or Super Admin escalation summaries.',
+    triggerType: 'opal_webhook',
+    isActive: true,
+    opalCompatibleVersion: 'opal-workflow-v1',
+    createdAt: '2026-10-30T07:30:00Z',
+    updatedAt: '2026-10-30T07:30:00Z',
+    runCount: 1,
+    steps: [
+      {
+        id: 'step-normalize',
+        order: 1,
+        kind: 'dispatch_action',
+        title: 'Format Custodian Readiness Brief',
+        model: 'gemini-4-hydrogen',
+        systemInstruction:
+          'Convert incoming webhook event JSON into a short 2-line alert for campus facility custodians and Super Admins.',
+        promptTemplate: 'Summarize this external webhook payload into an actionable dispatch alert:\n\n{{input}}',
+        outputFormat: 'text',
+      },
+    ],
+  },
+];
+
+export const INITIAL_AI_AUTOMATION_JOBS: AIAutomationJob[] = [
+  {
+    id: 'ai-job-uv-demo',
+    type: 'demo_categorization',
+    status: 'requires_human_approval',
+    title: 'University of the Visayas — Enterprise Concierge Triage',
+    relatedEntityId: 'demo-uv-cebu',
+    aiCategory: 'Enterprise Onboarding',
+    recommendedTier: 'Enterprise Tier (₱10,000/mo)',
+    leadWarmth: 'Hot',
+    aiSummary:
+      'Team Alert (Rash, Karl, Angel, Krisha): Hot lead — University of the Visayas (25–50 spaces across 3 Cebu campuses). Recommended: Enterprise Tier (₱10,000/mo) for full cross-campus governance, audit logs, and QR gate pass integration.',
+    aiDraftContent:
+      'Dear Atty. Yabao, thank you for your interest in SmartSpace for the University of the Visayas. Given your multi-campus footprint, our Enterprise Tier (₱10,000/mo) delivers full cross-campus governance, custodian PIN approvals, audit logs, and QR gate pass integration—with ₱0 per-booking access for recognized student organizations and faculty. Would you be open to a 15-minute live pilot walkthrough this week?',
+    suggestedSuperAdmin: 'Rash, Karl, Angel & Krisha',
+    executionLogs: [
+      'trigger:demo_request_created',
+      'gemini-4-hydrogen:concierge(Enterprise Tier ₱10,000/mo | Hot)',
+      'gate:requires_human_approval',
+    ],
+    retryCount: 0,
+    maxRetries: 3,
+    createdAt: '2026-10-29T14:20:00Z',
+  },
+  {
+    id: 'ai-job-ctu-brief',
+    type: 'utilization_summary',
+    status: 'completed',
+    title: 'CTU Main — Weekly Gymnasium & Hall Conflict Check',
+    institutionId: 'ctu-main',
+    aiCategory: 'Standard Reservation',
+    aiSummary:
+      'Analyzed CTU Main bookings: peak afternoon contention detected on CTU Gymnasium & CN Function Hall; backup handler Ms. Angela available for overflow sign-off.',
+    executionLogs: [
+      'trigger:scheduled_diagnostics',
+      'gemini-4-hydrogen:analyzed_4_venues',
+      'status:completed',
+    ],
+    retryCount: 0,
+    maxRetries: 3,
+    createdAt: '2026-10-30T08:15:00Z',
+    processedAt: '2026-10-30T08:15:04Z',
+  },
+];
+
+export const INITIAL_EMAIL_DELIVERY_RECORDS: EmailDeliveryRecord[] = [
+  {
+    id: 'eml-001',
+    jobId: 'ai-job-uv-demo',
+    subject: '[SmartSpace Demo Lead] University of the Visayas (Enterprise Onboarding)',
+    inquiryType: 'Enterprise Onboarding',
+    recipientCount: 5,
+    status: 'delivered',
+    timestamp: '2026-10-29T14:22:00Z',
+    formattedTime: '2:22 PM',
+    provider: 'SmartSpace Cloud Dispatcher',
+    idempotencyKey: 'idem_uv_demo_1029',
+    retryAttempt: 0,
+    isPrivateBcc: true,
+  },
+  {
+    id: 'eml-002',
+    jobId: 'ai-job-ctu-brief',
+    subject: '[SmartSpace Ops] Weekly Venue Contention & Handler Digest — CTU Main',
+    inquiryType: 'Operations Brief',
+    recipientCount: 5,
+    status: 'delivered',
+    timestamp: '2026-10-30T08:16:00Z',
+    formattedTime: '8:16 AM',
+    provider: 'SmartSpace Cloud Dispatcher',
+    idempotencyKey: 'idem_ctu_digest_1030',
+    retryAttempt: 0,
+    isPrivateBcc: true,
   },
 ];

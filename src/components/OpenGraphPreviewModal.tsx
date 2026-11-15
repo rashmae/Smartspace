@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Share2, Copy, CheckCircle2, Globe, Sparkles, Building2, CalendarCheck, ShieldCheck } from 'lucide-react';
 import SmartSpaceLogo from './SmartSpaceLogo';
+import { BUSINESS_CONFIG } from '../config/business';
 
 interface OpenGraphPreviewModalProps {
   isOpen: boolean;
@@ -68,7 +69,7 @@ export const OpenGraphPreviewModal: React.FC<OpenGraphPreviewModalProps> = ({ is
                 </div>
               </div>
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-500/40">
-                Live SaaS Platform
+                {BUSINESS_CONFIG.stage}
               </span>
             </div>
 
@@ -90,14 +91,14 @@ export const OpenGraphPreviewModal: React.FC<OpenGraphPreviewModalProps> = ({ is
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  Zero Double Bookings
+                  Conflict Checking
                 </span>
                 <span className="flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-                  Verifiable QR Permits
+                  Digital QR Gate Passes
                 </span>
               </div>
-              <span className="font-mono text-purple-300">smartspace.ph</span>
+              <span className="font-mono text-purple-300">{BUSINESS_CONFIG.domainOwnership}</span>
             </div>
           </div>
         </div>
@@ -106,7 +107,7 @@ export const OpenGraphPreviewModal: React.FC<OpenGraphPreviewModalProps> = ({ is
         <div className="p-4 sm:p-6 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 text-slate-600">
             <Globe className="w-4 h-4 text-purple-600" />
-            <span>Target Canonical URL: <strong>https://smartspace.ph/platform</strong></span>
+            <span>Preview URL: <strong>{typeof window !== 'undefined' ? window.location.origin : BUSINESS_CONFIG.domainOwnership}</strong></span>
           </div>
           <button
             onClick={handleCopyLink}

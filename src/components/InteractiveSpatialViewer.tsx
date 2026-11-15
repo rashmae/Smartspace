@@ -378,8 +378,9 @@ export const InteractiveSpatialViewer: React.FC = () => {
                 }
 
                 return (
-                  <div
+                  <button
                     key={room.id}
+                    type="button"
                     onClick={() => setSelectedRoom(room)}
                     onMouseEnter={() => setHoveredRoom(room)}
                     onMouseLeave={() => setHoveredRoom(null)}
@@ -389,7 +390,7 @@ export const InteractiveSpatialViewer: React.FC = () => {
                       width: `${room.w}%`,
                       height: `${room.h}%`,
                     }}
-                    className={`absolute rounded-xl border transition-all duration-300 cursor-pointer p-2.5 flex flex-col justify-between overflow-hidden backdrop-blur-xs select-none ${
+                    className={`absolute text-left rounded-xl border transition-all duration-300 cursor-pointer p-2.5 flex flex-col justify-between overflow-hidden backdrop-blur-xs select-none ${
                       isSelected
                         ? 'border-indigo-400 bg-indigo-600/40 shadow-[0_0_25px_rgba(99,102,241,0.6)] ring-2 ring-indigo-400/80 -translate-y-1'
                         : isHovered
@@ -398,59 +399,59 @@ export const InteractiveSpatialViewer: React.FC = () => {
                     }`}
                   >
                     {/* Top Row: Room Code & Status Pulse */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-white/90">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-white/95">
                         {room.code}
                       </span>
                       <div className="flex items-center gap-1">
-                        <span className={`w-2 h-2 rounded-full ${statusDot}`} />
-                        <span className="text-[9px] font-bold text-slate-300 capitalize hidden sm:inline">
+                        <span aria-hidden="true" className={`w-2 h-2 rounded-full ${statusDot}`} />
+                        <span className="text-[9px] font-bold text-slate-200 capitalize hidden sm:inline">
                           {room.status}
                         </span>
                       </div>
                     </div>
 
                     {/* Middle: Room Name */}
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5 w-full">
                       <p className="text-[11px] font-bold text-white line-clamp-1">
                         {room.name}
                       </p>
-                      <p className="text-[9px] text-slate-400 flex items-center gap-1">
-                        <Users className="w-2.5 h-2.5" />
+                      <p className="text-[9px] text-slate-300 flex items-center gap-1">
+                        <Users className="w-2.5 h-2.5" aria-hidden="true" />
                         <span>Cap: {room.capacity} seats</span>
                       </p>
                     </div>
 
                     {/* Bottom Status pill */}
-                    <div className="flex items-center justify-between text-[8px] text-slate-400 pt-1 border-t border-white/10">
+                    <div className="flex items-center justify-between w-full text-[8px] text-slate-300 pt-1 border-t border-white/10">
                       <span className="truncate">{room.nextAvailable}</span>
-                      <span className="text-purple-300 font-bold uppercase">Inspect →</span>
+                      <span className="text-purple-200 font-bold uppercase">Inspect →</span>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
           </div>
 
           {/* Bottom Canvas Footer: Legend & Status Guide */}
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800/80 text-xs text-slate-400">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800/80 text-xs text-slate-300">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-                <span className="text-[11px] font-medium text-slate-300">Available</span>
+                <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                <span className="text-[11px] font-medium text-slate-200">Available</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-                <span className="text-[11px] font-medium text-slate-300">In Session</span>
+                <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                <span className="text-[11px] font-medium text-slate-200">In Session</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                <span className="text-[11px] font-medium text-slate-300">Pending Review</span>
+                <span aria-hidden="true" className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                <span className="text-[11px] font-medium text-slate-200">Pending Review</span>
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-400">
-              Hover to preview · Click room to inspect full facility specifications
+            <p className="text-[11px] text-slate-300">
+              Hover or focus a room and press Enter to inspect full facility specifications
             </p>
           </div>
         </div>

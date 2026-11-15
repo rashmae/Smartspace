@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useConsent } from '../context/ConsentContext';
+import { BUSINESS_CONFIG } from '../config/business';
+import { PrivacyFormConsent } from './PrivacyFormConsent';
 import SmartSpaceLogo from './SmartSpaceLogo';
 import { 
   Building2, 
@@ -17,13 +20,16 @@ import {
   HelpCircle,
   GraduationCap,
   Sparkles,
-  Phone,
-  User,
-  Briefcase,
   ChevronRight,
   ShieldAlert,
   Info
 } from 'lucide-react';
+
+const INST_REG_CONSENT_TEXT =
+  'I have read the Privacy Policy and Terms & Conditions, and I consent to SmartSpace processing my institutional registration and contact details for onboarding verification.';
+
+const USER_REG_CONSENT_TEXT =
+  'I have read the Privacy Policy and Terms & Conditions, and I consent to SmartSpace processing my account registration details for campus facility booking access.';
 
 export const AuthPortal: React.FC = () => {
   const {
@@ -35,9 +41,8 @@ export const AuthPortal: React.FC = () => {
     registerUserAccount,
     loginWithCredentials,
     setIsDemoModalOpen,
-    loginAs,
-    setInstitutionId,
   } = useApp();
+  const { recordFormConsent } = useConsent();
 
   const { audience, tab, highlight } = authFlowState;
 
@@ -50,11 +55,49 @@ export const AuthPortal: React.FC = () => {
 
   // Common errors / loading
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [pendingApprovalNotice, setPendingApprovalNotice] = useState<string | null>(null);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+
+  // Consent states (never pre-checked)
+  const [instPrivacyAgreed, setInstPrivacyAgreed] = useState(false);
+  const [instMarketingOptIn, setInstMarketingOptIn] = useState(false);
+  const [userPrivacyAgreed, setUserPrivacyAgreed] = useState(false);
+  const [userMarketingOptIn, setUserMarketingOptIn] = useState(false);
+
+  // Refs for focus movement
+  const loginEmailRef = useRef<HTMLInputElement>(null);
+  const loginPasswordRef = useRef<HTMLInputElement>(null);
+  const instNameRef = useRef<HTMLInputElement>(null);
+  const instEmailRef = useRef<HTMLInputElement>(null);
+  const instContactRef = useRef<HTMLInputElement>(null);
+  const instPassRef = useRef<HTMLInputElement>(null);
+  const instConfirmRef = useRef<HTMLInputElement>(null);
+  const userFullNameRef = useRef<HTMLInputElement>(null);
+  const userEmailRef = useRef<HTMLInputElement>(null);
+  const userOrgRef = useRef<HTMLInputElement>(null);
+  const userPassRef = useRef<HTMLInputElement>(null);
+  const userConfirmRef = useRef<HTMLInputElement>(null);
+  const superEmailRef = useRef<HTMLInputElement>(null);
+  const superPassRef = useRef<HTMLInputElement>(null);
+  const forgotEmailRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!forgotPasswordOpen) return;
+    setTimeout(() => forgotEmailRef.current?.focus(), 0);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setForgotPasswordOpen(false);
+        setForgotPasswordError(null);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [forgotPasswordOpen]);
 
   // Institutional Login state
   const [instLoginEmail, setInstLoginEmail] = useState('');
@@ -84,14 +127,14 @@ export const AuthPortal: React.FC = () => {
   const [userPassword, setUserPassword] = useState('');
   const [userConfirmPassword, setUserConfirmPassword] = useState('');
 
-  // Super Admin state
-  const [superAdminEmail, setSuperAdminEmail] = useState('superadmin@smartspace.ph');
-  const [superAdminPassword, setSuperAdminPassword] = useState('••••••••');
+  // Super Admin state (never pre-filled)
+  const [superAdminEmail, setSuperAdminEmail] = useState('');
+  const [superAdminPassword, setSuperAdminPassword] = useState('');
 
   // Handle switching audience / tabs
   const handleSwitchAudience = (newAudience: 'selection' | 'institution' | 'user' | 'super_admin') => {
     setErrorMsg(null);
-    setSuccessNotice(null);
+    setFieldErrors({});
     setPendingApprovalNotice(null);
     setAuthFlowState((prev) => ({ ...prev, audience: newAudience, tab: 'login' }));
     setIsRegistering(false);
@@ -99,7 +142,7 @@ export const AuthPortal: React.FC = () => {
 
   const handleToggleTab = (toRegister: boolean) => {
     setErrorMsg(null);
-    setSuccessNotice(null);
+    setFieldErrors({});
     setPendingApprovalNotice(null);
     setIsRegistering(toRegister);
     setAuthFlowState((prev) => ({ ...prev, tab: toRegister ? 'register' : 'login' }));
@@ -110,6 +153,21 @@ export const AuthPortal: React.FC = () => {
     e.preventDefault();
     setErrorMsg(null);
     setPendingApprovalNotice(null);
+    const errors: Record<string, string> = {};
+    if (!instLoginEmail.trim() || !instLoginEmail.includes('@')) {
+      errors.loginEmail = 'Enter a valid institutional email address.';
+    }
+    if (!instLoginPassword) {
+      errors.loginPassword = 'Enter your password.';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMsg('Please enter both your institutional email and password.');
+      if (errors.loginEmail) loginEmailRef.current?.focus();
+      else loginPasswordRef.current?.focus();
+      return;
+    }
+    setFieldErrors({});
 
     const res = loginWithCredentials(instLoginEmail, instLoginPassword, 'institution');
     if (!res.success) {
@@ -122,34 +180,65 @@ export const AuthPortal: React.FC = () => {
     e.preventDefault();
     setErrorMsg(null);
     setPendingApprovalNotice(null);
+    const errors: Record<string, string> = {};
 
+    if (!instRegName.trim()) {
+      errors.instRegName = 'Institution name is required.';
+    }
+    if (!instRegEmail.trim() || !instRegEmail.includes('@') || !instRegEmail.includes('.')) {
+      errors.instRegEmail = 'Enter a valid official institutional email.';
+    }
+    if (!instRegContactPerson.trim()) {
+      errors.instRegContactPerson = 'Contact person name is required.';
+    }
     if (instRegPassword.length < 6) {
-      setErrorMsg('Password must be at least 6 characters long.');
-      return;
+      errors.instRegPassword = 'Password must be at least 6 characters long.';
     }
     if (instRegPassword !== instRegConfirmPassword) {
-      setErrorMsg('Passwords do not match.');
+      errors.instRegConfirmPassword = 'Passwords do not match.';
+    }
+    if (!instPrivacyAgreed) {
+      errors.instPrivacyAgreed = 'Please consent to the Privacy Policy before registering.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMsg('Please review the highlighted fields below.');
+      if (errors.instRegName) instNameRef.current?.focus();
+      else if (errors.instRegEmail) instEmailRef.current?.focus();
+      else if (errors.instRegContactPerson) instContactRef.current?.focus();
+      else if (errors.instRegPassword) instPassRef.current?.focus();
+      else if (errors.instRegConfirmPassword) instConfirmRef.current?.focus();
+      else document.getElementById('auth-inst-reg-privacy-consent')?.focus();
       return;
     }
+    setFieldErrors({});
+
+    recordFormConsent({
+      formName: 'AuthPortal_InstitutionalRegistration',
+      consentText: INST_REG_CONSENT_TEXT,
+      marketingOptIn: instMarketingOptIn,
+    });
 
     const res = submitInstitutionalRegistration({
       institutionName: instRegName,
       institutionType: instRegType,
       officialEmail: instRegEmail,
       contactPerson: instRegContactPerson,
-      contactNumber: instRegContactNumber,
+      contactNumber: instRegContactNumber.trim() || 'Not provided',
       password: instRegPassword,
     });
 
     if (res.success) {
       setPendingApprovalNotice(res.message);
-      // Reset form
       setInstRegName('');
       setInstRegEmail('');
       setInstRegContactPerson('');
       setInstRegContactNumber('');
       setInstRegPassword('');
       setInstRegConfirmPassword('');
+      setInstPrivacyAgreed(false);
+      setInstMarketingOptIn(false);
     } else {
       setErrorMsg(res.error || 'Failed to submit registration.');
     }
@@ -159,6 +248,21 @@ export const AuthPortal: React.FC = () => {
   const handleUserLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    const errors: Record<string, string> = {};
+    if (!userLoginEmail.trim() || !userLoginEmail.includes('@')) {
+      errors.loginEmail = 'Enter a valid institutional email address.';
+    }
+    if (!userLoginPassword) {
+      errors.loginPassword = 'Enter your password.';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMsg('Please enter both your institutional email and password.');
+      if (errors.loginEmail) loginEmailRef.current?.focus();
+      else loginPasswordRef.current?.focus();
+      return;
+    }
+    setFieldErrors({});
 
     const res = loginWithCredentials(userLoginEmail, userLoginPassword, 'user');
     if (!res.success) {
@@ -170,15 +274,45 @@ export const AuthPortal: React.FC = () => {
   const handleUserRegistration = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    const errors: Record<string, string> = {};
 
+    if (!userFullName.trim()) {
+      errors.userFullName = 'Full name is required.';
+    }
+    if (!userEmail.trim() || !userEmail.includes('@') || !userEmail.includes('.')) {
+      errors.userEmail = 'Enter a valid institutional email.';
+    }
+    if (!userOrgOrDept.trim()) {
+      errors.userOrgOrDept = 'Organization or department is required.';
+    }
     if (userPassword.length < 6) {
-      setErrorMsg('Password must be at least 6 characters long.');
-      return;
+      errors.userPassword = 'Password must be at least 6 characters long.';
     }
     if (userPassword !== userConfirmPassword) {
-      setErrorMsg('Passwords do not match.');
+      errors.userConfirmPassword = 'Passwords do not match.';
+    }
+    if (!userPrivacyAgreed) {
+      errors.userPrivacyAgreed = 'Please consent to the Privacy Policy before creating an account.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMsg('Please review the highlighted fields below.');
+      if (errors.userFullName) userFullNameRef.current?.focus();
+      else if (errors.userEmail) userEmailRef.current?.focus();
+      else if (errors.userOrgOrDept) userOrgRef.current?.focus();
+      else if (errors.userPassword) userPassRef.current?.focus();
+      else if (errors.userConfirmPassword) userConfirmRef.current?.focus();
+      else document.getElementById('auth-user-reg-privacy-consent')?.focus();
       return;
     }
+    setFieldErrors({});
+
+    recordFormConsent({
+      formName: 'AuthPortal_UserRegistration',
+      consentText: USER_REG_CONSENT_TEXT,
+      marketingOptIn: userMarketingOptIn,
+    });
 
     const res = registerUserAccount({
       fullName: userFullName,
@@ -198,6 +332,21 @@ export const AuthPortal: React.FC = () => {
   const handleSuperAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    const errors: Record<string, string> = {};
+    if (!superAdminEmail.trim() || !superAdminEmail.includes('@')) {
+      errors.superEmail = 'Enter a valid super admin email address.';
+    }
+    if (!superAdminPassword) {
+      errors.superPassword = 'Enter your master password.';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMsg('Please enter your super admin email and password.');
+      if (errors.superEmail) superEmailRef.current?.focus();
+      else superPassRef.current?.focus();
+      return;
+    }
+    setFieldErrors({});
 
     const res = loginWithCredentials(superAdminEmail, superAdminPassword, 'super_admin');
     if (!res.success) {
@@ -209,8 +358,8 @@ export const AuthPortal: React.FC = () => {
   const selectedInstObj = allInstitutions.find((i) => i.id === userInstitutionId);
   const isSelectedInstInactive = selectedInstObj && selectedInstObj.status !== 'active';
 
-  // Demo auto-fill helper
-  const handleFillDemoCreds = (type: 'ctu-admin' | 'usc-admin' | 'student' | 'faculty' | 'super') => {
+  // Sample sandbox auto-fill helper (student / faculty / campus admin sandboxes only)
+  const handleFillDemoCreds = (type: 'ctu-admin' | 'usc-admin' | 'student' | 'faculty') => {
     setErrorMsg(null);
     if (type === 'ctu-admin') {
       setInstLoginEmail('admin.facilities@ctu.edu.ph');
@@ -224,9 +373,6 @@ export const AuthPortal: React.FC = () => {
     } else if (type === 'faculty') {
       setUserLoginEmail('maria.fernandez@ctu.edu.ph');
       setUserLoginPassword('demo1234');
-    } else if (type === 'super') {
-      setSuperAdminEmail('superadmin@smartspace.ph');
-      setSuperAdminPassword('demo1234');
     }
   };
 
@@ -498,9 +644,9 @@ export const AuthPortal: React.FC = () => {
         </div>
       </div>
 
-      {/* Main 850px x 550px Animated Container */}
+      {/* Main 850px x 640px Animated Container */}
       <div 
-        className="relative bg-white mx-4 rounded-[30px] shadow-[0_0_30px_rgba(0,0,0,0.18)] overflow-hidden w-full max-w-[850px] min-h-[580px] lg:h-[550px] border border-slate-200 transition-all duration-500"
+        className="relative bg-white mx-4 rounded-[30px] shadow-[0_0_30px_rgba(0,0,0,0.18)] overflow-hidden w-full max-w-[850px] min-h-[600px] lg:h-[640px] border border-slate-200 transition-all duration-500"
       >
         {/* Mobile Tab Switcher (Visible on small screens where sliding overlay stacks) */}
         {audience !== 'super_admin' && (
@@ -554,38 +700,44 @@ export const AuthPortal: React.FC = () => {
                   </p>
                 </div>
 
-                {errorMsg && (
-                  <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                {errorMsg && !isRegistering && (
+                  <div role="alert" className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" aria-hidden="true" />
                     <span>{errorMsg}</span>
                   </div>
                 )}
 
                 {pendingApprovalNotice && (
-                  <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-900 flex items-start gap-2">
-                    <Info className="w-4 h-4 text-purple-700 shrink-0 mt-0.5" />
+                  <div role="status" className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-900 flex items-start gap-2">
+                    <Info className="w-4 h-4 text-purple-700 shrink-0 mt-0.5" aria-hidden="true" />
                     <span className="leading-relaxed">{pendingApprovalNotice}</span>
                   </div>
                 )}
 
                 {/* The Login Form */}
                 <form
+                  noValidate
                   onSubmit={audience === 'institution' ? handleInstitutionalLogin : handleUserLogin}
                   className="space-y-3"
                 >
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Institutional Email Address
+                    <label htmlFor="auth-login-email" className="block text-xs font-bold text-slate-700 mb-1">
+                      Institutional Email Address <span className="text-red-700" aria-hidden="true">*</span>
                     </label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                       <input
+                        ref={loginEmailRef}
+                        id="auth-login-email"
                         type="email"
                         required
+                        aria-required="true"
+                        aria-invalid={fieldErrors.loginEmail ? 'true' : 'false'}
+                        aria-describedby={fieldErrors.loginEmail ? 'auth-login-email-err' : undefined}
                         placeholder={
                           audience === 'institution'
-                            ? 'admin.facilities@ctu.edu.ph'
-                            : 'juan.delacruz@ctu.edu.ph'
+                            ? 'admin@university.edu.ph'
+                            : 'requester@university.edu.ph'
                         }
                         value={audience === 'institution' ? instLoginEmail : userLoginEmail}
                         onChange={(e) =>
@@ -593,29 +745,44 @@ export const AuthPortal: React.FC = () => {
                             ? setInstLoginEmail(e.target.value)
                             : setUserLoginEmail(e.target.value)
                         }
-                        className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                        className={`w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                          fieldErrors.loginEmail ? 'border-red-500' : 'border-slate-200'
+                        }`}
                       />
                     </div>
+                    {fieldErrors.loginEmail && (
+                      <p id="auth-login-email-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-1">
+                        {fieldErrors.loginEmail}
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-bold text-slate-700">
-                        Password
+                      <label htmlFor="auth-login-password" className="block text-xs font-bold text-slate-700">
+                        Password <span className="text-red-700" aria-hidden="true">*</span>
                       </label>
                       <button
                         type="button"
-                        onClick={() => setForgotPasswordOpen(true)}
-                        className="text-[11px] text-purple-600 hover:text-purple-800 font-semibold cursor-pointer"
+                        onClick={() => {
+                          setForgotPasswordError(null);
+                          setForgotPasswordOpen(true);
+                        }}
+                        className="text-[11px] text-purple-700 hover:text-purple-900 font-semibold cursor-pointer"
                       >
                         Forgot Password?
                       </button>
                     </div>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                       <input
+                        ref={loginPasswordRef}
+                        id="auth-login-password"
                         type={showPassword ? 'text' : 'password'}
                         required
+                        aria-required="true"
+                        aria-invalid={fieldErrors.loginPassword ? 'true' : 'false'}
+                        aria-describedby={fieldErrors.loginPassword ? 'auth-login-password-err' : undefined}
                         placeholder="••••••••"
                         value={audience === 'institution' ? instLoginPassword : userLoginPassword}
                         onChange={(e) =>
@@ -623,17 +790,25 @@ export const AuthPortal: React.FC = () => {
                             ? setInstLoginPassword(e.target.value)
                             : setUserLoginPassword(e.target.value)
                         }
-                        className="w-full pl-9 pr-9 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                        className={`w-full pl-9 pr-9 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                          fieldErrors.loginPassword ? 'border-red-500' : 'border-slate-200'
+                        }`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                        title={showPassword ? 'Hide password' : 'Show password'}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        aria-pressed={showPassword}
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                       </button>
                     </div>
+                    {fieldErrors.loginPassword && (
+                      <p id="auth-login-password-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-1">
+                        {fieldErrors.loginPassword}
+                      </p>
+                    )}
                   </div>
 
                   <button
@@ -641,15 +816,15 @@ export const AuthPortal: React.FC = () => {
                     className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
                   >
                     <span>{audience === 'institution' ? 'Log In as University Admin' : 'Sign In to Campus Workspace'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                 </form>
               </div>
 
-              {/* Authorized Credentials Quick Fill */}
+              {/* Sample Sandbox Quick Fill */}
               <div className="pt-3 border-t border-slate-100 space-y-1.5 mt-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Quick Fill Authorized Credentials:
+                  Quick Fill Sample Sandbox Credentials:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {audience === 'institution' ? (
@@ -659,14 +834,14 @@ export const AuthPortal: React.FC = () => {
                         onClick={() => handleFillDemoCreds('ctu-admin')}
                         className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold cursor-pointer transition-colors"
                       >
-                        Auto-fill CTU Admin (Engr. Santos)
+                        Sample Public Univ Admin
                       </button>
                       <button
                         type="button"
                         onClick={() => handleFillDemoCreds('usc-admin')}
                         className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold cursor-pointer transition-colors"
                       >
-                        Auto-fill USC Admin (Arch. Tan)
+                        Sample Private Univ Admin
                       </button>
                     </>
                   ) : (
@@ -676,14 +851,14 @@ export const AuthPortal: React.FC = () => {
                         onClick={() => handleFillDemoCreds('student')}
                         className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold cursor-pointer transition-colors"
                       >
-                        Auto-fill Student (Juan Dela Cruz)
+                        Sample Student Sandbox
                       </button>
                       <button
                         type="button"
                         onClick={() => handleFillDemoCreds('faculty')}
                         className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold cursor-pointer transition-colors"
                       >
-                        Auto-fill Faculty (Dr. Fernandez)
+                        Sample Faculty Sandbox
                       </button>
                     </>
                   )}
@@ -710,17 +885,17 @@ export const AuthPortal: React.FC = () => {
                   </p>
                 </div>
 
-                {errorMsg && (
-                  <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                {errorMsg && isRegistering && (
+                  <div role="alert" className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" aria-hidden="true" />
                     <span>{errorMsg}</span>
                   </div>
                 )}
 
                 {pendingApprovalNotice && (
-                  <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-900 space-y-1">
+                  <div role="status" className="p-3 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-900 space-y-1">
                     <div className="font-bold flex items-center gap-1.5 text-purple-950">
-                      <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" aria-hidden="true" />
                       <span>Registration Pending Authorization</span>
                     </div>
                     <p className="text-[11px] text-purple-800 leading-relaxed">
@@ -731,31 +906,44 @@ export const AuthPortal: React.FC = () => {
 
                 {/* FORM A: INSTITUTIONAL REGISTRATION */}
                 {audience === 'institution' ? (
-                  <form onSubmit={handleInstitutionalRegistration} className="space-y-2.5">
+                  <form noValidate onSubmit={handleInstitutionalRegistration} className="space-y-2.5">
                     {/* Institution Name */}
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                        Institution Name <span className="text-red-500">*</span>
+                      <label htmlFor="auth-inst-reg-name" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                        Institution Name <span className="text-red-700" aria-hidden="true">*</span>
                       </label>
                       <input
+                        ref={instNameRef}
+                        id="auth-inst-reg-name"
                         type="text"
                         required
-                        placeholder="e.g. Cebu Institute of Technology - University"
+                        aria-required="true"
+                        aria-invalid={fieldErrors.instRegName ? 'true' : 'false'}
+                        aria-describedby={fieldErrors.instRegName ? 'auth-inst-reg-name-err' : undefined}
+                        placeholder="e.g. Sample Higher Education Institution"
                         value={instRegName}
                         onChange={(e) => setInstRegName(e.target.value)}
-                        className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                        className={`w-full px-3 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                          fieldErrors.instRegName ? 'border-red-500' : 'border-slate-200'
+                        }`}
                       />
+                      {fieldErrors.instRegName && (
+                        <p id="auth-inst-reg-name-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                          {fieldErrors.instRegName}
+                        </p>
+                      )}
                     </div>
 
-                    {/* Institution Type */}
+                    {/* Institution Type & Official Email */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Institution Type <span className="text-red-500">*</span>
+                        <label htmlFor="auth-inst-reg-type" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Institution Type <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <select
+                          id="auth-inst-reg-type"
                           value={instRegType}
-                          onChange={(e) => setInstRegType(e.target.value as any)}
+                          onChange={(e) => setInstRegType(e.target.value as typeof instRegType)}
                           className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 cursor-pointer"
                         >
                           <option value="Public University">Public University</option>
@@ -765,132 +953,223 @@ export const AuthPortal: React.FC = () => {
                         </select>
                       </div>
 
-                      {/* Official Email */}
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Official Email <span className="text-red-500">*</span>
+                        <label htmlFor="auth-inst-reg-email" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Official Email <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <input
+                          ref={instEmailRef}
+                          id="auth-inst-reg-email"
                           type="email"
                           required
+                          aria-required="true"
+                          aria-invalid={fieldErrors.instRegEmail ? 'true' : 'false'}
+                          aria-describedby={fieldErrors.instRegEmail ? 'auth-inst-reg-email-err' : undefined}
                           placeholder="admin@univ.edu.ph"
                           value={instRegEmail}
                           onChange={(e) => setInstRegEmail(e.target.value)}
-                          className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                          className={`w-full px-3 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                            fieldErrors.instRegEmail ? 'border-red-500' : 'border-slate-200'
+                          }`}
                         />
+                        {fieldErrors.instRegEmail && (
+                          <p id="auth-inst-reg-email-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                            {fieldErrors.instRegEmail}
+                          </p>
+                        )}
                       </div>
                     </div>
 
-                    {/* Contact Person & Number */}
+                    {/* Contact Person & Optional Number */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Contact Person <span className="text-red-500">*</span>
+                        <label htmlFor="auth-inst-reg-contact" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Contact Person <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <input
+                          ref={instContactRef}
+                          id="auth-inst-reg-contact"
                           type="text"
                           required
+                          aria-required="true"
+                          aria-invalid={fieldErrors.instRegContactPerson ? 'true' : 'false'}
+                          aria-describedby={fieldErrors.instRegContactPerson ? 'auth-inst-reg-contact-err' : undefined}
                           placeholder="Dr. / Engr. Full Name"
                           value={instRegContactPerson}
                           onChange={(e) => setInstRegContactPerson(e.target.value)}
-                          className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                          className={`w-full px-3 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                            fieldErrors.instRegContactPerson ? 'border-red-500' : 'border-slate-200'
+                          }`}
                         />
+                        {fieldErrors.instRegContactPerson && (
+                          <p id="auth-inst-reg-contact-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                            {fieldErrors.instRegContactPerson}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Contact Number <span className="text-red-500">*</span>
+                        <label htmlFor="auth-inst-reg-phone" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Contact Number <span className="text-slate-500 font-normal">(Optional)</span>
                         </label>
                         <input
+                          id="auth-inst-reg-phone"
                           type="tel"
-                          required
-                          placeholder="+63 (32) 234-5678"
+                          aria-describedby="auth-inst-reg-phone-hint"
+                          placeholder="+63 ..."
                           value={instRegContactNumber}
                           onChange={(e) => setInstRegContactNumber(e.target.value)}
                           className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
                         />
+                        <p id="auth-inst-reg-phone-hint" className="text-[10px] text-slate-500 mt-0.5">
+                          Optional — institutional email is sufficient.
+                        </p>
                       </div>
                     </div>
 
                     {/* Passwords */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Admin Password <span className="text-red-500">*</span>
+                        <label htmlFor="auth-inst-reg-pass" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Admin Password <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <input
+                          ref={instPassRef}
+                          id="auth-inst-reg-pass"
                           type={showPassword ? 'text' : 'password'}
                           required
+                          aria-required="true"
+                          aria-invalid={fieldErrors.instRegPassword ? 'true' : 'false'}
+                          aria-describedby={fieldErrors.instRegPassword ? 'auth-inst-reg-pass-err' : undefined}
                           placeholder="Min 6 chars"
                           value={instRegPassword}
                           onChange={(e) => setInstRegPassword(e.target.value)}
-                          className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                          className={`w-full px-3 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                            fieldErrors.instRegPassword ? 'border-red-500' : 'border-slate-200'
+                          }`}
                         />
+                        {fieldErrors.instRegPassword && (
+                          <p id="auth-inst-reg-pass-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                            {fieldErrors.instRegPassword}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Confirm Password <span className="text-red-500">*</span>
+                        <label htmlFor="auth-inst-reg-confirm" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Confirm Password <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <input
+                          ref={instConfirmRef}
+                          id="auth-inst-reg-confirm"
                           type={showConfirmPassword ? 'text' : 'password'}
                           required
+                          aria-required="true"
+                          aria-invalid={fieldErrors.instRegConfirmPassword ? 'true' : 'false'}
+                          aria-describedby={fieldErrors.instRegConfirmPassword ? 'auth-inst-reg-confirm-err' : undefined}
                           placeholder="Confirm"
                           value={instRegConfirmPassword}
                           onChange={(e) => setInstRegConfirmPassword(e.target.value)}
-                          className="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                          className={`w-full px-3 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                            fieldErrors.instRegConfirmPassword ? 'border-red-500' : 'border-slate-200'
+                          }`}
                         />
+                        {fieldErrors.instRegConfirmPassword && (
+                          <p id="auth-inst-reg-confirm-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                            {fieldErrors.instRegConfirmPassword}
+                          </p>
+                        )}
                       </div>
                     </div>
+
+                    <PrivacyFormConsent
+                      idPrefix="auth-inst-reg"
+                      compact={true}
+                      purpose="Verify institutional authorization and provision your university facilities administrator workspace."
+                      recipients="Authorized SmartSpace platform administrators during onboarding review."
+                      retention={BUSINESS_CONFIG.retentionPeriods.accountProfiles}
+                      requiredConsentText={INST_REG_CONSENT_TEXT}
+                      agreed={instPrivacyAgreed}
+                      onAgreedChange={setInstPrivacyAgreed}
+                      agreedError={fieldErrors.instPrivacyAgreed}
+                      includeMarketing={true}
+                      marketingOptIn={instMarketingOptIn}
+                      onMarketingChange={setInstMarketingOptIn}
+                    />
 
                     <button
                       type="submit"
                       className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
                     >
                       <span>Submit Institutional Registration</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </form>
                 ) : (
                   /* FORM B: USER REGISTRATION */
-                  <form onSubmit={handleUserRegistration} className="space-y-2">
+                  <form noValidate onSubmit={handleUserRegistration} className="space-y-2">
                     {/* Full Name & Institutional Email */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Full Name <span className="text-red-500">*</span>
+                        <label htmlFor="auth-user-reg-name" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Full Name <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <input
+                          ref={userFullNameRef}
+                          id="auth-user-reg-name"
                           type="text"
                           required
+                          aria-required="true"
+                          aria-invalid={fieldErrors.userFullName ? 'true' : 'false'}
+                          aria-describedby={fieldErrors.userFullName ? 'auth-user-reg-name-err' : undefined}
                           placeholder="Juan Dela Cruz"
                           value={userFullName}
                           onChange={(e) => setUserFullName(e.target.value)}
-                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                          className={`w-full px-2.5 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                            fieldErrors.userFullName ? 'border-red-500' : 'border-slate-200'
+                          }`}
                         />
+                        {fieldErrors.userFullName && (
+                          <p id="auth-user-reg-name-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                            {fieldErrors.userFullName}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Institutional Email <span className="text-red-500">*</span>
+                        <label htmlFor="auth-user-reg-email" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Institutional Email <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <input
+                          ref={userEmailRef}
+                          id="auth-user-reg-email"
                           type="email"
                           required
-                          placeholder="name@ctu.edu.ph"
+                          aria-required="true"
+                          aria-invalid={fieldErrors.userEmail ? 'true' : 'false'}
+                          aria-describedby={fieldErrors.userEmail ? 'auth-user-reg-email-err' : undefined}
+                          placeholder="name@university.edu.ph"
                           value={userEmail}
                           onChange={(e) => setUserEmail(e.target.value)}
-                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                          className={`w-full px-2.5 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                            fieldErrors.userEmail ? 'border-red-500' : 'border-slate-200'
+                          }`}
                         />
+                        {fieldErrors.userEmail && (
+                          <p id="auth-user-reg-email-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                            {fieldErrors.userEmail}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     {/* University / Institution Selector */}
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                        University / Institution <span className="text-red-500">*</span>
+                      <label htmlFor="auth-user-reg-inst" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                        University / Institution <span className="text-red-700" aria-hidden="true">*</span>
                       </label>
                       <select
+                        id="auth-user-reg-inst"
                         value={userInstitutionId}
                         onChange={(e) => setUserInstitutionId(e.target.value)}
                         className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 cursor-pointer"
@@ -902,8 +1181,8 @@ export const AuthPortal: React.FC = () => {
                         ))}
                       </select>
                       {isSelectedInstInactive && (
-                        <p className="text-[10px] text-amber-700 mt-1 font-semibold">
-                          ⚠️ This institution has not yet been activated on SmartSpace. Registration is unavailable.
+                        <p className="text-[11px] text-amber-800 mt-1 font-semibold">
+                          This institution has not yet been activated on SmartSpace. Registration is unavailable.
                         </p>
                       )}
                     </div>
@@ -911,12 +1190,13 @@ export const AuthPortal: React.FC = () => {
                     {/* User Type & Org Name */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          User Type <span className="text-red-500">*</span>
+                        <label htmlFor="auth-user-reg-type" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          User Type <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <select
+                          id="auth-user-reg-type"
                           value={userType}
-                          onChange={(e) => setUserType(e.target.value as any)}
+                          onChange={(e) => setUserType(e.target.value as typeof userType)}
                           className="w-full px-2 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 cursor-pointer"
                         >
                           <option value="Student Organization Officer">Student Org Officer</option>
@@ -928,50 +1208,101 @@ export const AuthPortal: React.FC = () => {
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Organization / Dept <span className="text-red-500">*</span>
+                        <label htmlFor="auth-user-reg-org" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Organization / Dept <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <input
+                          ref={userOrgRef}
+                          id="auth-user-reg-org"
                           type="text"
                           required
+                          aria-required="true"
+                          aria-invalid={fieldErrors.userOrgOrDept ? 'true' : 'false'}
+                          aria-describedby={fieldErrors.userOrgOrDept ? 'auth-user-reg-org-err' : undefined}
                           placeholder="e.g. Supreme Student Council"
                           value={userOrgOrDept}
                           onChange={(e) => setUserOrgOrDept(e.target.value)}
-                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                          className={`w-full px-2.5 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                            fieldErrors.userOrgOrDept ? 'border-red-500' : 'border-slate-200'
+                          }`}
                         />
+                        {fieldErrors.userOrgOrDept && (
+                          <p id="auth-user-reg-org-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                            {fieldErrors.userOrgOrDept}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     {/* Passwords */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Password <span className="text-red-500">*</span>
+                        <label htmlFor="auth-user-reg-pass" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Password <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <input
+                          ref={userPassRef}
+                          id="auth-user-reg-pass"
                           type={showPassword ? 'text' : 'password'}
                           required
+                          aria-required="true"
+                          aria-invalid={fieldErrors.userPassword ? 'true' : 'false'}
+                          aria-describedby={fieldErrors.userPassword ? 'auth-user-reg-pass-err' : undefined}
                           placeholder="Min 6 chars"
                           value={userPassword}
                           onChange={(e) => setUserPassword(e.target.value)}
-                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                          className={`w-full px-2.5 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                            fieldErrors.userPassword ? 'border-red-500' : 'border-slate-200'
+                          }`}
                         />
+                        {fieldErrors.userPassword && (
+                          <p id="auth-user-reg-pass-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                            {fieldErrors.userPassword}
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
-                          Confirm Password <span className="text-red-500">*</span>
+                        <label htmlFor="auth-user-reg-confirm" className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Confirm Password <span className="text-red-700" aria-hidden="true">*</span>
                         </label>
                         <input
+                          ref={userConfirmRef}
+                          id="auth-user-reg-confirm"
                           type={showConfirmPassword ? 'text' : 'password'}
                           required
+                          aria-required="true"
+                          aria-invalid={fieldErrors.userConfirmPassword ? 'true' : 'false'}
+                          aria-describedby={fieldErrors.userConfirmPassword ? 'auth-user-reg-confirm-err' : undefined}
                           placeholder="Confirm"
                           value={userConfirmPassword}
                           onChange={(e) => setUserConfirmPassword(e.target.value)}
-                          className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                          className={`w-full px-2.5 py-1.5 text-xs bg-slate-50 border rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                            fieldErrors.userConfirmPassword ? 'border-red-500' : 'border-slate-200'
+                          }`}
                         />
+                        {fieldErrors.userConfirmPassword && (
+                          <p id="auth-user-reg-confirm-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-0.5">
+                            {fieldErrors.userConfirmPassword}
+                          </p>
+                        )}
                       </div>
                     </div>
+
+                    <PrivacyFormConsent
+                      idPrefix="auth-user-reg"
+                      compact={true}
+                      purpose="Create and verify your campus user account for facility booking and permit tracking."
+                      recipients="Your selected institution's facility administrators and assigned custodians."
+                      retention={BUSINESS_CONFIG.retentionPeriods.accountProfiles}
+                      requiredConsentText={USER_REG_CONSENT_TEXT}
+                      agreed={userPrivacyAgreed}
+                      onAgreedChange={setUserPrivacyAgreed}
+                      agreedError={fieldErrors.userPrivacyAgreed}
+                      includeMarketing={true}
+                      marketingOptIn={userMarketingOptIn}
+                      onMarketingChange={setUserMarketingOptIn}
+                    />
 
                     <button
                       type="submit"
@@ -979,7 +1310,7 @@ export const AuthPortal: React.FC = () => {
                       className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-700 to-purple-700 hover:from-indigo-800 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1"
                     >
                       <span>Create End-User Account</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </form>
                 )}
@@ -1091,38 +1422,53 @@ export const AuthPortal: React.FC = () => {
               </div>
 
               {errorMsg && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-300 flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <div role="alert" className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-200 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" aria-hidden="true" />
                   <span>{errorMsg}</span>
                 </div>
               )}
 
-              <form onSubmit={handleSuperAdminLogin} className="space-y-4">
+              <form noValidate onSubmit={handleSuperAdminLogin} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-indigo-200 mb-1">
-                    Super Admin Identity (Email)
+                  <label htmlFor="auth-super-email" className="block text-xs font-semibold text-indigo-200 mb-1">
+                    Super Admin Identity (Email) <span className="text-red-300" aria-hidden="true">*</span>
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                     <input
+                      ref={superEmailRef}
+                      id="auth-super-email"
                       type="email"
                       required
+                      aria-required="true"
+                      aria-invalid={fieldErrors.superEmail ? 'true' : 'false'}
+                      aria-describedby={fieldErrors.superEmail ? 'auth-super-email-err' : undefined}
                       value={superAdminEmail}
                       onChange={(e) => setSuperAdminEmail(e.target.value)}
                       className="w-full pl-9 pr-3 py-2 text-xs bg-slate-800/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
+                  {fieldErrors.superEmail && (
+                    <p id="auth-super-email-err" role="alert" className="text-[11px] font-semibold text-red-300 mt-1">
+                      {fieldErrors.superEmail}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-indigo-200 mb-1">
-                    Platform Master Password
+                  <label htmlFor="auth-super-password" className="block text-xs font-semibold text-indigo-200 mb-1">
+                    Platform Master Password <span className="text-red-300" aria-hidden="true">*</span>
                   </label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                     <input
+                      ref={superPassRef}
+                      id="auth-super-password"
                       type={showPassword ? 'text' : 'password'}
                       required
+                      aria-required="true"
+                      aria-invalid={fieldErrors.superPassword ? 'true' : 'false'}
+                      aria-describedby={fieldErrors.superPassword ? 'auth-super-pass-err' : undefined}
                       value={superAdminPassword}
                       onChange={(e) => setSuperAdminPassword(e.target.value)}
                       className="w-full pl-9 pr-9 py-2 text-xs bg-slate-800/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -1131,23 +1477,30 @@ export const AuthPortal: React.FC = () => {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-pressed={showPassword}
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                     </button>
                   </div>
+                  {fieldErrors.superPassword && (
+                    <p id="auth-super-pass-err" role="alert" className="text-[11px] font-semibold text-red-300 mt-1">
+                      {fieldErrors.superPassword}
+                    </p>
+                  )}
                 </div>
 
                 <button
                   type="submit"
                   className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
-                  <ShieldCheck className="w-4 h-4" />
+                  <ShieldCheck className="w-4 h-4" aria-hidden="true" />
                   <span>Authenticate to Platform Operations</span>
                 </button>
               </form>
             </div>
 
-            <div className="text-center pt-4 border-t border-slate-800 text-xs text-slate-400">
+            <div className="text-center pt-4 border-t border-slate-800 text-xs text-slate-300">
               <button
                 type="button"
                 onClick={() => handleSwitchAudience('selection')}
@@ -1162,31 +1515,46 @@ export const AuthPortal: React.FC = () => {
 
       {/* Forgot Password Modal */}
       {forgotPasswordOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-4">
+        <div
+          role="presentation"
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setForgotPasswordOpen(false);
+              setForgotPasswordError(null);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="auth-forgot-pw-title"
+            className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-4"
+          >
             <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto">
-              <HelpCircle className="w-6 h-6" />
+              <HelpCircle className="w-6 h-6" aria-hidden="true" />
             </div>
             <div className="text-center space-y-1">
-              <h3 className="text-lg font-bold text-slate-900">
+              <h3 id="auth-forgot-pw-title" className="text-lg font-bold text-slate-900">
                 Institutional Credential Assistance
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Enter your registered institutional email to receive password recovery instructions or contact campus administration.
               </p>
             </div>
 
             {forgotPasswordSuccess ? (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 space-y-2 text-center">
-                <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto" />
+              <div role="status" className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 space-y-2 text-center">
+                <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto" aria-hidden="true" />
                 <p>
-                  Instructions have been dispatched to <strong>{forgotPasswordEmail}</strong>. Please check your institutional inbox or spam filter.
+                  Instructions have been logged for <strong>{forgotPasswordEmail}</strong>. Please check your institutional inbox or contact campus administration.
                 </p>
                 <button
                   type="button"
                   onClick={() => {
                     setForgotPasswordOpen(false);
                     setForgotPasswordSuccess(false);
+                    setForgotPasswordError(null);
                   }}
                   className="mt-2 px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold cursor-pointer"
                 >
@@ -1194,43 +1562,64 @@ export const AuthPortal: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <form
+                noValidate
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!forgotPasswordEmail.trim() || !forgotPasswordEmail.includes('@') || !forgotPasswordEmail.includes('.')) {
+                    setForgotPasswordError('Please enter a valid institutional email address.');
+                    forgotEmailRef.current?.focus();
+                    return;
+                  }
+                  setForgotPasswordError(null);
+                  setForgotPasswordSuccess(true);
+                }}
+                className="space-y-3"
+              >
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Institutional Email
+                  <label htmlFor="auth-forgot-email" className="block text-xs font-bold text-slate-700 mb-1">
+                    Institutional Email <span className="text-red-700" aria-hidden="true">*</span>
                   </label>
                   <input
+                    ref={forgotEmailRef}
+                    id="auth-forgot-email"
                     type="email"
                     required
+                    aria-required="true"
+                    aria-invalid={forgotPasswordError ? 'true' : 'false'}
+                    aria-describedby={forgotPasswordError ? 'auth-forgot-email-err' : undefined}
                     placeholder="name@university.edu.ph"
                     value={forgotPasswordEmail}
                     onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
+                    className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white ${
+                      forgotPasswordError ? 'border-red-500' : 'border-slate-200'
+                    }`}
                   />
+                  {forgotPasswordError && (
+                    <p id="auth-forgot-email-err" role="alert" className="text-[11px] font-semibold text-red-700 mt-1">
+                      {forgotPasswordError}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <button
                     type="button"
-                    onClick={() => setForgotPasswordOpen(false)}
+                    onClick={() => {
+                      setForgotPasswordOpen(false);
+                      setForgotPasswordError(null);
+                    }}
                     className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
-                    type="button"
-                    onClick={() => {
-                      if (!forgotPasswordEmail.trim() || !forgotPasswordEmail.includes('@')) {
-                        alert('Please enter a valid institutional email address.');
-                        return;
-                      }
-                      setForgotPasswordSuccess(true);
-                    }}
+                    type="submit"
                     className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold cursor-pointer"
                   >
                     Send Recovery Instructions
                   </button>
                 </div>
-              </div>
+              </form>
             )}
           </div>
         </div>

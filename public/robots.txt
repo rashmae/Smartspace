@@ -31,4 +31,4 @@ User-agent: cohere-ai
 Allow: /
 
 # Sitemap Location
-Sitemap: https://smartspace.ph/sitemap.xml
+Sitemap: https://[TO BE CONFIRMED: verified production domain]/sitemap.xml

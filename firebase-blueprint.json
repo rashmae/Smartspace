@@ -107,6 +107,7 @@
       "properties": {
         "id": { "type": "string", "maxLength": 128 },
         "institutionName": { "type": "string", "maxLength": 200 },
+        "institutionType": { "type": "string", "maxLength": 100 },
         "contactName": { "type": "string", "maxLength": 150 },
         "contactEmail": { "type": "string", "format": "email", "maxLength": 150 },
         "contactNumber": { "type": "string", "maxLength": 50 },
@@ -115,7 +116,11 @@
         "preferredDate": { "type": "string", "maxLength": 50 },
         "message": { "type": "string", "maxLength": 1000 },
         "submittedAt": { "type": "string", "maxLength": 50 },
-        "status": { "type": "string", "enum": ["new", "contacted", "scheduled"] }
+        "status": { "type": "string", "enum": ["new", "contacted", "scheduled"] },
+        "aiRecommendedTier": { "type": "string", "maxLength": 120 },
+        "aiLeadWarmth": { "type": "string", "enum": ["Hot", "Warm", "Nurture"] },
+        "aiTeamSummary": { "type": "string", "maxLength": 2000 },
+        "aiEmailDraft": { "type": "string", "maxLength": 4000 }
       },
       "required": ["id", "institutionName", "contactName", "contactEmail", "status"]
     },

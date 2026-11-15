@@ -116,14 +116,15 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ initialSubRo
         {/* Global Nav Bar */}
         <header className="bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <button onClick={() => navigate('/')} className="cursor-pointer hover:opacity-95">
+            <button type="button" aria-label="SmartSpace Home" onClick={() => navigate('/')} className="cursor-pointer hover:opacity-95">
               <SmartSpaceLogo size={34} showTagline={false} theme="light" />
             </button>
             <button
+              type="button"
               onClick={() => navigate('/access')}
               className="text-xs font-semibold text-slate-600 hover:text-indigo-700 flex items-center gap-1.5 cursor-pointer py-2 px-3 rounded-lg hover:bg-slate-50 transition-colors"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Back to Access Gateway</span>
             </button>
           </div>
@@ -141,12 +142,12 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ initialSubRo
 
                 <div className="space-y-3 pt-4">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 text-[10px] font-bold uppercase tracking-wider">
-                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>Governance Console</span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  <p className="text-xl sm:text-2xl font-black text-white tracking-tight">
                     Platform Super Admin
-                  </h2>
+                  </p>
                   <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                     Authorized platform engineering and multi-university operations console.
                   </p>
@@ -172,12 +173,12 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ initialSubRo
                 </ul>
               </div>
 
-              <div className="pt-6 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="pt-6 border-t border-slate-800/80 text-[11px] text-slate-300 flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-emerald-300 font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
                   Security Engine Active
                 </span>
-                <span className="font-mono text-slate-400">SSL 256-Bit</span>
+                <span className="font-mono text-slate-300">SSL 256-Bit</span>
               </div>
             </div>
 
@@ -273,7 +274,7 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ initialSubRo
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Authorized Personnel Only</span>
                 </div>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-600">
                   Access is strictly restricted to designated platform administrators. Sign-in attempts are monitored and recorded.
                 </p>
               </div>
@@ -318,14 +319,16 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ initialSubRo
             </div>
 
             <button
+              type="button"
               onClick={() => {
                 logout();
                 navigate('/access');
               }}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Sign Out from Platform Console"
+              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
               title="Sign Out from Platform Console"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -337,12 +340,12 @@ export const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ initialSubRo
       </main>
 
       {/* Super Admin Footer */}
-      <footer className="bg-slate-950 border-t border-slate-800 py-6 text-xs text-slate-400">
+      <footer className="bg-slate-950 border-t border-slate-800 py-6 text-xs text-slate-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
           <p>
             SmartSpace SaaS Platform Administration · Server Allowlist Enforcement Active
           </p>
-          <p className="text-emerald-400 font-medium">
+          <p className="text-emerald-300 font-medium">
             Multi-Tenant Network Operational (99.98% Uptime)
           </p>
         </div>

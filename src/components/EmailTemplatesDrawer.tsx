@@ -44,18 +44,18 @@ export const EmailTemplatesDrawer: React.FC<EmailTemplatesDrawerProps> = ({ isOp
     {
       id: 'approved-permit',
       name: 'Approved Permit & QR Pass',
-      subject: '[SmartSpace] Booking Approved: Lecture Room A — Oct 28 (Permit #SS-CTU-9821)',
-      recipient: 'juan.delacruz@ctu.edu.ph',
+      subject: '[SmartSpace] Illustrative Booking Approved: Lecture Room A (Permit #SS-SAMPLE-9821)',
+      recipient: 'requester@university.edu.ph',
       badge: 'Permit Issuance',
       badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-      description: 'Dispatched immediately when an institutional administrator approves a reservation request.',
+      description: 'Illustrative notice preview when an institutional administrator approves a reservation request.',
       renderContent: (isMobile) => (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs text-slate-800 font-sans">
           {/* Email Top Header */}
           <div className="bg-purple-900 text-white p-6 sm:p-8 flex items-center justify-between">
             <div className="space-y-1">
               <span className="text-[10px] uppercase tracking-widest font-black text-purple-300">
-                Official Campus Notification
+                Illustrative Campus Notification
               </span>
               <h2 className="text-xl font-black text-white">Facility Permit Approved</h2>
             </div>
@@ -67,10 +67,10 @@ export const EmailTemplatesDrawer: React.FC<EmailTemplatesDrawerProps> = ({ isOp
           {/* Email Body */}
           <div className="p-6 sm:p-8 space-y-6 text-xs sm:text-sm">
             <p className="text-slate-700 leading-relaxed">
-              Dear <strong>Juan Dela Cruz (Supreme Student Council)</strong>,
+              Dear <strong>Sample Student Organization Officer</strong>,
             </p>
             <p className="text-slate-600 leading-relaxed">
-              Your facility reservation request for <strong>Lecture Room A (Academic Hall 1)</strong> at <strong>Cebu Technological University</strong> has been officially reviewed and <strong className="text-emerald-700">APPROVED</strong> by Engr. R. Santos (Physical Plant Administration).
+              Your facility reservation request for <strong>Lecture Room A (Sample Academic Hall)</strong> has been reviewed and <strong className="text-emerald-700">APPROVED</strong> by Physical Plant Administration.
             </p>
 
             {/* Approved Booking Details Card */}
@@ -123,8 +123,8 @@ export const EmailTemplatesDrawer: React.FC<EmailTemplatesDrawerProps> = ({ isOp
 
           {/* Email Footer */}
           <div className="bg-slate-50 p-4 border-t border-slate-200 text-center text-[10px] text-slate-400 space-y-1">
-            <p>SmartSpace SaaS Platform · Unified University Facility Operations</p>
-            <p>Automated transactional notice generated for Cebu Technological University.</p>
+            <p>SmartSpace SaaS Platform · Illustrative Facility Operations Template</p>
+            <p>Sample transactional notice template for participating campuses.</p>
           </div>
         </div>
       ),
@@ -132,8 +132,8 @@ export const EmailTemplatesDrawer: React.FC<EmailTemplatesDrawerProps> = ({ isOp
     {
       id: 'conflict-alert',
       name: 'Schedule Conflict Alert',
-      subject: '[SmartSpace Action Required] Venue Rescheduling Notice: Innovation Studio (Oct 29)',
-      recipient: 'maria.santos@ctu.edu.ph',
+      subject: '[SmartSpace Action Required] Illustrative Venue Rescheduling Notice',
+      recipient: 'faculty@university.edu.ph',
       badge: 'Conflict Engine',
       badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
       description: 'Triggered if an institutional executive override or emergency maintenance flags a booked space.',
@@ -180,7 +180,7 @@ export const EmailTemplatesDrawer: React.FC<EmailTemplatesDrawerProps> = ({ isOp
           </div>
 
           <div className="bg-slate-50 p-4 border-t border-slate-200 text-center text-[10px] text-slate-400">
-            SmartSpace Conflict Resolution Engine · Cebu Technological University
+            SmartSpace Conflict Checking · Sample University Workspace
           </div>
         </div>
       ),
@@ -188,11 +188,11 @@ export const EmailTemplatesDrawer: React.FC<EmailTemplatesDrawerProps> = ({ isOp
     {
       id: 'pending-ack',
       name: 'Booking Request Acknowledged',
-      subject: '[SmartSpace] Request Received: Computer Laboratory 1 (Tracking #SS-REQ-4412)',
-      recipient: 'kenneth.tan@ctu.edu.ph',
+      subject: '[SmartSpace] Illustrative Request Received: Computer Laboratory 1 (#SS-REQ-4412)',
+      recipient: 'requester@university.edu.ph',
       badge: 'Request Pipeline',
       badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-      description: 'Sent instantaneously when a requester submits a facility reservation.',
+      description: 'Illustrative status summary when a requester submits a facility reservation.',
       renderContent: (isMobile) => (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs text-slate-800 font-sans">
           <div className="bg-indigo-950 text-white p-6 sm:p-8 flex items-center justify-between">
@@ -209,20 +209,20 @@ export const EmailTemplatesDrawer: React.FC<EmailTemplatesDrawerProps> = ({ isOp
 
           <div className="p-6 sm:p-8 space-y-6 text-xs sm:text-sm">
             <p className="text-slate-700 leading-relaxed">
-              Dear <strong>Kenneth Tan (CS Department)</strong>,
+              Dear <strong>Sample Department Representative</strong>,
             </p>
             <p className="text-slate-600 leading-relaxed">
-              Your request for <strong>Computer Laboratory 1</strong> on <strong>Oct 30, 2026 (01:00 PM – 04:00 PM)</strong> has been logged and queued for administrative review.
+              Your illustrative request for <strong>Computer Laboratory 1</strong> has been logged and queued for administrative review.
             </p>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-slate-500 font-bold">Reviewer:</span>
-                <span className="font-semibold text-slate-800">Engr. R. Santos (Physical Plant Admin)</span>
+                <span className="font-semibold text-slate-800">Facility Office Administrator</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 font-bold">Average Review Turnaround:</span>
-                <span className="font-semibold text-slate-800">&lt; 3.5 Business Hours</span>
+                <span className="text-slate-500 font-bold">Queue Status:</span>
+                <span className="font-semibold text-slate-800">Pending Review</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 font-bold">Tracking ID:</span>
@@ -231,7 +231,7 @@ export const EmailTemplatesDrawer: React.FC<EmailTemplatesDrawerProps> = ({ isOp
             </div>
 
             <p className="text-xs text-slate-500 leading-relaxed">
-              You will receive an instant email and SMS notification the moment an administrative determination is made.
+              Your request status is updated in the SmartSpace portal as soon as an institutional determination is recorded.
             </p>
           </div>
 

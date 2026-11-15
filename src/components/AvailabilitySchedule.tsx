@@ -129,50 +129,58 @@ export const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
             cardStyle = 'bg-blue-50 border-blue-300 text-blue-950';
             statusBadge = (
               <span className="text-[10px] font-semibold text-blue-800 flex items-center gap-1">
-                <ShieldAlert className="w-3 h-3 text-blue-600" /> Booked
+                <ShieldAlert className="w-3 h-3 text-blue-700" aria-hidden="true" /> Booked
               </span>
             );
             extraInfo = (
-              <div className="text-[10px] text-blue-700 truncate mt-0.5" title={slot.approvedBooking.eventName}>
+              <div className="text-[10px] text-blue-800 truncate mt-0.5" title={slot.approvedBooking.eventName}>
                 {slot.approvedBooking.eventName}
               </div>
             );
           } else if (slot.pendingBooking) {
             cardStyle = 'bg-amber-50 border-amber-200 text-amber-950';
             statusBadge = (
-              <span className="text-[10px] font-semibold text-amber-800 flex items-center gap-1">
-                <Clock className="w-3 h-3 text-amber-600" /> Pending Request
+              <span className="text-[10px] font-semibold text-amber-900 flex items-center gap-1">
+                <Clock className="w-3 h-3 text-amber-700" aria-hidden="true" /> Pending Request
               </span>
             );
             extraInfo = (
-              <div className="text-[10px] text-amber-700 truncate mt-0.5" title={slot.pendingBooking.eventName}>
+              <div className="text-[10px] text-amber-800 truncate mt-0.5" title={slot.pendingBooking.eventName}>
                 {slot.pendingBooking.eventName} (Under Review)
               </div>
+            );
+          }
+
+          if (slot.isAvailable && onSelectSlot) {
+            return (
+              <button
+                key={slot.start}
+                type="button"
+                onClick={() => onSelectSlot(activeDate, slot.start, slot.end)}
+                className={`p-2.5 rounded-lg border text-xs text-left transition-all cursor-pointer hover:shadow-xs ${cardStyle}`}
+              >
+                <div className="flex items-center justify-between font-mono font-medium text-slate-800">
+                  <span>{formatTimeRange(slot.start, slot.end)}</span>
+                  {statusBadge}
+                </div>
+                {extraInfo}
+                <div className="text-[10px] text-emerald-700 mt-1 font-semibold hover:underline">
+                  Click to select this slot →
+                </div>
+              </button>
             );
           }
 
           return (
             <div
               key={slot.start}
-              onClick={() => {
-                if (slot.isAvailable && onSelectSlot) {
-                  onSelectSlot(activeDate, slot.start, slot.end);
-                }
-              }}
-              className={`p-2.5 rounded-lg border text-xs transition-all ${cardStyle} ${
-                slot.isAvailable && onSelectSlot ? 'cursor-pointer hover:shadow-xs' : ''
-              }`}
+              className={`p-2.5 rounded-lg border text-xs transition-all ${cardStyle}`}
             >
               <div className="flex items-center justify-between font-mono font-medium text-slate-800">
                 <span>{formatTimeRange(slot.start, slot.end)}</span>
                 {statusBadge}
               </div>
               {extraInfo}
-              {slot.isAvailable && onSelectSlot && (
-                <div className="text-[10px] text-emerald-600 mt-1 font-medium hover:underline">
-                  Click to select this slot →
-                </div>
-              )}
             </div>
           );
         })}

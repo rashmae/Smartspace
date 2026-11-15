@@ -325,43 +325,47 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
           return (
             <div
               key={facility.id}
-              onClick={() => setSelectedFacilityId(facility.id)}
-              className={`rounded-2xl p-5 border transition-all cursor-pointer relative ${
+              className={`rounded-2xl p-5 border transition-all relative ${
                 isSelected
                   ? 'bg-white border-purple-500 shadow-md ring-2 ring-purple-500/20'
                   : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
               }`}
             >
-              <div className="flex items-start justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedFacilityId(facility.id)}
+                className="w-full text-left flex items-start justify-between gap-2 cursor-pointer"
+                aria-pressed={isSelected}
+              >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-black text-slate-900">{facility.name}</h3>
                   </div>
-                  <p className="text-xs text-slate-500">{facility.building}</p>
+                  <p className="text-xs text-slate-600">{facility.building}</p>
                 </div>
 
                 <span
                   className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
                     assignment.assignmentRole === 'primary'
                       ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                      : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                      : 'bg-indigo-50 text-indigo-800 border border-indigo-200'
                   }`}
                 >
                   {assignment.assignmentRole} Reviewer
                 </span>
-              </div>
+              </button>
 
               {/* Status and Pending Counters */}
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
                   {isUnlocked ? (
                     <span className="inline-flex items-center gap-1 font-bold text-emerald-700">
-                      <Unlock className="w-3.5 h-3.5" />
+                      <Unlock className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>Unlocked ({Math.max(1, Math.ceil((session.expiresAt - Date.now()) / (1000 * 60)))}m)</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 font-bold text-amber-700">
-                      <Lock className="w-3.5 h-3.5" />
+                    <span className="inline-flex items-center gap-1 font-bold text-amber-800">
+                      <Lock className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>Locked (Code Required)</span>
                     </span>
                   )}
@@ -369,7 +373,7 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
 
                 <span
                   className={`font-black px-2 py-0.5 rounded-full text-[11px] ${
-                    pendingCount > 0 ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-600'
+                    pendingCount > 0 ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
                   {pendingCount} Pending
@@ -381,24 +385,18 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
                 {!isUnlocked ? (
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openCodeChallenge(facility, assignment);
-                    }}
+                    onClick={() => openCodeChallenge(facility, assignment)}
                     className="w-full py-2 bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <KeyRound className="w-3.5 h-3.5" />
+                    <KeyRound className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>Enter Access Code</span>
                   </button>
                 ) : (
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        clearVerifiedFacilitySession(facility.id);
-                      }}
-                      className="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                      onClick={() => clearVerifiedFacilitySession(facility.id)}
+                      className="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-colors cursor-pointer"
                     >
                       Lock Workspace
                     </button>
@@ -722,16 +720,27 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
       {/* MODAL: FACILITY ACCESS CODE CHALLENGE                         */}
       {/* ------------------------------------------------------------- */}
       {isCodeModalOpen && targetFacilityForCode && targetAssignmentForCode && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsCodeModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="handler-code-modal-title"
+            className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200"
+          >
             <div className="text-center space-y-2">
               <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto">
-                <KeyRound className="w-6 h-6" />
+                <KeyRound className="w-6 h-6" aria-hidden="true" />
               </div>
-              <h3 className="text-lg font-black text-slate-900">
+              <h3 id="handler-code-modal-title" className="text-lg font-black text-slate-900">
                 Unlock {targetFacilityForCode.name}
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Enter your designated security credential for this venue.
               </p>
             </div>
@@ -740,7 +749,7 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
             <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-900 flex items-center justify-between">
               <div>
                 <span className="font-bold block">Assigned Security Code:</span>
-                <span className="text-[11px] text-purple-700">Configured by University Admin</span>
+                <span className="text-[11px] text-purple-800">Configured by University Admin</span>
               </div>
               <code className="font-mono font-black text-sm bg-white px-2 py-1 rounded border border-purple-200 text-purple-800">
                 {getDemoHintCode(targetFacilityForCode.id)}
@@ -749,17 +758,17 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
 
             {/* Error & Lockout Display */}
             {verificationError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div role="alert" className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="space-y-0.5">
                   <span className="block font-bold">{verificationError}</span>
                   {attemptsRemaining !== null && attemptsRemaining > 0 && (
-                    <span className="block text-[11px] text-rose-600">
+                    <span className="block text-[11px] text-rose-700">
                       Remaining attempts before temporary lockout: <strong>{attemptsRemaining}</strong>
                     </span>
                   )}
                   {lockoutSeconds && (
-                    <span className="block text-[11px] font-black text-rose-800">
+                    <span className="block text-[11px] font-black text-rose-900">
                       Security Lockout active: Retry in {lockoutSeconds}s
                     </span>
                   )}
@@ -769,12 +778,13 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
 
             <form onSubmit={handleVerifyCodeSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="handler-workspace-code" className="block text-xs font-bold text-slate-700 mb-1">
                   Facility-Specific Access Code
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                   <input
+                    id="handler-workspace-code"
                     type={showCode ? 'text' : 'password'}
                     required
                     disabled={!!lockoutSeconds}
@@ -786,9 +796,11 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowCode(!showCode)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    aria-label={showCode ? 'Hide access code' : 'Show access code'}
+                    aria-pressed={showCode}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 cursor-pointer"
                   >
-                    {showCode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {showCode ? <EyeOff className="w-3.5 h-3.5" aria-hidden="true" /> : <Eye className="w-3.5 h-3.5" aria-hidden="true" />}
                   </button>
                 </div>
               </div>
@@ -797,7 +809,7 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsCodeModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-700 hover:text-slate-950 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -806,7 +818,7 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
                   disabled={isVerifying || !!lockoutSeconds}
                   className="px-5 py-2 bg-purple-700 hover:bg-purple-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  <KeyRound className="w-3.5 h-3.5" />
+                  <KeyRound className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>{isVerifying ? 'Verifying with Server...' : 'Verify & Unlock Workspace'}</span>
                 </button>
               </div>
@@ -819,31 +831,43 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
       {/* MODAL: APPROVE BOOKING WITH NOTES                             */}
       {/* ------------------------------------------------------------- */}
       {isApproveModalOpen && approvingBooking && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsApproveModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="handler-approve-modal-title"
+            className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
-                <CheckCircle2 className="w-6 h-6" />
+                <CheckCircle2 className="w-6 h-6" aria-hidden="true" />
               </div>
               <div>
-                <h3 className="text-base font-black text-slate-900">Approve Booking Request</h3>
-                <p className="text-xs text-slate-500">{approvingBooking.referenceNumber} · {approvingBooking.eventName}</p>
+                <h3 id="handler-approve-modal-title" className="text-base font-black text-slate-900">Approve Booking Request</h3>
+                <p className="text-xs text-slate-600">{approvingBooking.referenceNumber} · {approvingBooking.eventName}</p>
               </div>
             </div>
 
             <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 space-y-1">
               <p className="font-bold">Permit Issuance Confirmation</p>
-              <p className="text-[11px] text-emerald-700">
+              <p className="text-[11px] text-emerald-800">
                 Approving this request will generate an official digital venue permit and log your authenticated approval with a 12-hour AM/PM timestamp in the audit record.
               </p>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="handler-approval-notes" className="block text-xs font-bold text-slate-700 mb-1">
                   Approval Endorsement Notes (Optional)
                 </label>
                 <textarea
+                  id="handler-approval-notes"
                   rows={2}
                   placeholder="e.g. Verified adviser endorsement slip. Projector test cleared."
                   value={approvalNotesInput}
@@ -856,7 +880,7 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsApproveModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-700 hover:text-slate-950 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -878,24 +902,36 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
       {/* MODAL: REJECT BOOKING WITH MANDATORY REASON                   */}
       {/* ------------------------------------------------------------- */}
       {isRejectModalOpen && rejectingBooking && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsRejectModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="handler-reject-modal-title"
+            className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200"
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold shrink-0">
-                <AlertTriangle className="w-6 h-6" />
+                <AlertTriangle className="w-6 h-6" aria-hidden="true" />
               </div>
               <div>
-                <h3 className="text-base font-black text-slate-900">Reject Booking Request</h3>
-                <p className="text-xs text-slate-500">{rejectingBooking.referenceNumber} · {rejectingBooking.eventName}</p>
+                <h3 id="handler-reject-modal-title" className="text-base font-black text-slate-900">Reject Booking Request</h3>
+                <p className="text-xs text-slate-600">{rejectingBooking.referenceNumber} · {rejectingBooking.eventName}</p>
               </div>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="handler-rejection-reason" className="block text-xs font-bold text-slate-700 mb-1">
                   Justification Reason (Mandatory)
                 </label>
                 <textarea
+                  id="handler-rejection-reason"
                   rows={3}
                   required
                   placeholder="State clearly why this reservation is rejected (e.g. Venue maintenance scheduled, non-academic event, or missing departmental endorsement)..."
@@ -909,7 +945,7 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsRejectModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-700 hover:text-slate-950 cursor-pointer"
                 >
                   Cancel
                 </button>

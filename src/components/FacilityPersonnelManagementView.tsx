@@ -715,21 +715,34 @@ export const FacilityPersonnelManagementView: React.FC = () => {
       {/* MODAL: ASSIGN HANDLER TO FACILITY                             */}
       {/* ------------------------------------------------------------- */}
       {isAssignModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsAssignModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="assign-handler-modal-title"
+            className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                  <UserCheck className="w-5 h-5" />
+                  <UserCheck className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Assign Facility Personnel</h3>
-                  <p className="text-xs text-slate-500">Designate primary or backup handler for a venue</p>
+                  <h3 id="assign-handler-modal-title" className="text-base font-black text-slate-900">Assign Facility Personnel</h3>
+                  <p className="text-xs text-slate-600">Designate primary or backup handler for a venue</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsAssignModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-lg"
+                aria-label="Close assign personnel modal"
+                className="text-slate-600 hover:text-slate-900 cursor-pointer font-bold text-lg"
               >
                 ✕
               </button>
@@ -737,8 +750,9 @@ export const FacilityPersonnelManagementView: React.FC = () => {
 
             <form onSubmit={handleAssignSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Target Facility</label>
+                <label htmlFor="assign-target-facility" className="block text-xs font-bold text-slate-700 mb-1">Target Facility</label>
                 <select
+                  id="assign-target-facility"
                   value={selectedFacilityForAssign?.id || ''}
                   onChange={(e) => {
                     const f = institutionFacilities.find((fac) => fac.id === e.target.value);
@@ -755,8 +769,9 @@ export const FacilityPersonnelManagementView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Designated Personnel</label>
+                <label htmlFor="assign-designated-personnel" className="block text-xs font-bold text-slate-700 mb-1">Designated Personnel</label>
                 <select
+                  id="assign-designated-personnel"
                   value={assignHandlerId}
                   onChange={(e) => setAssignHandlerId(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600"
@@ -769,17 +784,19 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Assignment Role</label>
+              <div role="radiogroup" aria-labelledby="assign-role-group-label">
+                <span id="assign-role-group-label" className="block text-xs font-bold text-slate-700 mb-1">Assignment Role</span>
                 <div className="grid grid-cols-2 gap-3">
                   <label
+                    htmlFor="assign-role-primary"
                     className={`flex items-center gap-2 p-3 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
                       assignRole === 'primary'
                         ? 'bg-purple-50 border-purple-400 text-purple-900'
-                        : 'border-slate-200 text-slate-600'
+                        : 'border-slate-200 text-slate-700'
                     }`}
                   >
                     <input
+                      id="assign-role-primary"
                       type="radio"
                       name="assignRole"
                       value="primary"
@@ -790,13 +807,15 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                     <span>Primary Handler</span>
                   </label>
                   <label
+                    htmlFor="assign-role-backup"
                     className={`flex items-center gap-2 p-3 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
                       assignRole === 'backup'
                         ? 'bg-indigo-50 border-indigo-400 text-indigo-900'
-                        : 'border-slate-200 text-slate-600'
+                        : 'border-slate-200 text-slate-700'
                     }`}
                   >
                     <input
+                      id="assign-role-backup"
                       type="radio"
                       name="assignRole"
                       value="backup"
@@ -810,12 +829,13 @@ export const FacilityPersonnelManagementView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label htmlFor="assign-access-code" className="block text-xs font-bold text-slate-700 mb-1">
                   Individual Facility Access Code (Server-Hashed)
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                   <input
+                    id="assign-access-code"
                     type={showAssignCode ? 'text' : 'password'}
                     placeholder="e.g. CN-8421 or 8421"
                     value={assignAccessCode}
@@ -825,19 +845,22 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowAssignCode(!showAssignCode)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    aria-label={showAssignCode ? 'Hide access code' : 'Show access code'}
+                    aria-pressed={showAssignCode}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 cursor-pointer"
                   >
-                    {showAssignCode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {showAssignCode ? <EyeOff className="w-3.5 h-3.5" aria-hidden="true" /> : <Eye className="w-3.5 h-3.5" aria-hidden="true" />}
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[11px] text-slate-600 mt-1">
                   Unique to this handler and venue. Code is hashed with HMAC-SHA256 and never stored in cleartext.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Administrative Notes (Optional)</label>
+                <label htmlFor="assign-admin-notes" className="block text-xs font-bold text-slate-700 mb-1">Administrative Notes (Optional)</label>
                 <textarea
+                  id="assign-admin-notes"
                   rows={2}
                   placeholder="Special instructions or scheduling coverage details..."
                   value={assignNotes}
@@ -850,7 +873,7 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAssignModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-700 hover:text-slate-950 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -870,21 +893,34 @@ export const FacilityPersonnelManagementView: React.FC = () => {
       {/* MODAL: CREATE HANDLER ACCOUNT                                 */}
       {/* ------------------------------------------------------------- */}
       {isCreateHandlerModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsCreateHandlerModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-handler-modal-title"
+            className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                  <PlusCircle className="w-5 h-5" />
+                  <PlusCircle className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Create Facility Personnel Account</h3>
-                  <p className="text-xs text-slate-500">Add an authorized custodian or reviewer</p>
+                  <h3 id="create-handler-modal-title" className="text-base font-black text-slate-900">Create Facility Personnel Account</h3>
+                  <p className="text-xs text-slate-600">Add an authorized custodian or reviewer</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsCreateHandlerModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-lg"
+                aria-label="Close create personnel modal"
+                className="text-slate-600 hover:text-slate-900 cursor-pointer font-bold text-lg"
               >
                 ✕
               </button>
@@ -892,8 +928,9 @@ export const FacilityPersonnelManagementView: React.FC = () => {
 
             <form onSubmit={handleCreateHandlerSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Personnel Full Name</label>
+                <label htmlFor="create-handler-name" className="block text-xs font-bold text-slate-700 mb-1">Personnel Full Name</label>
                 <input
+                  id="create-handler-name"
                   type="text"
                   required
                   placeholder="e.g. Ms. Julia or Mr. Jomel"
@@ -904,8 +941,9 @@ export const FacilityPersonnelManagementView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Institutional Email</label>
+                <label htmlFor="create-handler-email" className="block text-xs font-bold text-slate-700 mb-1">Institutional Email</label>
                 <input
+                  id="create-handler-email"
                   type="email"
                   required
                   placeholder="e.g. julia.facilities@ctu.edu.ph"
@@ -917,8 +955,9 @@ export const FacilityPersonnelManagementView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Title / Designation</label>
+                  <label htmlFor="create-handler-title" className="block text-xs font-bold text-slate-700 mb-1">Title / Designation</label>
                   <input
+                    id="create-handler-title"
                     type="text"
                     placeholder="e.g. Arena Coordinator"
                     value={newHandlerTitle}
@@ -927,8 +966,9 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Mobile Contact</label>
+                  <label htmlFor="create-handler-phone" className="block text-xs font-bold text-slate-700 mb-1">Mobile Contact</label>
                   <input
+                    id="create-handler-phone"
                     type="text"
                     placeholder="+63 917 555 0101"
                     value={newHandlerPhone}
@@ -939,8 +979,9 @@ export const FacilityPersonnelManagementView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Personnel Notes</label>
+                <label htmlFor="create-handler-notes" className="block text-xs font-bold text-slate-700 mb-1">Personnel Notes</label>
                 <textarea
+                  id="create-handler-notes"
                   rows={2}
                   placeholder="Physical plant assignment details..."
                   value={newHandlerNotes}
@@ -953,7 +994,7 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsCreateHandlerModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-700 hover:text-slate-950 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -973,41 +1014,55 @@ export const FacilityPersonnelManagementView: React.FC = () => {
       {/* MODAL: CONFIGURE / RESET ACCESS CODE                          */}
       {/* ------------------------------------------------------------- */}
       {isResetCodeModalOpen && targetAssignmentForReset && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200">
+        <div
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsResetCodeModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-code-modal-title"
+            className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                  <KeyRound className="w-5 h-5" />
+                  <KeyRound className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Configure Access Code</h3>
-                  <p className="text-xs text-slate-500">
+                  <h3 id="reset-code-modal-title" className="text-base font-black text-slate-900">Configure Access Code</h3>
+                  <p className="text-xs text-slate-600">
                     {targetAssignmentForReset.facilityName} · {targetAssignmentForReset.handlerName}
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsResetCodeModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-lg"
+                aria-label="Close configure access code modal"
+                className="text-slate-600 hover:text-slate-900 cursor-pointer font-bold text-lg"
               >
                 ✕
               </button>
             </div>
 
             <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 text-xs text-purple-900 space-y-1">
-              <p className="font-bold">Cryptographic Server Salting & Lockout Protection</p>
-              <p className="text-[11px] text-purple-700">
+              <p className="font-bold">Cryptographic Server Salting &amp; Lockout Protection</p>
+              <p className="text-[11px] text-purple-800">
                 Updating this credential immediately invalidates any existing active workspace sessions for this venue. Failed entries are capped at 5 attempts before a 5-minute lockout.
               </p>
             </div>
 
             <form onSubmit={handleResetCodeSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">New Access Code</label>
+                <label htmlFor="reset-new-access-code" className="block text-xs font-bold text-slate-700 mb-1">New Access Code</label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                   <input
+                    id="reset-new-access-code"
                     type={showResetCode ? 'text' : 'password'}
                     required
                     placeholder="Enter at least 4 characters..."
@@ -1018,9 +1073,11 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowResetCode(!showResetCode)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    aria-label={showResetCode ? 'Hide new access code' : 'Show new access code'}
+                    aria-pressed={showResetCode}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 cursor-pointer"
                   >
-                    {showResetCode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {showResetCode ? <EyeOff className="w-3.5 h-3.5" aria-hidden="true" /> : <Eye className="w-3.5 h-3.5" aria-hidden="true" />}
                   </button>
                 </div>
               </div>
@@ -1029,7 +1086,7 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsResetCodeModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-700 hover:text-slate-950 cursor-pointer"
                 >
                   Cancel
                 </button>

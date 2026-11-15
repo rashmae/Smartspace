@@ -18,6 +18,7 @@ export interface InstitutionalRegistrationRequest {
 export interface InstitutionalDemoRequest {
   id: string;
   institutionName: string;
+  institutionType?: string;
   contactName: string;
   contactEmail: string;
   contactNumber: string;
@@ -27,6 +28,10 @@ export interface InstitutionalDemoRequest {
   message?: string;
   submittedAt: string;
   status: 'new' | 'contacted' | 'scheduled';
+  aiRecommendedTier?: string;
+  aiLeadWarmth?: 'Hot' | 'Warm' | 'Nurture';
+  aiTeamSummary?: string;
+  aiEmailDraft?: string;
 }
 
 export interface RegisteredUserAccount {
@@ -170,10 +175,12 @@ export interface PlatformSettings {
 // ========================================================
 export interface FacilityHandler {
   id: string;
+  institutionId: string;
+  fullName: string;
   name: string;
   email: string;
   phone?: string;
-  institutionId: string;
+  titleOrDesignation: string;
   department: string;
   status: 'active' | 'suspended';
   assignedFacilityIds: string[];
@@ -181,7 +188,9 @@ export interface FacilityHandler {
   hasAccessCode: boolean;
   approvalCount: number;
   lastActive?: string;
+  lastActiveAt?: string;
   createdAt: string;
+  notes?: string;
 }
 
 export interface HandlerApprovalVerificationRequest {
@@ -194,16 +203,17 @@ export interface HandlerApprovalVerificationRequest {
 }
 
 // ========================================================
-// AGENTIC AI AUTOMATION & BACKGROUND JOBS
+// AGENTIC AI AUTOMATION, WORKFLOW BUILDER & OPAL BRIDGE
 // ========================================================
-export type AutomationJobType = 
+export type AutomationJobType =
   | 'demo_categorization'
   | 'booking_notification'
   | 'handler_alert'
   | 'utilization_summary'
-  | 'reminder_dispatch';
+  | 'reminder_dispatch'
+  | 'opal_workflow_run';
 
-export type AutomationJobStatus = 
+export type AutomationJobStatus =
   | 'queued'
   | 'processing'
   | 'completed'
@@ -216,10 +226,12 @@ export interface AIAutomationJob {
   status: AutomationJobStatus;
   title: string;
   institutionId?: string;
-  relatedEntityId?: string; // bookingId or demoRequestId
+  relatedEntityId?: string; // bookingId, demoRequestId, or workflowId
   aiSummary?: string;
   aiDraftContent?: string;
   aiCategory?: 'Enterprise Onboarding' | 'Public Pilot' | 'Collegiate Competition' | 'General Inquiry' | 'Standard Reservation';
+  recommendedTier?: string;
+  leadWarmth?: 'Hot' | 'Warm' | 'Nurture';
   suggestedSuperAdmin?: string;
   executionLogs: string[];
   retryCount: number;
@@ -227,6 +239,53 @@ export interface AIAutomationJob {
   createdAt: string;
   processedAt?: string;
   approvedBy?: string;
+  error?: string;
+}
+
+export type AIWorkflowNodeKind = 'trigger' | 'gemini_generate' | 'structured_extract' | 'dispatch_action';
+
+export interface AIWorkflowStep {
+  id: string;
+  order: number;
+  kind: AIWorkflowNodeKind;
+  title: string;
+  model: 'gemini-4-hydrogen' | 'gemini-3.1-flash-lite';
+  systemInstruction?: string;
+  promptTemplate: string; // Supports {{input}} and {{prev_output}}
+  outputFormat?: 'text' | 'json';
+}
+
+export interface AIWorkflowDefinition {
+  id: string;
+  name: string;
+  description: string;
+  triggerType: 'manual' | 'demo_request' | 'booking_created' | 'opal_webhook';
+  isActive: boolean;
+  steps: AIWorkflowStep[];
+  createdAt: string;
+  updatedAt: string;
+  lastRunAt?: string;
+  runCount: number;
+  opalCompatibleVersion: string;
+}
+
+export interface AIWorkflowStepTrace {
+  stepId: string;
+  title: string;
+  kind: AIWorkflowNodeKind;
+  model: string;
+  output: string;
+  durationMs: number;
+  status: 'completed' | 'failed';
+}
+
+export interface AIWorkflowRunResult {
+  success: boolean;
+  workflowId: string;
+  workflowName: string;
+  traces: AIWorkflowStepTrace[];
+  finalOutput: string;
+  totalDurationMs: number;
   error?: string;
 }
 
@@ -310,22 +369,7 @@ export interface ParticipantRecord {
   isCompleted: boolean;
 }
 
-// -------------------------------------------------------------
-// FACILITY PERSONNEL & SECURE APPROVAL SYSTEM
-// -------------------------------------------------------------
-
-export interface FacilityHandler {
-  id: string; // e.g. "hnd-ctu-julia"
-  institutionId: string;
-  fullName: string;
-  email: string;
-  phone?: string;
-  titleOrDesignation: string; // e.g. "Physical Plant Custodian", "Hall Coordinator", "Lab Supervisor"
-  status: 'active' | 'suspended';
-  createdAt: string;
-  lastActiveAt?: string;
-  notes?: string;
-}
+// FacilityHandler is unified above.
 
 export interface FacilityAssignment {
   id: string; // e.g. "asgn-ctu-julia-cn-hall"
