@@ -64,7 +64,13 @@ export const PrivacyFormConsent: React.FC<PrivacyFormConsentProps> = ({
         </p>
         <p>
           <strong>Retention &amp; Rights:</strong> {retention}. You may exercise your rights under Section 16 of RA 10173 via{' '}
-          <span className="font-mono text-[11px]">{BUSINESS_CONFIG.dpoEmail}</span>. Read our{' '}
+          <a
+            href={BUSINESS_CONFIG.dpoMailto}
+            className="font-semibold text-[#0077C8] underline hover:text-[#005a99]"
+          >
+            {BUSINESS_CONFIG.dpoEmailLabel} ({BUSINESS_CONFIG.dpoEmail})
+          </a>
+          . Read our{' '}
           <button
             type="button"
             onClick={() => openLegalPage(BUSINESS_CONFIG.legalRoutes.privacy)}

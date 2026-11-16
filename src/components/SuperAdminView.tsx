@@ -68,6 +68,8 @@ export const SuperAdminView: React.FC = () => {
     retryEmailDelivery,
     triggerManualAIAnalysis,
     runConciergeForDemo,
+    loginSecurityEvents,
+    revokeSecurityEvent,
   } = useApp();
 
   const [adminSection, setAdminSection] = useState<
@@ -88,11 +90,11 @@ export const SuperAdminView: React.FC = () => {
   const [securitySearch, setSecuritySearch] = useState<string>('');
   const [securityLoading, setSecurityLoading] = useState(false);
   const [securitySummary, setSecuritySummary] = useState({
-    authorizedAccountsCount: 4,
-    activeSessionsCount: 2,
-    enforcementMode: 'STRICT_SERVER_ALLOWLIST',
-    auditEntriesCount: 18,
-    securityEventsCount: 5,
+    authorizedAccountsCount: 0,
+    activeSessionsCount: 0,
+    enforcementMode: 'FIREBASE_AUTH_AND_FIRESTORE_RULES',
+    auditEntriesCount: 0,
+    securityEventsCount: 0,
   });
 
   // User Management state
@@ -145,24 +147,11 @@ export const SuperAdminView: React.FC = () => {
         }
       }
 
-      // Read locally recorded events from browser audit cache
-      let localActivities: LoginSecurityEvent[] = [];
-      try {
-        const stored = localStorage.getItem('smartspace_security_activities_v1');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) localActivities = parsed;
-        }
-      } catch (e) {
-        console.warn('Local audit cache parse error:', e);
-      }
-
-      // Combine and deduplicate
+      // Combine and deduplicate in-memory session events + server audit records (never localStorage)
       const seen = new Set<string>();
       const deduplicated: LoginSecurityEvent[] = [];
 
-      // Local entries first (newest frontend actions), then server entries
-      for (const act of [...localActivities, ...serverActivities]) {
+      for (const act of [...loginSecurityEvents, ...serverActivities]) {
         const key = act.id || `${act.accountEmail}-${act.timestamp}-${act.eventType}`;
         if (!seen.has(key)) {
           seen.add(key);
@@ -213,21 +202,8 @@ export const SuperAdminView: React.FC = () => {
         body: JSON.stringify({ activityId }),
       }).catch(() => null);
 
-      // 2. Update local storage audit cache
-      try {
-        const stored = localStorage.getItem('smartspace_security_activities_v1');
-        if (stored) {
-          const list: LoginSecurityEvent[] = JSON.parse(stored);
-          const updated = list.map((a) =>
-            a.id === activityId ? { ...a, sessionActive: false, eventType: 'SESSION_REVOKED' as const } : a
-          );
-          localStorage.setItem('smartspace_security_activities_v1', JSON.stringify(updated));
-        }
-      } catch (e) {
-        console.warn('Failed to update local revoked session:', e);
-      }
-
-      // 3. Update active state immediately
+      // 2. Update in-memory session security events & active view state (never localStorage)
+      revokeSecurityEvent(activityId);
       setSecurityActivities((prev) =>
         prev.map((a) =>
           a.id === activityId ? { ...a, sessionActive: false, eventType: 'SESSION_REVOKED' as const } : a
@@ -574,8 +550,8 @@ export const SuperAdminView: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
               <span className="text-[10px] uppercase font-bold text-slate-500">Security Architecture</span>
-              <div className="text-sm font-bold text-slate-800">Server-Authoritative Allowlist</div>
-              <p className="text-[11px] text-slate-500">Zero frontend exposure of privileged credentials.</p>
+              <div className="text-sm font-bold text-slate-800">Firebase Auth &amp; Firestore Rules</div>
+              <p className="text-[11px] text-slate-500">Verified Google sign-in and Firestore role authorization.</p>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">

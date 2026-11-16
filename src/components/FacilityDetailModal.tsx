@@ -42,6 +42,7 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (e.defaultPrevented) return;
         e.preventDefault();
         onClose();
         return;
@@ -99,7 +100,9 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
     >
       <div
         ref={dialogRef}
-        className="bg-white rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden border border-slate-200 my-8 animate-in fade-in zoom-in-95 duration-150"
+        className={`bg-white rounded-xl shadow-2xl w-full overflow-hidden border border-slate-200 my-8 animate-in fade-in zoom-in-95 duration-150 transition-[max-width] ${
+          activeTab === 'availability' ? 'max-w-5xl' : 'max-w-3xl'
+        }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="facility-detail-title"
@@ -177,7 +180,11 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto space-y-6">
+        <div
+          className={`p-5 sm:p-6 overflow-y-auto space-y-6 ${
+            activeTab === 'availability' ? 'max-h-[72vh]' : 'max-h-[60vh]'
+          }`}
+        >
           {activeTab === 'details' ? (
             <>
               {/* Institutional Booking Policy Box */}
@@ -298,6 +305,7 @@ export const FacilityDetailModal: React.FC<FacilityDetailModalProps> = ({
           ) : (
             <AvailabilitySchedule
               facility={facility}
+              isBlocked={isBlocked}
               onSelectSlot={(date, start, end) => {
                 onClose();
                 onBookNow(facility, date, start, end);

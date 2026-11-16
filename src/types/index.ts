@@ -36,6 +36,7 @@ export interface InstitutionalDemoRequest {
 
 export interface RegisteredUserAccount {
   id: string;
+  uid?: string;
   fullName: string;
   email: string;
   institutionId: string;
@@ -384,6 +385,7 @@ export interface FacilityAssignment {
   assignedAt: string;
   assignedBy: string; // name or email of University Admin
   accessCodeConfigured: boolean;
+  accessCodeHash?: string;
   notes?: string;
 }
 

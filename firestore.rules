@@ -2,9 +2,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Common security and validation helpers
+    // =========================================================================
+    // 0. Global Safety Net (Default-Deny Catch-All)
+    // =========================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // 1. Core Identity, Path & Payload Validation Primitives
+    // =========================================================================
     function isValidId(id) {
-      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string &&
+        id.size() > 0 &&
+        id.size() <= 128 &&
+        id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
     function incoming() {
@@ -15,94 +27,740 @@ service cloud.firestore {
       return resource.data;
     }
 
-    // Connectivity verification probe
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function hasEmail() {
+      return isVerified() &&
+        request.auth.token.email is string &&
+        request.auth.token.email.size() > 0 &&
+        request.auth.token.email.size() <= 150;
+    }
+
+    function userEmailLower() {
+      return request.auth.token.email.lower();
+    }
+
+    function isOptString(data, field, maxLen) {
+      return !data.keys().hasAny([field]) ||
+        (data[field] is string && data[field].size() <= maxLen);
+    }
+
+    function isReqString(data, field, maxLen) {
+      return data.keys().hasAny([field]) &&
+        data[field] is string &&
+        data[field].size() > 0 &&
+        data[field].size() <= maxLen;
+    }
+
+    function isOptBool(data, field) {
+      return !data.keys().hasAny([field]) || data[field] is bool;
+    }
+
+    function isValidStringList(arr, maxLen) {
+      return arr is list &&
+        arr.size() <= maxLen &&
+        (arr.size() == 0 || (arr[0] is string && arr[0].size() <= 500));
+    }
+
+    function isOptStringList(data, field, maxLen) {
+      return !data.keys().hasAny([field]) || isValidStringList(data[field], maxLen);
+    }
+
+    // =========================================================================
+    // 2. Role & Multi-Tenant Authorization Helpers
+    // =========================================================================
+    function isBootstrappedSuperAdmin() {
+      return hasEmail() && (
+        userEmailLower() == 'leahansay19@gmail.com' ||
+        userEmailLower() == 'rashmae26@gmail.com' ||
+        userEmailLower() == 'ansayrashmae05@gmail.com' ||
+        userEmailLower() == 'krishapminoza@gmail.com' ||
+        userEmailLower() == 'gonzalesangelmae279@gmail.com' ||
+        userEmailLower() == 'karlhadrielc@gmail.com' ||
+        userEmailLower() == 'smartspaceinquiries0@gmail.com'
+      );
+    }
+
+    function isSuperAdmin() {
+      return isVerified() && (
+        isBootstrappedSuperAdmin() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (
+          exists(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)).data.role == 'super_admin' &&
+          get(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)).data.status == 'active'
+        )
+      );
+    }
+
+    function isInstitutionAdmin(institutionId) {
+      return isVerified() && isValidId(institutionId) && (
+        (
+          exists(/databases/$(database)/documents/institutions/$(institutionId)) &&
+          hasEmail() && (
+            (
+              get(/databases/$(database)/documents/institutions/$(institutionId)).data.keys().hasAny(['assignedAdminEmail']) &&
+              get(/databases/$(database)/documents/institutions/$(institutionId)).data.assignedAdminEmail is string &&
+              get(/databases/$(database)/documents/institutions/$(institutionId)).data.assignedAdminEmail.lower() == userEmailLower()
+            ) ||
+            (
+              get(/databases/$(database)/documents/institutions/$(institutionId)).data.keys().hasAny(['contactEmail']) &&
+              get(/databases/$(database)/documents/institutions/$(institutionId)).data.contactEmail is string &&
+              get(/databases/$(database)/documents/institutions/$(institutionId)).data.contactEmail.lower() == userEmailLower()
+            )
+          )
+        ) ||
+        (
+          exists(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)).data.role in ['university_admin', 'admin'] &&
+          get(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)).data.institutionId == institutionId &&
+          get(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)).data.status == 'active'
+        )
+      );
+    }
+
+    function isFacilityHandlerFor(facilityId) {
+      return isVerified() && isValidId(facilityId) && (
+        (
+          exists(/databases/$(database)/documents/facilityAssignments/$(facilityId + '_' + request.auth.uid)) &&
+          get(/databases/$(database)/documents/facilityAssignments/$(facilityId + '_' + request.auth.uid)).data.assignmentStatus == 'active' &&
+          get(/databases/$(database)/documents/facilityAssignments/$(facilityId + '_' + request.auth.uid)).data.facilityId == facilityId
+        ) ||
+        (
+          exists(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)).data.role == 'facility_handler' &&
+          get(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)).data.status == 'active' &&
+          exists(/databases/$(database)/documents/facilities/$(facilityId)) &&
+          get(/databases/$(database)/documents/registeredUsers/$(request.auth.uid)).data.institutionId ==
+            get(/databases/$(database)/documents/facilities/$(facilityId)).data.institutionId
+        )
+      );
+    }
+
+    function isBookingOwner(data) {
+      return (data.keys().hasAny(['uid']) && data.uid == request.auth.uid) ||
+        (hasEmail() && data.keys().hasAny(['requesterEmail']) && data.requesterEmail is string && data.requesterEmail.lower() == userEmailLower());
+    }
+
+    // =========================================================================
+    // 3. Entity Schema Validation Blueprints (Anti-Update-Gap)
+    // =========================================================================
+    function isValidInstitution(data, institutionId) {
+      return data.keys().hasAll(['id', 'name', 'shortName', 'contactEmail', 'status']) &&
+        data.keys().hasOnly([
+          'id', 'name', 'shortName', 'campus', 'city', 'type', 'isPilot',
+          'status', 'subscriptionPlan', 'contactName', 'contactEmail',
+          'assignedAdminName', 'assignedAdminEmail', 'registeredAt', 'statusNote',
+          'allowExternalBookings', 'bookingPolicy', 'externalBookingNotice',
+          'logoUrl', 'description', 'timeZone', 'brandColor', 'announcement'
+        ]) &&
+        data.id == institutionId &&
+        isReqString(data, 'name', 200) &&
+        isReqString(data, 'shortName', 50) &&
+        isReqString(data, 'contactEmail', 150) &&
+        data.status in ['active', 'inactive', 'trial'] &&
+        isOptString(data, 'campus', 200) &&
+        isOptString(data, 'city', 100) &&
+        (!data.keys().hasAny(['type']) || data.type in ['Public', 'Private']) &&
+        isOptBool(data, 'isPilot') &&
+        (!data.keys().hasAny(['subscriptionPlan']) || data.subscriptionPlan in ['Pilot', 'Standard', 'Enterprise']) &&
+        isOptString(data, 'contactName', 150) &&
+        isOptString(data, 'assignedAdminName', 150) &&
+        isOptString(data, 'assignedAdminEmail', 150) &&
+        isOptString(data, 'registeredAt', 50) &&
+        isOptString(data, 'statusNote', 500) &&
+        isOptBool(data, 'allowExternalBookings') &&
+        (!data.keys().hasAny(['bookingPolicy']) || data.bookingPolicy in ['internal_only', 'external_allowed', 'approval_required']) &&
+        isOptString(data, 'externalBookingNotice', 1000) &&
+        isOptString(data, 'logoUrl', 500) &&
+        isOptString(data, 'description', 1000) &&
+        isOptString(data, 'timeZone', 100) &&
+        isOptString(data, 'brandColor', 30) &&
+        isOptString(data, 'announcement', 1000);
+    }
+
+    function isValidOperatingHours(oh) {
+      return oh is map &&
+        oh.keys().hasAll(['open', 'close', 'days']) &&
+        oh.keys().hasOnly(['open', 'close', 'days']) &&
+        isReqString(oh, 'open', 20) &&
+        isReqString(oh, 'close', 20) &&
+        isReqString(oh, 'days', 100);
+    }
+
+    function isValidFacility(data, facilityId) {
+      return data.keys().hasAll(['id', 'institutionId', 'name', 'type', 'capacity']) &&
+        data.keys().hasOnly([
+          'id', 'institutionId', 'name', 'type', 'building', 'floor',
+          'capacity', 'equipment', 'operatingHours', 'rules',
+          'bookingRequirements', 'imageUrl', 'description', 'status'
+        ]) &&
+        data.id == facilityId &&
+        isValidId(data.institutionId) &&
+        isReqString(data, 'name', 200) &&
+        isReqString(data, 'type', 100) &&
+        data.capacity is number && data.capacity >= 1 && data.capacity <= 100000 &&
+        isOptString(data, 'building', 150) &&
+        isOptString(data, 'floor', 100) &&
+        isOptStringList(data, 'equipment', 50) &&
+        (!data.keys().hasAny(['operatingHours']) || isValidOperatingHours(data.operatingHours)) &&
+        isOptStringList(data, 'rules', 50) &&
+        isOptStringList(data, 'bookingRequirements', 50) &&
+        isOptString(data, 'imageUrl', 500) &&
+        isOptString(data, 'description', 1500) &&
+        (!data.keys().hasAny(['status']) || data.status in ['active', 'inactive', 'maintenance']);
+    }
+
+    function isValidBooking(data, bookingId) {
+      return data.keys().hasAll([
+          'id', 'institutionId', 'facilityId', 'eventName',
+          'date', 'startTime', 'endTime', 'requesterEmail', 'status'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'uid', 'referenceNumber', 'institutionId', 'facilityId',
+          'facilityName', 'eventName', 'purpose', 'date', 'startTime', 'endTime',
+          'attendees', 'requesterName', 'requesterRole', 'requesterEmail',
+          'organization', 'notes', 'status', 'createdAt', 'reviewedAt',
+          'reviewedBy', 'rejectionReason', 'qrPermitCode', 'permitReference',
+          'requesterInstitutionId', 'requesterInstitutionName', 'isExternalRequest'
+        ]) &&
+        data.id == bookingId &&
+        isValidId(data.institutionId) &&
+        isValidId(data.facilityId) &&
+        isReqString(data, 'eventName', 200) &&
+        isReqString(data, 'date', 30) &&
+        isReqString(data, 'startTime', 20) &&
+        isReqString(data, 'endTime', 20) &&
+        isReqString(data, 'requesterEmail', 150) &&
+        data.status in ['pending', 'approved', 'rejected', 'cancelled'] &&
+        isOptString(data, 'uid', 128) &&
+        isOptString(data, 'referenceNumber', 64) &&
+        isOptString(data, 'facilityName', 200) &&
+        isOptString(data, 'purpose', 200) &&
+        (!data.keys().hasAny(['attendees']) || (data.attendees is number && data.attendees >= 1 && data.attendees <= 100000)) &&
+        isOptString(data, 'requesterName', 150) &&
+        (!data.keys().hasAny(['requesterRole']) || data.requesterRole in ['Student', 'Faculty']) &&
+        isOptString(data, 'organization', 200) &&
+        isOptString(data, 'notes', 1000) &&
+        isOptString(data, 'createdAt', 50) &&
+        isOptString(data, 'reviewedAt', 50) &&
+        isOptString(data, 'reviewedBy', 150) &&
+        isOptString(data, 'rejectionReason', 1000) &&
+        isOptString(data, 'qrPermitCode', 64) &&
+        isOptString(data, 'permitReference', 64) &&
+        isOptString(data, 'requesterInstitutionId', 128) &&
+        isOptString(data, 'requesterInstitutionName', 200) &&
+        isOptBool(data, 'isExternalRequest');
+    }
+
+    function isValidInstitutionalRegistration(data, registrationId) {
+      return data.keys().hasAll(['id', 'institutionName', 'officialEmail', 'contactPerson', 'status']) &&
+        data.keys().hasOnly([
+          'id', 'institutionName', 'institutionType', 'officialEmail',
+          'contactPerson', 'contactNumber', 'submittedAt', 'status',
+          'rejectionReason', 'assignedAdminName', 'assignedAdminEmail', 'notes'
+        ]) &&
+        data.id == registrationId &&
+        isReqString(data, 'institutionName', 200) &&
+        isReqString(data, 'officialEmail', 150) &&
+        isReqString(data, 'contactPerson', 150) &&
+        data.status in ['pending', 'approved', 'rejected'] &&
+        isOptString(data, 'institutionType', 100) &&
+        isOptString(data, 'contactNumber', 50) &&
+        isOptString(data, 'submittedAt', 50) &&
+        isOptString(data, 'rejectionReason', 1000) &&
+        isOptString(data, 'assignedAdminName', 150) &&
+        isOptString(data, 'assignedAdminEmail', 150) &&
+        isOptString(data, 'notes', 1000);
+    }
+
+    function isValidDemoRequest(data, requestId) {
+      return data.keys().hasAll(['id', 'institutionName', 'contactName', 'contactEmail', 'status']) &&
+        data.keys().hasOnly([
+          'id', 'institutionName', 'institutionType', 'contactName',
+          'contactEmail', 'contactNumber', 'designation', 'estimatedFacilities',
+          'preferredDate', 'message', 'submittedAt', 'status',
+          'aiRecommendedTier', 'aiLeadWarmth', 'aiTeamSummary', 'aiEmailDraft'
+        ]) &&
+        data.id == requestId &&
+        isReqString(data, 'institutionName', 200) &&
+        isReqString(data, 'contactName', 150) &&
+        isReqString(data, 'contactEmail', 150) &&
+        data.status in ['new', 'contacted', 'scheduled'] &&
+        isOptString(data, 'institutionType', 100) &&
+        isOptString(data, 'contactNumber', 50) &&
+        isOptString(data, 'designation', 100) &&
+        isOptString(data, 'estimatedFacilities', 100) &&
+        isOptString(data, 'preferredDate', 50) &&
+        isOptString(data, 'message', 1000) &&
+        isOptString(data, 'submittedAt', 50) &&
+        isOptString(data, 'aiRecommendedTier', 120) &&
+        (!data.keys().hasAny(['aiLeadWarmth']) || data.aiLeadWarmth in ['Hot', 'Warm', 'Nurture']) &&
+        isOptString(data, 'aiTeamSummary', 2000) &&
+        isOptString(data, 'aiEmailDraft', 4000);
+    }
+
+    function isValidRegisteredUser(data, userId) {
+      return data.keys().hasAll(['id', 'fullName', 'email', 'institutionId', 'role', 'status']) &&
+        data.keys().hasOnly([
+          'id', 'uid', 'fullName', 'email', 'institutionId', 'userType',
+          'organizationOrDept', 'role', 'createdAt', 'status'
+        ]) &&
+        data.id == userId &&
+        isReqString(data, 'fullName', 150) &&
+        isReqString(data, 'email', 150) &&
+        isValidId(data.institutionId) &&
+        data.role in ['student', 'faculty', 'university_admin', 'admin', 'facility_handler', 'super_admin'] &&
+        data.status in ['active', 'suspended'] &&
+        isOptString(data, 'uid', 128) &&
+        isOptString(data, 'userType', 100) &&
+        isOptString(data, 'organizationOrDept', 200) &&
+        isOptString(data, 'createdAt', 50);
+    }
+
+    function isValidPlatformSettings(data, settingsId) {
+      return (
+        settingsId == 'global' &&
+        data.keys().hasAll(['id', 'platformName']) &&
+        data.keys().hasOnly([
+          'id', 'platformName', 'platformTagline', 'primaryColor',
+          'globalAnnouncement', 'announcementActive', 'allowCrossUniversityDiscovery',
+          'defaultAdvanceBookingDays', 'requireInstitutionalEmailVerification',
+          'autoConflictDetection'
+        ]) &&
+        data.id == 'global' &&
+        isReqString(data, 'platformName', 100) &&
+        isOptString(data, 'platformTagline', 200) &&
+        isOptString(data, 'primaryColor', 30) &&
+        isOptString(data, 'globalAnnouncement', 1000) &&
+        isOptBool(data, 'announcementActive') &&
+        isOptBool(data, 'allowCrossUniversityDiscovery') &&
+        (!data.keys().hasAny(['defaultAdvanceBookingDays']) || (data.defaultAdvanceBookingDays is number && data.defaultAdvanceBookingDays >= 1 && data.defaultAdvanceBookingDays <= 365)) &&
+        isOptBool(data, 'requireInstitutionalEmailVerification') &&
+        isOptBool(data, 'autoConflictDetection')
+      ) || (
+        settingsId in [
+          'facility_handlers', 'facility_assignments', 'facility_approval_logs',
+          'ai_workflows', 'ai_automation_jobs', 'email_delivery_records'
+        ] &&
+        data.keys().hasAll(['id', 'items']) &&
+        data.keys().hasOnly(['id', 'items', 'updatedAt']) &&
+        data.id == settingsId &&
+        data.items is list && data.items.size() <= 500 &&
+        isOptString(data, 'updatedAt', 50)
+      );
+    }
+
+    function isValidFacilityHandler(data, handlerId) {
+      return data.keys().hasAll(['id', 'institutionId', 'fullName', 'email', 'status']) &&
+        data.keys().hasOnly([
+          'id', 'institutionId', 'fullName', 'name', 'email', 'phone',
+          'titleOrDesignation', 'department', 'status', 'assignedFacilityIds',
+          'isPrimary', 'hasAccessCode', 'approvalCount', 'lastActive',
+          'lastActiveAt', 'createdAt', 'notes'
+        ]) &&
+        data.id == handlerId &&
+        isValidId(data.institutionId) &&
+        isReqString(data, 'fullName', 150) &&
+        isReqString(data, 'email', 150) &&
+        data.status in ['active', 'suspended'] &&
+        isOptString(data, 'name', 150) &&
+        isOptString(data, 'phone', 50) &&
+        isOptString(data, 'titleOrDesignation', 150) &&
+        isOptString(data, 'department', 150) &&
+        isOptStringList(data, 'assignedFacilityIds', 100) &&
+        isOptBool(data, 'isPrimary') &&
+        isOptBool(data, 'hasAccessCode') &&
+        (!data.keys().hasAny(['approvalCount']) || (data.approvalCount is number && data.approvalCount >= 0 && data.approvalCount <= 1000000)) &&
+        isOptString(data, 'lastActive', 50) &&
+        isOptString(data, 'lastActiveAt', 50) &&
+        isOptString(data, 'createdAt', 50) &&
+        isOptString(data, 'notes', 1000);
+    }
+
+    function isValidFacilityAssignment(data, assignmentId) {
+      return data.keys().hasAll(['id', 'institutionId', 'facilityId', 'handlerUserId', 'assignmentRole', 'assignmentStatus']) &&
+        data.keys().hasOnly([
+          'id', 'institutionId', 'facilityId', 'facilityName', 'handlerUserId',
+          'handlerName', 'handlerEmail', 'assignmentRole', 'assignmentStatus',
+          'assignedAt', 'assignedBy', 'accessCodeConfigured', 'accessCodeHash', 'notes'
+        ]) &&
+        data.id == assignmentId &&
+        isValidId(data.institutionId) &&
+        isValidId(data.facilityId) &&
+        isValidId(data.handlerUserId) &&
+        data.assignmentRole in ['primary', 'backup'] &&
+        data.assignmentStatus in ['active', 'revoked'] &&
+        isOptString(data, 'facilityName', 200) &&
+        isOptString(data, 'handlerName', 150) &&
+        isOptString(data, 'handlerEmail', 150) &&
+        isOptString(data, 'assignedAt', 50) &&
+        isOptString(data, 'assignedBy', 150) &&
+        isOptBool(data, 'accessCodeConfigured') &&
+        isOptString(data, 'accessCodeHash', 128) &&
+        isOptString(data, 'notes', 1000);
+    }
+
+    function isValidFacilityApprovalLog(data, logId) {
+      return data.keys().hasAll(['id', 'institutionId', 'facilityId', 'handlerUserId', 'decision', 'timestamp']) &&
+        data.keys().hasOnly([
+          'id', 'institutionId', 'facilityId', 'facilityName', 'handlerUserId',
+          'handlerName', 'handlerRole', 'bookingId', 'bookingReference',
+          'eventName', 'requesterName', 'requesterOrg', 'decision', 'reason',
+          'timestamp', 'formattedTime', 'formattedDate', 'ipAddress'
+        ]) &&
+        data.id == logId &&
+        isValidId(data.institutionId) &&
+        isValidId(data.facilityId) &&
+        isValidId(data.handlerUserId) &&
+        isReqString(data, 'decision', 50) &&
+        isReqString(data, 'timestamp', 50) &&
+        isOptString(data, 'facilityName', 200) &&
+        isOptString(data, 'handlerName', 150) &&
+        (!data.keys().hasAny(['handlerRole']) || data.handlerRole in ['primary', 'backup']) &&
+        isOptString(data, 'bookingId', 128) &&
+        isOptString(data, 'bookingReference', 64) &&
+        isOptString(data, 'eventName', 200) &&
+        isOptString(data, 'requesterName', 150) &&
+        isOptString(data, 'requesterOrg', 200) &&
+        isOptString(data, 'reason', 1000) &&
+        isOptString(data, 'formattedTime', 50) &&
+        isOptString(data, 'formattedDate', 50) &&
+        isOptString(data, 'ipAddress', 64);
+    }
+
+    // =========================================================================
+    // 4. Collection Rules
+    // =========================================================================
+
+    // Connectivity probe (read-only on 'connection'; zero writes allowed)
     match /test/{testId} {
-      allow read, write: if true;
+      allow get: if testId == 'connection';
+      allow list, create, update, delete: if false;
+    }
+
+    // Super-Admin registry
+    match /admins/{adminUid} {
+      allow get: if isVerified() && (request.auth.uid == adminUid || isBootstrappedSuperAdmin());
+      allow list: if isBootstrappedSuperAdmin();
+      allow create, update, delete: if isBootstrappedSuperAdmin() && isValidId(adminUid);
     }
 
     // 1. Higher Education Institutions Directory
     match /institutions/{institutionId} {
-      allow get: if isValidId(institutionId);
-      allow list: if true;
-      allow create, update, delete: if isValidId(institutionId);
+      allow get: if isValidId(institutionId) && isVerified() && (
+        existing().status == 'active' ||
+        isSuperAdmin() ||
+        isInstitutionAdmin(institutionId)
+      );
+      allow list: if isVerified() && (
+        existing().status == 'active' ||
+        isBootstrappedSuperAdmin() ||
+        (hasEmail() && existing().keys().hasAny(['assignedAdminEmail']) && existing().assignedAdminEmail is string && existing().assignedAdminEmail.lower() == userEmailLower()) ||
+        (hasEmail() && existing().keys().hasAny(['contactEmail']) && existing().contactEmail is string && existing().contactEmail.lower() == userEmailLower())
+      );
+      allow create: if isVerified() && isValidId(institutionId) &&
+        isValidInstitution(incoming(), institutionId) &&
+        isSuperAdmin();
+      allow update: if isVerified() && isValidId(institutionId) &&
+        isValidInstitution(incoming(), institutionId) &&
+        incoming().id == existing().id &&
+        (!existing().keys().hasAny(['registeredAt']) || incoming().registeredAt == existing().registeredAt) &&
+        (
+          isSuperAdmin() ||
+          (
+            isInstitutionAdmin(institutionId) &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'campus', 'contactName', 'contactEmail', 'allowExternalBookings',
+              'bookingPolicy', 'externalBookingNotice', 'description',
+              'timeZone', 'brandColor', 'announcement'
+            ])
+          )
+        );
+      allow delete: if isVerified() && isValidId(institutionId) && isSuperAdmin();
     }
 
     // 2. Facilities and Reservable Spaces
     match /facilities/{facilityId} {
-      allow get: if isValidId(facilityId);
-      allow list: if true;
-      allow create, update, delete: if isValidId(facilityId);
+      allow get: if isValidId(facilityId) && isVerified() && isValidId(existing().institutionId);
+      allow list: if isVerified() && existing().keys().hasAny(['institutionId']) && existing().institutionId is string && existing().institutionId.size() > 0;
+      allow create: if isVerified() && isValidId(facilityId) &&
+        isValidFacility(incoming(), facilityId) &&
+        exists(/databases/$(database)/documents/institutions/$(incoming().institutionId)) &&
+        (isSuperAdmin() || isInstitutionAdmin(incoming().institutionId));
+      allow update: if isVerified() && isValidId(facilityId) &&
+        isValidFacility(incoming(), facilityId) &&
+        incoming().id == existing().id &&
+        incoming().institutionId == existing().institutionId &&
+        (
+          isSuperAdmin() ||
+          (
+            isInstitutionAdmin(existing().institutionId) &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name', 'type', 'building', 'floor', 'capacity', 'equipment',
+              'operatingHours', 'rules', 'bookingRequirements', 'imageUrl',
+              'description', 'status'
+            ])
+          )
+        );
+      allow delete: if isVerified() && isValidId(facilityId) &&
+        (isSuperAdmin() || isInstitutionAdmin(existing().institutionId));
     }
 
     // 3. Facility Booking Requests & Permit Schedules
     match /bookings/{bookingId} {
-      allow get: if isValidId(bookingId);
-      allow list: if true;
-      allow create: if isValidId(bookingId) &&
-        incoming().eventName is string && incoming().eventName.size() <= 200 &&
-        incoming().institutionId is string && incoming().facilityId is string;
-      allow update, delete: if isValidId(bookingId);
+      allow get: if isValidId(bookingId) && isVerified() && (
+        isBookingOwner(existing()) ||
+        isSuperAdmin() ||
+        isInstitutionAdmin(existing().institutionId) ||
+        isFacilityHandlerFor(existing().facilityId)
+      );
+      allow list: if isVerified() && (
+        isBootstrappedSuperAdmin() ||
+        (existing().keys().hasAny(['uid']) && existing().uid == request.auth.uid) ||
+        (hasEmail() && existing().keys().hasAny(['requesterEmail']) && existing().requesterEmail is string && existing().requesterEmail.lower() == userEmailLower())
+      );
+      allow create: if isVerified() && isValidId(bookingId) &&
+        isValidBooking(incoming(), bookingId) &&
+        incoming().status == 'pending' &&
+        !incoming().keys().hasAny(['reviewedAt', 'reviewedBy', 'rejectionReason', 'qrPermitCode', 'permitReference']) &&
+        (!incoming().keys().hasAny(['uid']) || incoming().uid == request.auth.uid) &&
+        (isSuperAdmin() || (hasEmail() && incoming().requesterEmail.lower() == userEmailLower())) &&
+        exists(/databases/$(database)/documents/institutions/$(incoming().institutionId)) &&
+        exists(/databases/$(database)/documents/facilities/$(incoming().facilityId)) &&
+        get(/databases/$(database)/documents/facilities/$(incoming().facilityId)).data.institutionId == incoming().institutionId;
+      allow update: if isVerified() && isValidId(bookingId) &&
+        isValidBooking(incoming(), bookingId) &&
+        incoming().id == existing().id &&
+        incoming().institutionId == existing().institutionId &&
+        incoming().facilityId == existing().facilityId &&
+        incoming().requesterEmail == existing().requesterEmail &&
+        (!existing().keys().hasAny(['createdAt']) || incoming().createdAt == existing().createdAt) &&
+        (
+          isSuperAdmin() ||
+          (
+            // Action: Requester cancels pending or approved booking
+            isBookingOwner(existing()) &&
+            existing().status in ['pending', 'approved'] &&
+            incoming().status == 'cancelled' &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['status'])
+          ) ||
+          (
+            // Action: Institutional Admin or Assigned Facility Handler approves/rejects pending booking
+            existing().status == 'pending' &&
+            incoming().status in ['approved', 'rejected'] &&
+            (isInstitutionAdmin(existing().institutionId) || isFacilityHandlerFor(existing().facilityId)) &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'reviewedAt', 'reviewedBy', 'rejectionReason', 'qrPermitCode', 'permitReference'
+            ])
+          )
+        );
+      allow delete: if isVerified() && isValidId(bookingId) && (
+        isSuperAdmin() ||
+        (isBookingOwner(existing()) && existing().status == 'pending')
+      );
     }
 
-    // 4. Institutional Onboarding Registration Applications
+    // 4. Institutional Onboarding Registration Applications (Public intake create; Super-Admin review)
     match /institutionalRegistrations/{registrationId} {
-      allow get: if isValidId(registrationId);
-      allow list: if true;
+      allow get: if isValidId(registrationId) && isSuperAdmin();
+      allow list: if isBootstrappedSuperAdmin();
       allow create: if isValidId(registrationId) &&
-        incoming().institutionName is string && incoming().institutionName.size() <= 200;
-      allow update, delete: if isValidId(registrationId);
+        isValidInstitutionalRegistration(incoming(), registrationId) &&
+        incoming().status == 'pending' &&
+        !incoming().keys().hasAny(['rejectionReason']);
+      allow update: if isVerified() && isValidId(registrationId) &&
+        isValidInstitutionalRegistration(incoming(), registrationId) &&
+        isSuperAdmin() &&
+        incoming().id == existing().id &&
+        incoming().officialEmail == existing().officialEmail &&
+        existing().status == 'pending' &&
+        incoming().status in ['approved', 'rejected'] &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'status', 'rejectionReason', 'assignedAdminName', 'assignedAdminEmail', 'notes'
+        ]);
+      allow delete: if isVerified() && isValidId(registrationId) && isSuperAdmin();
     }
 
-    // 5. Institutional Demo Requests
+    // 5. Institutional Demo Requests (Public intake create; Super-Admin review)
     match /demoRequests/{requestId} {
-      allow get: if isValidId(requestId);
-      allow list: if true;
+      allow get: if isValidId(requestId) && isSuperAdmin();
+      allow list: if isBootstrappedSuperAdmin();
       allow create: if isValidId(requestId) &&
-        incoming().institutionName is string && incoming().institutionName.size() <= 200;
-      allow update, delete: if isValidId(requestId);
+        isValidDemoRequest(incoming(), requestId) &&
+        incoming().status == 'new' &&
+        (
+          isSuperAdmin() ||
+          !incoming().keys().hasAny(['aiRecommendedTier', 'aiLeadWarmth', 'aiTeamSummary', 'aiEmailDraft'])
+        );
+      allow update: if isVerified() && isValidId(requestId) &&
+        isValidDemoRequest(incoming(), requestId) &&
+        isSuperAdmin() &&
+        incoming().id == existing().id &&
+        incoming().contactEmail == existing().contactEmail &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'status', 'aiRecommendedTier', 'aiLeadWarmth', 'aiTeamSummary', 'aiEmailDraft'
+        ]);
+      allow delete: if isVerified() && isValidId(requestId) && isSuperAdmin();
     }
 
-    // 6. Registered User Accounts
+    // 6. Registered User Accounts (Strict Self-Isolation + Privilege Escalation Block)
     match /registeredUsers/{userId} {
-      allow get: if isValidId(userId);
-      allow list: if true;
-      allow create: if isValidId(userId) &&
-        incoming().fullName is string && incoming().fullName.size() <= 150 &&
-        incoming().email is string && incoming().email.size() <= 150;
-      allow update, delete: if isValidId(userId);
+      allow get: if isValidId(userId) && isVerified() && (
+        request.auth.uid == userId ||
+        (hasEmail() && existing().keys().hasAny(['email']) && existing().email is string && existing().email.lower() == userEmailLower()) ||
+        isSuperAdmin() ||
+        isInstitutionAdmin(existing().institutionId)
+      );
+      allow list: if isVerified() && (
+        isBootstrappedSuperAdmin() ||
+        existing().id == request.auth.uid ||
+        (existing().keys().hasAny(['uid']) && existing().uid == request.auth.uid) ||
+        (hasEmail() && existing().keys().hasAny(['email']) && existing().email is string && existing().email.lower() == userEmailLower())
+      );
+      allow create: if isVerified() && isValidId(userId) &&
+        isValidRegisteredUser(incoming(), userId) &&
+        exists(/databases/$(database)/documents/institutions/$(incoming().institutionId)) &&
+        (
+          isSuperAdmin() ||
+          (
+            (userId == request.auth.uid || (incoming().keys().hasAny(['uid']) && incoming().uid == request.auth.uid)) &&
+            hasEmail() && incoming().email.lower() == userEmailLower() &&
+            incoming().role in ['student', 'faculty'] &&
+            incoming().status == 'active' &&
+            get(/databases/$(database)/documents/institutions/$(incoming().institutionId)).data.status == 'active'
+          )
+        );
+      allow update: if isVerified() && isValidId(userId) &&
+        isValidRegisteredUser(incoming(), userId) &&
+        incoming().id == existing().id &&
+        incoming().email == existing().email &&
+        (!existing().keys().hasAny(['createdAt']) || incoming().createdAt == existing().createdAt) &&
+        (
+          isSuperAdmin() ||
+          (
+            isInstitutionAdmin(existing().institutionId) &&
+            incoming().institutionId == existing().institutionId &&
+            incoming().role in ['student', 'faculty', 'facility_handler'] &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['status', 'organizationOrDept', 'userType', 'role'])
+          ) ||
+          (
+            (request.auth.uid == userId || (hasEmail() && existing().keys().hasAny(['email']) && existing().email is string && existing().email.lower() == userEmailLower())) &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'organizationOrDept'])
+          )
+        );
+      allow delete: if isVerified() && isValidId(userId) && isSuperAdmin();
     }
 
-    // 7. Platform Settings
+    // 7. Platform Settings & Admin-Managed Operational Collections
     match /platformSettings/{settingsId} {
-      allow get: if isValidId(settingsId);
-      allow list: if true;
-      allow create, update, delete: if isValidId(settingsId);
+      allow get: if isValidId(settingsId) && isVerified() && (
+        settingsId == 'global' ||
+        isSuperAdmin()
+      );
+      allow list: if isBootstrappedSuperAdmin();
+      allow create, update: if isVerified() && isValidId(settingsId) &&
+        isSuperAdmin() &&
+        isValidPlatformSettings(incoming(), settingsId);
+      allow delete: if isVerified() && isValidId(settingsId) && isSuperAdmin();
     }
 
     // 8. Facility Handlers
     match /facilityHandlers/{handlerId} {
-      allow get: if isValidId(handlerId);
-      allow list: if true;
-      allow create, update, delete: if isValidId(handlerId);
+      allow get: if isValidId(handlerId) && isVerified() && (
+        isSuperAdmin() ||
+        isInstitutionAdmin(existing().institutionId) ||
+        (hasEmail() && existing().keys().hasAny(['email']) && existing().email is string && existing().email.lower() == userEmailLower())
+      );
+      allow list: if isVerified() && (
+        isBootstrappedSuperAdmin() ||
+        (hasEmail() && existing().keys().hasAny(['email']) && existing().email is string && existing().email.lower() == userEmailLower())
+      );
+      allow create: if isVerified() && isValidId(handlerId) &&
+        isValidFacilityHandler(incoming(), handlerId) &&
+        exists(/databases/$(database)/documents/institutions/$(incoming().institutionId)) &&
+        (isSuperAdmin() || isInstitutionAdmin(incoming().institutionId));
+      allow update: if isVerified() && isValidId(handlerId) &&
+        isValidFacilityHandler(incoming(), handlerId) &&
+        incoming().id == existing().id &&
+        incoming().institutionId == existing().institutionId &&
+        (!existing().keys().hasAny(['createdAt']) || incoming().createdAt == existing().createdAt) &&
+        (
+          isSuperAdmin() ||
+          (
+            isInstitutionAdmin(existing().institutionId) &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'fullName', 'name', 'email', 'phone', 'titleOrDesignation',
+              'department', 'status', 'assignedFacilityIds', 'isPrimary',
+              'hasAccessCode', 'notes'
+            ])
+          )
+        );
+      allow delete: if isVerified() && isValidId(handlerId) &&
+        (isSuperAdmin() || isInstitutionAdmin(existing().institutionId));
     }
 
     // 9. Facility Assignments
     match /facilityAssignments/{assignmentId} {
-      allow get: if isValidId(assignmentId);
-      allow list: if true;
-      allow create, update, delete: if isValidId(assignmentId);
+      allow get: if isValidId(assignmentId) && isVerified() && (
+        isSuperAdmin() ||
+        isInstitutionAdmin(existing().institutionId) ||
+        existing().handlerUserId == request.auth.uid ||
+        (hasEmail() && existing().keys().hasAny(['handlerEmail']) && existing().handlerEmail is string && existing().handlerEmail.lower() == userEmailLower())
+      );
+      allow list: if isVerified() && (
+        isBootstrappedSuperAdmin() ||
+        existing().handlerUserId == request.auth.uid ||
+        (hasEmail() && existing().keys().hasAny(['handlerEmail']) && existing().handlerEmail is string && existing().handlerEmail.lower() == userEmailLower())
+      );
+      allow create: if isVerified() && isValidId(assignmentId) &&
+        isValidFacilityAssignment(incoming(), assignmentId) &&
+        exists(/databases/$(database)/documents/institutions/$(incoming().institutionId)) &&
+        exists(/databases/$(database)/documents/facilities/$(incoming().facilityId)) &&
+        (isSuperAdmin() || isInstitutionAdmin(incoming().institutionId));
+      allow update: if isVerified() && isValidId(assignmentId) &&
+        isValidFacilityAssignment(incoming(), assignmentId) &&
+        incoming().id == existing().id &&
+        incoming().institutionId == existing().institutionId &&
+        incoming().facilityId == existing().facilityId &&
+        (!existing().keys().hasAny(['assignedAt']) || incoming().assignedAt == existing().assignedAt) &&
+        (
+          isSuperAdmin() ||
+          (
+            isInstitutionAdmin(existing().institutionId) &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'assignmentRole', 'assignmentStatus', 'accessCodeConfigured',
+              'accessCodeHash', 'handlerName', 'handlerEmail', 'notes'
+            ])
+          )
+        );
+      allow delete: if isVerified() && isValidId(assignmentId) &&
+        (isSuperAdmin() || isInstitutionAdmin(existing().institutionId));
     }
 
-    // 10. Facility Approval & Access Logs
+    // 10. Facility Approval & Access Logs (Immutable Audit Trail)
     match /facilityApprovalLogs/{logId} {
-      allow get: if isValidId(logId);
-      allow list: if true;
-      allow create, update, delete: if isValidId(logId);
-    }
-
-    // Default-deny all other unspecified document routes
-    match /{document=**} {
-      allow read, write: if false;
+      allow get: if isValidId(logId) && isVerified() && (
+        isSuperAdmin() ||
+        isInstitutionAdmin(existing().institutionId) ||
+        existing().handlerUserId == request.auth.uid
+      );
+      allow list: if isVerified() && (
+        isBootstrappedSuperAdmin() ||
+        existing().handlerUserId == request.auth.uid
+      );
+      allow create: if isVerified() && isValidId(logId) &&
+        isValidFacilityApprovalLog(incoming(), logId) &&
+        exists(/databases/$(database)/documents/institutions/$(incoming().institutionId)) &&
+        exists(/databases/$(database)/documents/facilities/$(incoming().facilityId)) &&
+        (isSuperAdmin() || isInstitutionAdmin(incoming().institutionId) || isFacilityHandlerFor(incoming().facilityId));
+      allow update, delete: if false;
     }
   }
 }

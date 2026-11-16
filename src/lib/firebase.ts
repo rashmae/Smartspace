@@ -1,5 +1,11 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  type User,
+} from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -11,6 +17,22 @@ export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 // Initialize Firebase Auth
 export const auth = getAuth(app);
+
+// Google Auth Provider (account selection prompt for shared campus workstations)
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+export async function signInWithGooglePopup(): Promise<User> {
+  const credential = await signInWithPopup(auth, googleProvider);
+  if (!credential.user) {
+    throw new Error('Authentication did not return a user profile.');
+  }
+  return credential.user;
+}
+
+export async function signOutFromFirebase(): Promise<void> {
+  await signOut(auth);
+}
 
 // Operational Error Handling adhering to Firestore Security Architecture
 export enum OperationType {

@@ -45,15 +45,14 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
     approveBookingAsHandler,
     rejectBookingAsHandler,
     checkTimeConflict,
-    loginAs,
     addToast,
     setActiveView,
   } = useApp();
 
-  // Find currently authenticated handler
+  // Find currently authenticated handler (strictly matched to verified user email; no fallback impersonation)
   const currentHandler = facilityHandlers.find(
     (h) => h.email.toLowerCase() === (currentUser?.email || '').toLowerCase()
-  ) || facilityHandlers[0];
+  );
 
   // Active facility tab in workspace
   const [selectedFacilityId, setSelectedFacilityId] = useState<string>('');
@@ -165,7 +164,7 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
   // Submit code verification
   const handleVerifyCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!targetFacilityForCode || !targetAssignmentForCode || !accessCodeInput.trim()) {
+    if (!currentHandler || !targetFacilityForCode || !targetAssignmentForCode || !accessCodeInput.trim()) {
       setVerificationError('Please enter the facility-specific access code.');
       return;
     }
@@ -242,16 +241,29 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
     }
   };
 
-  // Quick helper to show demo reference codes
-  const getDemoHintCode = (facilityId: string) => {
-    if (facilityId === 'ctu-fac-cn-hall') return 'CN-8421';
-    if (facilityId === 'ctu-fac-gym') return activeAssignment?.assignmentRole === 'backup' ? 'GYM-7731' : 'GYM-5920';
-    if (facilityId === 'ctu-fac-opencourt-1') return 'OC1-3142';
-    if (facilityId === 'ctu-fac-opencourt-2') return 'OC2-6805';
-    if (facilityId === 'ctu-fac-commlab-1') return 'LAB-4791';
-    if (facilityId === 'ctu-fac-tennis') return 'TC-9283';
-    return '1234';
-  };
+  if (!currentHandler) {
+    return (
+      <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center space-y-4 shadow-xs max-w-2xl mx-auto">
+        <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center mx-auto">
+          <ShieldAlert className="w-6 h-6" aria-hidden="true" />
+        </div>
+        <h1 className="text-xl font-black text-slate-900">No Facility Handler Assignment Linked</h1>
+        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+          The signed-in account ({currentUser?.email || 'unauthenticated'}) does not match an active designated facility handler record. Handlers must sign in with their own authorized institutional Google account.
+        </p>
+        {(currentRole === 'university_admin' || currentRole === 'admin') && (
+          <button
+            type="button"
+            onClick={() => setActiveView('admin-handlers')}
+            className="px-5 py-2.5 bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer inline-flex items-center gap-2"
+          >
+            <span>Open Facility Personnel Management</span>
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -260,7 +272,7 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-              <ShieldCheck className="w-3.5 h-3.5" />
+              <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Facility Handler Authenticated Workspace</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white">
@@ -269,28 +281,6 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
             <p className="text-xs sm:text-sm text-slate-300">
               {currentHandler.titleOrDesignation} · Assigned to {assignedFacilities.length} University Venue{assignedFacilities.length !== 1 ? 's' : ''}.
             </p>
-          </div>
-
-          {/* Quick Persona Switcher for Evaluation */}
-          <div className="bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10 space-y-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-purple-200 block">
-              Quick Test Persona (Cebu Tech University)
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {facilityHandlers.map((h) => (
-                <button
-                  key={h.id}
-                  onClick={() => loginAs('facility_handler', h.email, h.fullName)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    h.id === currentHandler.id
-                      ? 'bg-purple-600 text-white shadow-xs'
-                      : 'bg-white/10 text-slate-200 hover:bg-white/20'
-                  }`}
-                >
-                  {h.fullName}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -745,17 +735,6 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
               </p>
             </div>
 
-            {/* Hint Box for demo evaluator */}
-            <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-900 flex items-center justify-between">
-              <div>
-                <span className="font-bold block">Assigned Security Code:</span>
-                <span className="text-[11px] text-purple-800">Configured by University Admin</span>
-              </div>
-              <code className="font-mono font-black text-sm bg-white px-2 py-1 rounded border border-purple-200 text-purple-800">
-                {getDemoHintCode(targetFacilityForCode.id)}
-              </code>
-            </div>
-
             {/* Error & Lockout Display */}
             {verificationError && (
               <div role="alert" className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2">
@@ -819,7 +798,7 @@ export const FacilityHandlerWorkspaceView: React.FC = () => {
                   className="px-5 py-2 bg-purple-700 hover:bg-purple-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <KeyRound className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>{isVerifying ? 'Verifying with Server...' : 'Verify & Unlock Workspace'}</span>
+                  <span>{isVerifying ? 'Verifying Access Code...' : 'Verify & Unlock Workspace'}</span>
                 </button>
               </div>
             </form>

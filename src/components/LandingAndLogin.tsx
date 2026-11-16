@@ -45,28 +45,17 @@ export const LandingAndLogin: React.FC<LandingAndLoginProps> = ({
 }) => {
   const { 
     openAuthPortal, 
-    setIsDemoModalOpen, 
-    loginAs, 
-    setActiveView, 
-    currentInstitution, 
     allInstitutions,
-    setCurrentRole
+    setIsDemoModalOpen,
   } = useApp();
 
   const handleRoleLaunch = (role: 'student' | 'admin' | 'super_admin') => {
     if (role === 'super_admin') {
       openAuthPortal('super_admin', 'login', 'login');
     } else if (role === 'admin') {
-      loginAs('university_admin', 'admin.facilities@ctu.edu.ph', 'Sample Facility Admin');
+      openAuthPortal('institution', 'login', 'login');
     } else {
-      loginAs('student', 'juan.delacruz@ctu.edu.ph', 'Sample Student Officer');
-    }
-  };
-
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      openAuthPortal('user', 'login', 'login');
     }
   };
 

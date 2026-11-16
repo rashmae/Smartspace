@@ -6,7 +6,7 @@ import { BUSINESS_CONFIG } from '../config/business';
 import { PrivacyFormConsent } from '../components/PrivacyFormConsent';
 import SmartSpaceLogo from '../components/SmartSpaceLogo';
 import { FacilityDirectory } from '../components/FacilityDirectory';
-import { BookingForm } from '../components/BookingForm';
+import { BookingForm, PrefilledBookingSlot } from '../components/BookingForm';
 import { MyBookingsView } from '../components/MyBookingsView';
 import { motion } from 'motion/react';
 import {
@@ -16,16 +16,13 @@ import {
   User,
   LogOut,
   AlertCircle,
-  Lock,
-  Mail,
-  Eye,
-  EyeOff,
   ArrowLeft,
   ArrowRight,
   Plus,
   Compass,
   Info,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface EndUserPortalProps {
@@ -36,13 +33,15 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
   const { navigate, currentPath } = useRouter();
   const {
     currentUser,
-    loginWithCredentials,
+    signInWithGoogle,
     registerUserAccount,
     logout,
     currentInstitution,
     allInstitutions,
     userBookings,
     activeView,
+    setActiveView,
+    setSelectedFacility,
     platformSettings,
   } = useApp();
 
@@ -50,6 +49,7 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
 
   // Internal dashboard sub-view
   const [activeTab, setActiveTab] = useState<'directory' | 'new-booking' | 'my-reservations' | 'profile'>('directory');
+  const [prefilledBookingSlot, setPrefilledBookingSlot] = useState<PrefilledBookingSlot | null>(null);
 
   // Synchronize internal tab when external components call setActiveView
   React.useEffect(() => {
@@ -58,43 +58,27 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
     else if (activeView === 'my-bookings') setActiveTab('my-reservations');
   }, [activeView]);
 
-  // Form states for login
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  // Google Sign-In state
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [loginFieldErrors, setLoginFieldErrors] = useState<Record<string, string>>({});
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   // Form states for registration
   const [fullName, setFullName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
+  const [verifiedEmailHint, setVerifiedEmailHint] = useState('');
   const [selectedInstId, setSelectedInstId] = useState(allInstitutions[0]?.id || 'ctu-main');
   const [userType, setUserType] = useState<
     'Student Organization Officer' | 'Faculty Member' | 'Department Representative' | 'Campus Office Representative' | 'Other Authorized User'
   >('Student Organization Officer');
   const [orgOrDept, setOrgOrDept] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regError, setRegError] = useState<string | null>(null);
   const [regFieldErrors, setRegFieldErrors] = useState<Record<string, string>>({});
   const [regPrivacyAgreed, setRegPrivacyAgreed] = useState(false);
   const [regMarketingOptIn, setRegMarketingOptIn] = useState(false);
-
-  // Forgot password inline panel
-  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
-  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
-  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
-  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+  const [isRegisteringAccount, setIsRegisteringAccount] = useState(false);
 
   // Refs for focus movement
-  const loginEmailRef = useRef<HTMLInputElement>(null);
-  const loginPassRef = useRef<HTMLInputElement>(null);
-  const forgotEmailRef = useRef<HTMLInputElement>(null);
   const regNameRef = useRef<HTMLInputElement>(null);
-  const regEmailRef = useRef<HTMLInputElement>(null);
   const regOrgRef = useRef<HTMLInputElement>(null);
-  const regPassRef = useRef<HTMLInputElement>(null);
-  const regConfirmRef = useRef<HTMLInputElement>(null);
 
   const isLoginPage = currentPath === '/user/login';
   const isRegisterPage = currentPath === '/user/register';
@@ -103,30 +87,26 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
   // 1. LOGIN PAGE (/user/login)
   // -------------------------------------------------------------
   if (isLoginPage) {
-    const handleLoginSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
+    const handleGoogleUserLogin = async () => {
       setLoginError(null);
-      const errors: Record<string, string> = {};
-      if (!loginEmail.trim() || !loginEmail.includes('@')) {
-        errors.loginEmail = 'Enter a valid institutional email address.';
-      }
-      if (!loginPassword) {
-        errors.loginPassword = 'Enter your password.';
-      }
-      if (Object.keys(errors).length > 0) {
-        setLoginFieldErrors(errors);
-        setLoginError('Please enter both your institutional email and password.');
-        if (errors.loginEmail) loginEmailRef.current?.focus();
-        else loginPassRef.current?.focus();
-        return;
-      }
-      setLoginFieldErrors({});
-      const res = loginWithCredentials(loginEmail, loginPassword, 'user');
+      setIsSigningIn(true);
+      const res = await signInWithGoogle('user');
+      setIsSigningIn(false);
+
       if (res.success) {
         navigate('/user/dashboard');
-      } else {
-        setLoginError(res.error || 'Invalid credentials.');
+        return;
       }
+
+      if (res.needsRegistration) {
+        if (res.suggestedName && !fullName) setFullName(res.suggestedName);
+        if (res.suggestedEmail) setVerifiedEmailHint(res.suggestedEmail);
+        setRegError('No SmartSpace campus profile was found for your Google account. Complete the registration details below to create your account.');
+        navigate('/user/register');
+        return;
+      }
+
+      setLoginError(res.error || 'Unable to sign in with Google.');
     };
 
     return (
@@ -154,15 +134,15 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
 
         <main className="flex-1 flex items-center justify-center p-4 py-12">
           <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xs p-8 space-y-6">
-            <div className="text-center space-y-2">
-              <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 flex items-center justify-center mx-auto">
-                <User className="w-5 h-5" aria-hidden="true" />
+            <div className="text-center space-y-3">
+              <div className="flex justify-center pb-1">
+                <SmartSpaceLogo variant="mark-only" size={64} prominent={true} />
               </div>
               <h1 className="text-2xl font-extrabold text-slate-950 tracking-tight">
                 End-User Sign In
               </h1>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Sign in to inspect campus availability and submit facility reservation requests for your organization.
+                Sign in with your verified Google account to inspect campus availability and submit facility reservation requests.
               </p>
             </div>
 
@@ -173,146 +153,22 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
               </div>
             )}
 
-            <form noValidate onSubmit={handleLoginSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="enduser-login-email" className="block text-xs font-semibold text-slate-700 mb-1">
-                  Institutional Email Address <span className="text-red-700" aria-hidden="true">*</span>
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
-                  <input
-                    ref={loginEmailRef}
-                    id="enduser-login-email"
-                    type="email"
-                    required
-                    aria-required="true"
-                    aria-invalid={loginFieldErrors.loginEmail ? 'true' : 'false'}
-                    aria-describedby={loginFieldErrors.loginEmail ? 'enduser-login-email-err' : undefined}
-                    placeholder="name@university.edu.ph"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    className={`w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white ${
-                      loginFieldErrors.loginEmail ? 'border-red-500' : 'border-slate-200'
-                    }`}
-                  />
-                </div>
-                {loginFieldErrors.loginEmail && (
-                  <p id="enduser-login-email-err" role="alert" className="text-xs font-semibold text-red-700 mt-1">
-                    {loginFieldErrors.loginEmail}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label htmlFor="enduser-login-password" className="block text-xs font-semibold text-slate-700">
-                    Password <span className="text-red-700" aria-hidden="true">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setForgotPasswordError(null);
-                      setForgotPasswordOpen(true);
-                    }}
-                    className="text-[11px] font-semibold text-[#0077C8] hover:underline cursor-pointer"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
-                  <input
-                    ref={loginPassRef}
-                    id="enduser-login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    aria-required="true"
-                    aria-invalid={loginFieldErrors.loginPassword ? 'true' : 'false'}
-                    aria-describedby={loginFieldErrors.loginPassword ? 'enduser-login-password-err' : undefined}
-                    placeholder="Enter your password"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    className={`w-full pl-9 pr-9 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white ${
-                      loginFieldErrors.loginPassword ? 'border-red-500' : 'border-slate-200'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    aria-pressed={showPassword}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
-                  </button>
-                </div>
-                {loginFieldErrors.loginPassword && (
-                  <p id="enduser-login-password-err" role="alert" className="text-xs font-semibold text-red-700 mt-1">
-                    {loginFieldErrors.loginPassword}
-                  </p>
-                )}
-              </div>
-
+            <div className="space-y-3">
               <button
-                type="submit"
-                className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+                type="button"
+                disabled={isSigningIn}
+                onClick={handleGoogleUserLogin}
+                className="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
               >
-                <span>Log In to User Portal</span>
+                <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+                <span>{isSigningIn ? 'Signing in with Google...' : 'Sign in with Google'}</span>
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>
-            </form>
 
-            {forgotPasswordOpen && (
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 text-xs">
-                <p className="font-semibold text-slate-900">Password Reset</p>
-                {forgotPasswordSuccess ? (
-                  <p role="status" className="text-emerald-700">
-                    Reset instructions logged if your institutional email is registered.
-                  </p>
-                ) : (
-                  <div className="space-y-1.5">
-                    <label htmlFor="enduser-forgot-email" className="block text-xs font-semibold text-slate-700">
-                      Institutional Email
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        ref={forgotEmailRef}
-                        id="enduser-forgot-email"
-                        type="email"
-                        value={forgotPasswordEmail}
-                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                        aria-invalid={forgotPasswordError ? 'true' : 'false'}
-                        aria-describedby={forgotPasswordError ? 'enduser-forgot-err' : undefined}
-                        placeholder="your.email@university.edu.ph"
-                        className={`flex-1 px-2.5 py-1.5 rounded-lg border bg-white text-xs ${
-                          forgotPasswordError ? 'border-red-500' : 'border-slate-200'
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!forgotPasswordEmail.trim() || !forgotPasswordEmail.includes('@')) {
-                            setForgotPasswordError('Enter a valid institutional email address.');
-                            forgotEmailRef.current?.focus();
-                            return;
-                          }
-                          setForgotPasswordError(null);
-                          setForgotPasswordSuccess(true);
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-[#0077C8] text-white font-semibold cursor-pointer"
-                      >
-                        Send
-                      </button>
-                    </div>
-                    {forgotPasswordError && (
-                      <p id="enduser-forgot-err" role="alert" className="text-xs font-semibold text-red-700">
-                        {forgotPasswordError}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+              <p className="text-[11px] text-slate-600 text-center leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-3">
+                First-time user? If your Google account does not have a campus profile yet, you will be guided to complete registration.
+              </p>
+            </div>
 
             <div className="pt-4 border-t border-slate-100 text-center space-y-2 text-xs text-slate-500">
               <p>
@@ -349,7 +205,7 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
     const USER_REGISTER_CONSENT_TEXT =
       'I have read the Privacy Policy and Terms & Conditions, and I consent to SmartSpace processing my account registration details for campus facility booking access.';
 
-    const handleRegisterSubmit = (e: React.FormEvent) => {
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setRegError(null);
       const errors: Record<string, string> = {};
@@ -357,17 +213,8 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
       if (!fullName.trim()) {
         errors.fullName = 'Please enter your full name.';
       }
-      if (!regEmail.trim() || !regEmail.includes('@') || !regEmail.includes('.')) {
-        errors.regEmail = 'Please enter a valid institutional email address.';
-      }
       if (!orgOrDept.trim()) {
         errors.orgOrDept = 'Please specify your organization or department.';
-      }
-      if (regPassword.length < 6) {
-        errors.regPassword = 'Password must be at least 6 characters long.';
-      }
-      if (regPassword !== regConfirmPassword) {
-        errors.regConfirmPassword = 'Passwords do not match.';
       }
       if (!regPrivacyAgreed) {
         errors.privacyAgreed = 'Please consent to the Privacy Policy before registering.';
@@ -377,15 +224,13 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
         setRegFieldErrors(errors);
         setRegError('Please review the highlighted fields before continuing.');
         if (errors.fullName) regNameRef.current?.focus();
-        else if (errors.regEmail) regEmailRef.current?.focus();
         else if (errors.orgOrDept) regOrgRef.current?.focus();
-        else if (errors.regPassword) regPassRef.current?.focus();
-        else if (errors.regConfirmPassword) regConfirmRef.current?.focus();
         else document.getElementById('enduser-register-privacy-consent')?.focus();
         return;
       }
 
       setRegFieldErrors({});
+      setIsRegisteringAccount(true);
 
       recordFormConsent({
         formName: 'EndUserRegisterPage',
@@ -393,14 +238,15 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
         marketingOptIn: regMarketingOptIn,
       });
 
-      const res = registerUserAccount({
+      const res = await registerUserAccount({
         fullName,
-        email: regEmail,
+        email: verifiedEmailHint || undefined,
         institutionId: selectedInstId,
         userType,
         organizationOrDept: orgOrDept,
-        password: regPassword,
       });
+
+      setIsRegisteringAccount(false);
 
       if (res.success) {
         navigate('/user/dashboard');
@@ -434,9 +280,9 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
 
         <main className="flex-1 flex items-center justify-center p-4 py-12">
           <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-xs p-8 space-y-6">
-            <div className="text-center space-y-2">
-              <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 flex items-center justify-center mx-auto">
-                <User className="w-5 h-5" aria-hidden="true" />
+            <div className="text-center space-y-3">
+              <div className="flex justify-center pb-1">
+                <SmartSpaceLogo variant="mark-only" size={64} prominent={true} />
               </div>
               <h1 className="text-2xl font-extrabold text-slate-950 tracking-tight">
                 Create End-User Account
@@ -480,29 +326,15 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
                 )}
               </div>
 
-              <div>
-                <label htmlFor="enduser-reg-email" className="block text-xs font-semibold text-slate-700 mb-1">
-                  Institutional Email Address <span className="text-red-700" aria-hidden="true">*</span>
-                </label>
-                <input
-                  ref={regEmailRef}
-                  id="enduser-reg-email"
-                  type="email"
-                  required
-                  aria-required="true"
-                  aria-invalid={regFieldErrors.regEmail ? 'true' : 'false'}
-                  aria-describedby={regFieldErrors.regEmail ? 'enduser-reg-email-err' : undefined}
-                  placeholder="e.g. juan.delacruz@ctu.edu.ph"
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                  className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white ${
-                    regFieldErrors.regEmail ? 'border-red-500' : 'border-slate-200'
-                  }`}
-                />
-                {regFieldErrors.regEmail && (
-                  <p id="enduser-reg-email-err" role="alert" className="text-xs font-semibold text-red-700 mt-1">
-                    {regFieldErrors.regEmail}
-                  </p>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 leading-relaxed">
+                {verifiedEmailHint ? (
+                  <span>
+                    Google account selected: <strong className="text-slate-900">{verifiedEmailHint}</strong>. Submitting will verify and bind this account.
+                  </span>
+                ) : (
+                  <span>
+                    Clicking <strong>Verify with Google &amp; Create Account</strong> will authenticate your institutional or personal Google email via Firebase Authentication.
+                  </span>
                 )}
               </div>
 
@@ -574,60 +406,6 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="enduser-reg-pass" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Password <span className="text-red-700" aria-hidden="true">*</span>
-                  </label>
-                  <input
-                    ref={regPassRef}
-                    id="enduser-reg-pass"
-                    type="password"
-                    required
-                    aria-required="true"
-                    aria-invalid={regFieldErrors.regPassword ? 'true' : 'false'}
-                    aria-describedby={regFieldErrors.regPassword ? 'enduser-reg-pass-err' : undefined}
-                    placeholder="Min. 6 characters"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white ${
-                      regFieldErrors.regPassword ? 'border-red-500' : 'border-slate-200'
-                    }`}
-                  />
-                  {regFieldErrors.regPassword && (
-                    <p id="enduser-reg-pass-err" role="alert" className="text-xs font-semibold text-red-700 mt-1">
-                      {regFieldErrors.regPassword}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="enduser-reg-confirm" className="block text-xs font-semibold text-slate-700 mb-1">
-                    Confirm Password <span className="text-red-700" aria-hidden="true">*</span>
-                  </label>
-                  <input
-                    ref={regConfirmRef}
-                    id="enduser-reg-confirm"
-                    type="password"
-                    required
-                    aria-required="true"
-                    aria-invalid={regFieldErrors.regConfirmPassword ? 'true' : 'false'}
-                    aria-describedby={regFieldErrors.regConfirmPassword ? 'enduser-reg-confirm-err' : undefined}
-                    placeholder="Repeat password"
-                    value={regConfirmPassword}
-                    onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white ${
-                      regFieldErrors.regConfirmPassword ? 'border-red-500' : 'border-slate-200'
-                    }`}
-                  />
-                  {regFieldErrors.regConfirmPassword && (
-                    <p id="enduser-reg-confirm-err" role="alert" className="text-xs font-semibold text-red-700 mt-1">
-                      {regFieldErrors.regConfirmPassword}
-                    </p>
-                  )}
-                </div>
-              </div>
-
               <PrivacyFormConsent
                 idPrefix="enduser-register"
                 purpose="Create and verify your campus user account for facility booking and reservation tracking."
@@ -644,9 +422,11 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+                disabled={isRegisteringAccount}
+                className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
               >
-                <span>Register End-User Account</span>
+                <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+                <span>{isRegisteringAccount ? 'Verifying with Google...' : 'Verify with Google & Create Account'}</span>
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>
             </form>
@@ -831,8 +611,26 @@ export const EndUserPortal: React.FC<EndUserPortalProps> = () => {
 
         {/* Main Content Canvas */}
         <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 py-8 pb-24 md:pb-12">
-          {activeTab === 'directory' && <FacilityDirectory />}
-          {activeTab === 'new-booking' && <BookingForm />}
+          {activeTab === 'directory' && (
+            <FacilityDirectory
+              onRequestBookingWithSlot={(facility, initialDate, startTime, endTime) => {
+                setSelectedFacility(facility);
+                if (initialDate && startTime && endTime) {
+                  setPrefilledBookingSlot({
+                    facilityId: facility.id,
+                    date: initialDate,
+                    startTime,
+                    endTime,
+                  });
+                } else {
+                  setPrefilledBookingSlot(null);
+                }
+                setActiveView('new-booking');
+                setActiveTab('new-booking');
+              }}
+            />
+          )}
+          {activeTab === 'new-booking' && <BookingForm prefilledSlot={prefilledBookingSlot} />}
           {activeTab === 'my-reservations' && <MyBookingsView />}
           {activeTab === 'profile' && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 max-w-2xl mx-auto shadow-2xs space-y-6">

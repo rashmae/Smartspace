@@ -863,7 +863,7 @@ export const PublicMarketingPortal: React.FC = () => {
                       <span className="w-3 h-3 rounded-full bg-[#FDB813]" />
                       <span className="w-3 h-3 rounded-full bg-[#8CC63F]" />
                       <span className="ml-3 font-mono text-[11px] text-slate-400 hidden sm:inline">
-                        smartspace.ph/facilities/{currentHeroVenue.id}
+                        {BUSINESS_CONFIG.canonicalHost}/facilities/{currentHeroVenue.id}
                       </span>
                     </div>
 
@@ -1121,12 +1121,17 @@ export const PublicMarketingPortal: React.FC = () => {
               className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center bg-[#0B1528] rounded-[2rem] p-8 sm:p-12 text-white shadow-2xl border border-slate-800 will-change-transform"
             >
               <div className="lg:col-span-5 space-y-5">
-                <p className="text-xs font-extrabold uppercase tracking-widest text-[#8CC63F]">
-                  Space For Every Possibility
-                </p>
-                <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-                  Meet SmartSpace.
-                </h3>
+                <div className="flex items-center gap-4 pb-1">
+                  <SmartSpaceLogo variant="mark-only" size={76} theme="dark" prominent={true} />
+                  <div>
+                    <p className="text-xs font-extrabold uppercase tracking-widest text-[#8CC63F]">
+                      Space For Every Possibility
+                    </p>
+                    <h3 className="text-3xl sm:text-4xl font-black tracking-tight text-white mt-0.5">
+                      Meet SmartSpace.
+                    </h3>
+                  </div>
+                </div>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   A smarter way to discover, reserve, and manage shared university facilities. From student organizations booking varsity courts to university deans coordinating multi-campus symposiums.
                 </p>
@@ -2201,15 +2206,33 @@ export const PublicMarketingPortal: React.FC = () => {
                   <span className="font-black text-slate-900 uppercase text-[10px] tracking-wider block">
                     Contact &amp; Identity
                   </span>
-                  <span className="block text-slate-600 font-medium">
-                    Email: {BUSINESS_CONFIG.supportEmail}
+                  <a
+                    href={BUSINESS_CONFIG.supportMailto}
+                    className="block text-[#0077C8] font-bold underline hover:text-[#005a99]"
+                  >
+                    {BUSINESS_CONFIG.supportEmailLabel}
+                  </a>
+                  <span className="block text-slate-600 text-[11px] font-mono">
+                    {BUSINESS_CONFIG.supportEmail}
                   </span>
-                  <span className="block text-slate-600 font-medium">
+                  <span className="block text-slate-600 font-medium text-[11px] max-w-[240px]">
                     Phone: {BUSINESS_CONFIG.supportPhone}
                   </span>
-                  <span className="block text-slate-600 text-[11px] leading-tight max-w-[220px]">
+                  <span className="block text-slate-600 text-[11px] leading-tight max-w-[240px]">
                     {BUSINESS_CONFIG.registeredAddress}
                   </span>
+                  <span className="block text-slate-600 text-[11px] leading-tight max-w-[240px]">
+                    {BUSINESS_CONFIG.businessRegistrationNo}
+                  </span>
+                  <a
+                    href={BUSINESS_CONFIG.socialProfiles.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={BUSINESS_CONFIG.socialProfiles.facebookAriaLabel}
+                    className="block text-[#0077C8] font-bold underline hover:text-[#005a99] pt-0.5"
+                  >
+                    {BUSINESS_CONFIG.socialProfiles.facebookLabel}
+                  </a>
                   <span className="block text-slate-600 text-[11px]">
                     {BUSINESS_CONFIG.serviceArea}
                   </span>

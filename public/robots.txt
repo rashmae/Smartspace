@@ -31,4 +31,4 @@ User-agent: cohere-ai
 Allow: /
 
 # Sitemap Location
-Sitemap: https://[TO BE CONFIRMED: verified production domain]/sitemap.xml
+Sitemap: https://smartspace-i7e5.vercel.app/sitemap.xml

@@ -130,6 +130,7 @@
       "type": "object",
       "properties": {
         "id": { "type": "string", "maxLength": 128 },
+        "uid": { "type": "string", "maxLength": 128 },
         "fullName": { "type": "string", "maxLength": 150 },
         "email": { "type": "string", "format": "email", "maxLength": 150 },
         "institutionId": { "type": "string", "maxLength": 128 },
@@ -190,7 +191,8 @@
         "assignmentStatus": { "type": "string", "enum": ["active", "revoked"] },
         "assignedAt": { "type": "string", "maxLength": 50 },
         "assignedBy": { "type": "string", "maxLength": 150 },
-        "accessCodeConfigured": { "type": "boolean" }
+        "accessCodeConfigured": { "type": "boolean" },
+        "accessCodeHash": { "type": "string", "maxLength": 128 }
       },
       "required": ["id", "institutionId", "facilityId", "handlerUserId", "assignmentRole", "assignmentStatus"]
     },

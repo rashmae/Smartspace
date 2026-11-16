@@ -24,7 +24,6 @@ export const SaaSPricingMatrix: React.FC<SaaSPricingMatrixProps> = ({ showFaq = 
     {
       name: BUSINESS_CONFIG.indicativePlans[0].name,
       tagline: BUSINESS_CONFIG.indicativePlans[0].scopeSummary,
-      monthlyPrice: BUSINESS_CONFIG.indicativePlans[0].indicativeMonthlyPhp,
       popular: false,
       ctaLabel: 'Request Pilot Walkthrough',
       specs: [
@@ -43,9 +42,8 @@ export const SaaSPricingMatrix: React.FC<SaaSPricingMatrixProps> = ({ showFaq = 
     {
       name: BUSINESS_CONFIG.indicativePlans[1].name,
       tagline: BUSINESS_CONFIG.indicativePlans[1].scopeSummary,
-      monthlyPrice: BUSINESS_CONFIG.indicativePlans[1].indicativeMonthlyPhp,
       popular: true,
-      badge: 'Indicative Mid-Tier',
+      badge: 'Planned Standard Tier',
       ctaLabel: 'Request Pilot Walkthrough',
       specs: [
         'Everything in Basic tier',
@@ -53,7 +51,7 @@ export const SaaSPricingMatrix: React.FC<SaaSPricingMatrixProps> = ({ showFaq = 
         'Facility custodian assignment & verification',
         'Utilization reports & CSV export',
         'Digital QR gate pass generation',
-        'Student orgs & faculty: ₱0 per-booking fee',
+        'Student org & faculty workspace access during pilot',
       ],
       missingSpecs: [
         'Cross-campus consolidated administration',
@@ -62,10 +60,9 @@ export const SaaSPricingMatrix: React.FC<SaaSPricingMatrixProps> = ({ showFaq = 
     {
       name: BUSINESS_CONFIG.indicativePlans[2].name,
       tagline: BUSINESS_CONFIG.indicativePlans[2].scopeSummary,
-      monthlyPrice: BUSINESS_CONFIG.indicativePlans[2].indicativeMonthlyPhp,
       popular: false,
-      badge: 'Indicative Multi-Campus',
-      ctaLabel: 'Inquire About Pilot Scope',
+      badge: 'Planned Multi-Campus',
+      ctaLabel: 'Contact Us',
       specs: [
         'Everything in Professional tier',
         'Multi-campus directory governance',
@@ -134,12 +131,23 @@ export const SaaSPricingMatrix: React.FC<SaaSPricingMatrixProps> = ({ showFaq = 
       a: 'Yes. SmartSpace works in modern mobile browsers so student officers and faculty can check availability, submit reservation details, and view approved digital QR gate passes on their phones.',
     },
     {
-      q: 'Are there per-booking fees for student organizations or guards?',
-      a: 'Under proposed institutional licensing, student organizations and faculty incur ₱0 per-booking fees, and security personnel scan digital QR gate passes without separate per-user booking charges.',
+      q: 'Are there fees during the pilot for student organizations or guards?',
+      a: 'No payments are accepted during the free pilot. Student organizations, faculty, and security staff incur no fees during pilot evaluation. Paid plans are planned—contact us for future institutional licensing details.',
     },
     {
       q: 'What payment and billing terms apply?',
-      a: `${BUSINESS_CONFIG.indicativePricingDisclaimer}. Billing cadence (${BUSINESS_CONFIG.billingCycle}) and accepted payment methods (${BUSINESS_CONFIG.paymentMethods}) will be confirmed prior to any commercial agreement.`,
+      a: (
+        <>
+          {BUSINESS_CONFIG.plannedPlansSummary} {BUSINESS_CONFIG.paymentMethods}{' '}
+          <a
+            href={BUSINESS_CONFIG.supportMailto}
+            className="text-[#0077C8] font-bold underline hover:text-[#005a99]"
+          >
+            {BUSINESS_CONFIG.supportEmailLabel}
+          </a>{' '}
+          ({BUSINESS_CONFIG.supportEmail}).
+        </>
+      ),
     },
   ];
 
@@ -148,21 +156,27 @@ export const SaaSPricingMatrix: React.FC<SaaSPricingMatrixProps> = ({ showFaq = 
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
         <p className="text-xs font-extrabold uppercase tracking-widest text-[#0077C8]">
-          {BUSINESS_CONFIG.indicativePricingDisclaimer}
+          {BUSINESS_CONFIG.stage} · {BUSINESS_CONFIG.plannedPlansSummary}
         </p>
         <h2 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight leading-tight">
-          Indicative Institutional Plans for Cebu City Campuses
+          Planned Institutional Scopes for Cebu City Campuses
         </h2>
         <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-          Proposed monthly per-institution tiers under pilot evaluation. All figures shown are indicative estimates and subject to written confirmation.
+          Free during the pilot evaluation. Paid plans are planned. Contact us to discuss institutional onboarding for your campus.
         </p>
 
-        {/* Explicit Indicative Pricing Notice */}
-        <div className="pt-2 flex items-center justify-center">
+        {/* Explicit Pilot & Planned Plans Notice */}
+        <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
           <div className="inline-flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 text-xs font-semibold text-amber-900">
-            <Info className="w-4 h-4 text-amber-700 shrink-0" />
-            <span>{BUSINESS_CONFIG.indicativePricingDisclaimer} · {BUSINESS_CONFIG.stage}</span>
+            <Info className="w-4 h-4 text-amber-700 shrink-0" aria-hidden="true" />
+            <span>{BUSINESS_CONFIG.plannedPlansSummary}</span>
           </div>
+          <a
+            href={BUSINESS_CONFIG.supportMailto}
+            className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-[#0077C8] hover:border-[#0077C8] hover:bg-blue-50 transition-colors"
+          >
+            <span>{BUSINESS_CONFIG.supportEmailLabel}</span>
+          </a>
         </div>
       </div>
 
@@ -196,16 +210,11 @@ export const SaaSPricingMatrix: React.FC<SaaSPricingMatrixProps> = ({ showFaq = 
               </div>
 
               <div className={`pt-4 border-t ${tier.popular ? 'border-slate-800' : 'border-slate-100'}`}>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-3xl sm:text-4xl font-black tracking-tight tabular-nums">
-                    ₱{tier.monthlyPrice.toLocaleString()}
-                  </span>
-                  <span className={`text-xs font-semibold ${tier.popular ? 'text-slate-300' : 'text-slate-600'}`}>
-                    / institution / month
-                  </span>
-                </div>
-                <p className={`text-[11px] mt-1 font-medium ${tier.popular ? 'text-[#FDB813]' : 'text-amber-700'}`}>
-                  {BUSINESS_CONFIG.indicativePricingDisclaimer}
+                <p className="text-lg sm:text-xl font-black tracking-tight">
+                  {BUSINESS_CONFIG.plannedPlansSummary}
+                </p>
+                <p className={`text-xs mt-1 font-medium ${tier.popular ? 'text-[#FDB813]' : 'text-amber-800'}`}>
+                  Free during the pilot · No payments accepted online
                 </p>
               </div>
 

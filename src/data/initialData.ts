@@ -942,7 +942,7 @@ export const INITIAL_FACILITY_ASSIGNMENTS: FacilityAssignment[] = [
     assignmentStatus: 'active',
     assignedAt: '2026-02-01T08:00:00Z',
     assignedBy: 'Engr. R. Santos (University Admin)',
-    accessCodeConfigured: true,
+    accessCodeConfigured: false,
     notes: 'Designated primary personnel for executive hall events.',
   },
   {
@@ -957,7 +957,7 @@ export const INITIAL_FACILITY_ASSIGNMENTS: FacilityAssignment[] = [
     assignmentStatus: 'active',
     assignedAt: '2026-02-01T08:00:00Z',
     assignedBy: 'Engr. R. Santos (University Admin)',
-    accessCodeConfigured: true,
+    accessCodeConfigured: false,
     notes: 'Primary coordinator for arena bookings and tournament schedules.',
   },
 
@@ -974,7 +974,7 @@ export const INITIAL_FACILITY_ASSIGNMENTS: FacilityAssignment[] = [
     assignmentStatus: 'active',
     assignedAt: '2026-02-01T08:30:00Z',
     assignedBy: 'Engr. R. Santos (University Admin)',
-    accessCodeConfigured: true,
+    accessCodeConfigured: false,
     notes: 'Primary in-charge of Open Court 1 lighting and court slots.',
   },
   {
@@ -989,7 +989,7 @@ export const INITIAL_FACILITY_ASSIGNMENTS: FacilityAssignment[] = [
     assignmentStatus: 'active',
     assignedAt: '2026-02-01T08:30:00Z',
     assignedBy: 'Engr. R. Santos (University Admin)',
-    accessCodeConfigured: true,
+    accessCodeConfigured: false,
     notes: 'Primary in-charge of Open Court 2 volleyball schedules.',
   },
 
@@ -1006,7 +1006,7 @@ export const INITIAL_FACILITY_ASSIGNMENTS: FacilityAssignment[] = [
     assignmentStatus: 'active',
     assignedAt: '2026-02-01T09:00:00Z',
     assignedBy: 'Engr. R. Santos (University Admin)',
-    accessCodeConfigured: true,
+    accessCodeConfigured: false,
     notes: 'Primary supervisor for all coding workshops and laboratory sessions.',
   },
 
@@ -1023,7 +1023,7 @@ export const INITIAL_FACILITY_ASSIGNMENTS: FacilityAssignment[] = [
     assignmentStatus: 'active',
     assignedAt: '2026-02-01T09:30:00Z',
     assignedBy: 'Engr. R. Santos (University Admin)',
-    accessCodeConfigured: true,
+    accessCodeConfigured: false,
     notes: 'Primary coordinator for tennis court practice and tournament matches.',
   },
   {
@@ -1038,7 +1038,7 @@ export const INITIAL_FACILITY_ASSIGNMENTS: FacilityAssignment[] = [
     assignmentStatus: 'active',
     assignedAt: '2026-02-05T10:00:00Z',
     assignedBy: 'Engr. R. Santos (University Admin)',
-    accessCodeConfigured: true,
+    accessCodeConfigured: false,
     notes: 'Designated backup reviewer when Ms. Julia is on official field duty.',
   },
 ];

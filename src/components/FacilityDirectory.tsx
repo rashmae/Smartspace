@@ -26,7 +26,18 @@ import {
 } from 'lucide-react';
 import { formatOperatingHours } from '../utils/timeFormat';
 
-export const FacilityDirectory: React.FC = () => {
+interface FacilityDirectoryProps {
+  onRequestBookingWithSlot?: (
+    facility: Facility,
+    initialDate?: string,
+    startTime?: string,
+    endTime?: string
+  ) => void;
+}
+
+export const FacilityDirectory: React.FC<FacilityDirectoryProps> = ({
+  onRequestBookingWithSlot,
+}) => {
   const {
     allFacilities,
     allInstitutions,
@@ -90,7 +101,16 @@ export const FacilityDirectory: React.FC = () => {
     });
   }, [universityFacilities, selectedType, capacityFilter, searchQuery, allInstitutions]);
 
-  const handleBookNow = (facility: Facility) => {
+  const handleBookNow = (
+    facility: Facility,
+    initialDate?: string,
+    startTime?: string,
+    endTime?: string
+  ) => {
+    if (onRequestBookingWithSlot) {
+      onRequestBookingWithSlot(facility, initialDate, startTime, endTime);
+      return;
+    }
     setSelectedFacility(facility);
     setActiveView('new-booking');
   };

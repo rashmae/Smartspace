@@ -18,10 +18,6 @@ import {
   BarChart3,
   FileSpreadsheet,
   LogOut,
-  Lock,
-  Mail,
-  Eye,
-  EyeOff,
   AlertCircle,
   CheckCircle2,
   ArrowLeft,
@@ -31,6 +27,7 @@ import {
   UserCheck,
   KeyRound,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface UniversityAdminPortalProps {
@@ -41,7 +38,7 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
   const { navigate, currentPath } = useRouter();
   const {
     currentUser,
-    loginWithCredentials,
+    signInWithGoogle,
     submitInstitutionalRegistration,
     logout,
     currentInstitution,
@@ -68,12 +65,9 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
     else if (activeView === 'facility-handler-workspace') setActiveTab('handler-workspace');
   }, [activeView]);
 
-  // Form states for login
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  // Google Sign-In state
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [loginFieldErrors, setLoginFieldErrors] = useState<Record<string, string>>({});
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   // Form states for institutional registration
   const [instName, setInstName] = useState('');
@@ -83,8 +77,6 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
   const [instEmail, setInstEmail] = useState('');
   const [contactPerson, setContactPerson] = useState('');
   const [contactNumber, setContactNumber] = useState('');
-  const [instPassword, setInstPassword] = useState('');
-  const [instConfirmPassword, setInstConfirmPassword] = useState('');
   const [regError, setRegError] = useState<string | null>(null);
   const [regFieldErrors, setRegFieldErrors] = useState<Record<string, string>>({});
   const [instPrivacyAgreed, setInstPrivacyAgreed] = useState(false);
@@ -92,13 +84,9 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
   const [pendingNotice, setPendingNotice] = useState<string | null>(null);
 
   // Refs for focus movement
-  const loginEmailRef = useRef<HTMLInputElement>(null);
-  const loginPassRef = useRef<HTMLInputElement>(null);
   const instNameRef = useRef<HTMLInputElement>(null);
   const instEmailRef = useRef<HTMLInputElement>(null);
   const contactPersonRef = useRef<HTMLInputElement>(null);
-  const instPassRef = useRef<HTMLInputElement>(null);
-  const instConfirmRef = useRef<HTMLInputElement>(null);
 
   const pendingCount = institutionBookings.filter((b) => b.status === 'pending').length;
   const approvedCount = institutionBookings.filter((b) => b.status === 'approved').length;
@@ -110,30 +98,18 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
   // 1. UNIVERSITY ADMIN LOGIN (/university/login)
   // -------------------------------------------------------------
   if (isLoginPage) {
-    const handleLoginSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
+    const handleGoogleInstitutionLogin = async () => {
       setLoginError(null);
-      const errors: Record<string, string> = {};
-      if (!loginEmail.trim() || !loginEmail.includes('@')) {
-        errors.loginEmail = 'Enter a valid institutional administrator email address.';
-      }
-      if (!loginPassword) {
-        errors.loginPassword = 'Enter your password.';
-      }
-      if (Object.keys(errors).length > 0) {
-        setLoginFieldErrors(errors);
-        setLoginError('Please enter both your administrator email and password.');
-        if (errors.loginEmail) loginEmailRef.current?.focus();
-        else loginPassRef.current?.focus();
-        return;
-      }
-      setLoginFieldErrors({});
-
-      const res = loginWithCredentials(loginEmail, loginPassword, 'institution');
+      setIsSigningIn(true);
+      const res = await signInWithGoogle('institution');
+      setIsSigningIn(false);
       if (res.success) {
         navigate('/university/dashboard');
       } else {
-        setLoginError(res.error || 'Invalid university administrator credentials.');
+        setLoginError(
+          res.error ||
+            'Your Google account is not linked to an active institutional administrator or facility handler profile.'
+        );
       }
     };
 
@@ -162,15 +138,15 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
 
         <main className="flex-1 flex items-center justify-center p-4 py-12">
           <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xs p-8 space-y-6">
-            <div className="text-center space-y-2">
-              <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 text-[#0077C8] flex items-center justify-center mx-auto">
-                <Building2 className="w-5 h-5" aria-hidden="true" />
+            <div className="text-center space-y-3">
+              <div className="flex justify-center pb-1">
+                <SmartSpaceLogo variant="mark-only" size={64} prominent={true} />
               </div>
               <h1 className="text-2xl font-extrabold text-slate-950 tracking-tight">
                 University Admin Login
               </h1>
-              <p className="text-xs text-slate-600">
-                Manage campus facility catalogs, review reservation requests, and inspect utilization reports.
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Sign in with your authorized institutional Google account to manage facility catalogs, review requests, or access your handler workspace.
               </p>
             </div>
 
@@ -181,109 +157,21 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
               </div>
             )}
 
-            <form noValidate onSubmit={handleLoginSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="uni-login-email" className="block text-xs font-semibold text-slate-700 mb-1">
-                  Official Institutional Admin Email <span className="text-red-700" aria-hidden="true">*</span>
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
-                  <input
-                    ref={loginEmailRef}
-                    id="uni-login-email"
-                    type="email"
-                    required
-                    aria-required="true"
-                    aria-invalid={loginFieldErrors.loginEmail ? 'true' : 'false'}
-                    aria-describedby={loginFieldErrors.loginEmail ? 'uni-login-email-err' : undefined}
-                    placeholder="admin.facilities@ctu.edu.ph"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    className={`w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white ${
-                      loginFieldErrors.loginEmail ? 'border-red-500' : 'border-slate-200'
-                    }`}
-                  />
-                </div>
-                {loginFieldErrors.loginEmail && (
-                  <p id="uni-login-email-err" role="alert" className="text-xs font-semibold text-red-700 mt-1">
-                    {loginFieldErrors.loginEmail}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="uni-login-password" className="block text-xs font-semibold text-slate-700 mb-1">
-                  Password <span className="text-red-700" aria-hidden="true">*</span>
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
-                  <input
-                    ref={loginPassRef}
-                    id="uni-login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    aria-required="true"
-                    aria-invalid={loginFieldErrors.loginPassword ? 'true' : 'false'}
-                    aria-describedby={loginFieldErrors.loginPassword ? 'uni-login-password-err' : undefined}
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    className={`w-full pl-9 pr-9 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white ${
-                      loginFieldErrors.loginPassword ? 'border-red-500' : 'border-slate-200'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    aria-pressed={showPassword}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
-                  </button>
-                </div>
-                {loginFieldErrors.loginPassword && (
-                  <p id="uni-login-password-err" role="alert" className="text-xs font-semibold text-red-700 mt-1">
-                    {loginFieldErrors.loginPassword}
-                  </p>
-                )}
-              </div>
-
+            <div className="space-y-3">
               <button
-                type="submit"
-                className="w-full py-3 px-4 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+                type="button"
+                disabled={isSigningIn}
+                onClick={handleGoogleInstitutionLogin}
+                className="w-full py-3.5 px-4 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
               >
-                <span>Enter University Management Portal</span>
+                <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+                <span>{isSigningIn ? 'Signing in with Google...' : 'Sign in with Google'}</span>
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>
-            </form>
 
-            {/* Quick Demo Evaluation Personas */}
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                Instant Evaluation Sign-In (Sample Campus Workspace)
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {[
-                  { label: 'Engr. Santos (Admin)', email: 'admin.facilities@ctu.edu.ph', pass: 'admin123' },
-                  { label: 'Ms. Julia (Hall/Gym)', email: 'julia.facilities@ctu.edu.ph', pass: 'handler123' },
-                  { label: 'Mr. Jomel (Courts)', email: 'jomel.facilities@ctu.edu.ph', pass: 'handler123' },
-                  { label: 'Mr. Daniel (Labs)', email: 'daniel.facilities@ctu.edu.ph', pass: 'handler123' },
-                  { label: 'Ms. Angela (Tennis)', email: 'angela.facilities@ctu.edu.ph', pass: 'handler123' },
-                ].map((persona) => (
-                  <button
-                    key={persona.email}
-                    type="button"
-                    onClick={() => {
-                      setLoginEmail(persona.email);
-                      setLoginPassword(persona.pass);
-                    }}
-                    className="py-1.5 px-2 bg-white hover:bg-blue-50 border border-slate-200 hover:border-[#0077C8] text-slate-800 rounded-lg font-semibold text-[11px] text-left truncate cursor-pointer transition-colors"
-                  >
-                    {persona.label}
-                  </button>
-                ))}
-              </div>
+              <p className="text-[11px] text-slate-600 text-center leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-3">
+                Verified via Firebase Authentication. Your Google email must match an active institution administrator or assigned facility handler record.
+              </p>
             </div>
 
             <div className="pt-4 border-t border-slate-100 text-center space-y-2 text-xs text-slate-500">
@@ -336,12 +224,6 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
       if (!contactPerson.trim()) {
         errors.contactPerson = 'Please provide an official contact person name.';
       }
-      if (instPassword.length < 6) {
-        errors.instPassword = 'Password must be at least 6 characters long.';
-      }
-      if (instPassword !== instConfirmPassword) {
-        errors.instConfirmPassword = 'Passwords do not match.';
-      }
       if (!instPrivacyAgreed) {
         errors.privacyAgreed = 'Please consent to the Privacy Policy before submitting.';
       }
@@ -352,8 +234,6 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
         if (errors.instName) instNameRef.current?.focus();
         else if (errors.instEmail) instEmailRef.current?.focus();
         else if (errors.contactPerson) contactPersonRef.current?.focus();
-        else if (errors.instPassword) instPassRef.current?.focus();
-        else if (errors.instConfirmPassword) instConfirmRef.current?.focus();
         else document.getElementById('uni-register-privacy-consent')?.focus();
         return;
       }
@@ -372,7 +252,6 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
         officialEmail: instEmail,
         contactPerson,
         contactNumber: contactNumber.trim() || 'Not provided',
-        password: instPassword,
       });
 
       if (res.success) {
@@ -381,8 +260,6 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
         setInstEmail('');
         setContactPerson('');
         setContactNumber('');
-        setInstPassword('');
-        setInstConfirmPassword('');
         setInstPrivacyAgreed(false);
         setInstMarketingOptIn(false);
       } else {
@@ -415,9 +292,9 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
 
         <main className="flex-1 flex items-center justify-center p-4 py-12">
           <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-xs p-8 space-y-6">
-            <div className="text-center space-y-2">
-              <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 text-[#0077C8] flex items-center justify-center mx-auto">
-                <Building2 className="w-5 h-5" aria-hidden="true" />
+            <div className="text-center space-y-3">
+              <div className="flex justify-center pb-1">
+                <SmartSpaceLogo variant="mark-only" size={64} prominent={true} />
               </div>
               <h1 className="text-2xl font-extrabold text-slate-950 tracking-tight">
                 Register Your Institution
@@ -572,62 +449,8 @@ export const UniversityAdminPortal: React.FC<UniversityAdminPortalProps> = () =>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="uni-reg-pass" className="block text-xs font-semibold text-slate-700 mb-1">
-                      Administrator Password <span className="text-red-700" aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      ref={instPassRef}
-                      id="uni-reg-pass"
-                      type="password"
-                      required
-                      aria-required="true"
-                      aria-invalid={regFieldErrors.instPassword ? 'true' : 'false'}
-                      aria-describedby={regFieldErrors.instPassword ? 'uni-reg-pass-err' : undefined}
-                      placeholder="Min. 6 characters"
-                      value={instPassword}
-                      onChange={(e) => setInstPassword(e.target.value)}
-                      className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white ${
-                        regFieldErrors.instPassword ? 'border-red-500' : 'border-slate-200'
-                      }`}
-                    />
-                    {regFieldErrors.instPassword && (
-                      <p id="uni-reg-pass-err" role="alert" className="text-xs font-semibold text-red-700 mt-1">
-                        {regFieldErrors.instPassword}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="uni-reg-confirm" className="block text-xs font-semibold text-slate-700 mb-1">
-                      Confirm Password <span className="text-red-700" aria-hidden="true">*</span>
-                    </label>
-                    <input
-                      ref={instConfirmRef}
-                      id="uni-reg-confirm"
-                      type="password"
-                      required
-                      aria-required="true"
-                      aria-invalid={regFieldErrors.instConfirmPassword ? 'true' : 'false'}
-                      aria-describedby={regFieldErrors.instConfirmPassword ? 'uni-reg-confirm-err' : undefined}
-                      placeholder="Repeat password"
-                      value={instConfirmPassword}
-                      onChange={(e) => setInstConfirmPassword(e.target.value)}
-                      className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0077C8] focus:bg-white ${
-                        regFieldErrors.instConfirmPassword ? 'border-red-500' : 'border-slate-200'
-                      }`}
-                    />
-                    {regFieldErrors.instConfirmPassword && (
-                      <p id="uni-reg-confirm-err" role="alert" className="text-xs font-semibold text-red-700 mt-1">
-                        {regFieldErrors.instConfirmPassword}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 leading-relaxed">
-                  <strong>Governance Policy:</strong> Submitting this registration requires platform Super Admin authorization before activating your campus sandbox.
+                  <strong>Governance Policy:</strong> Submitting this registration requires platform Super Admin authorization. Once approved, the registered official administrator email signs in via Google Authentication.
                 </div>
 
                 <PrivacyFormConsent

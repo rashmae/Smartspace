@@ -38,7 +38,8 @@ export const AdminPersonnelView: React.FC = () => {
   const [department, setDepartment] = useState('');
   const [assignedFacilityIds, setAssignedFacilityIds] = useState<string[]>([]);
   const [isPrimary, setIsPrimary] = useState(true);
-  const [accessCode, setAccessCode] = useState('123456');
+  const [accessCode, setAccessCode] = useState('');
+  const [pinValidationError, setPinValidationError] = useState<string | null>(null);
 
   const handleOpenAdd = () => {
     setName('');
@@ -47,7 +48,8 @@ export const AdminPersonnelView: React.FC = () => {
     setDepartment('Physical Plant & Venues Desk');
     setAssignedFacilityIds(institutionFacilities.map((f) => f.id).slice(0, 2));
     setIsPrimary(true);
-    setAccessCode('123456');
+    setAccessCode('');
+    setPinValidationError(null);
     setEditingHandler(null);
     setIsAddModalOpen(true);
   };
@@ -60,26 +62,39 @@ export const AdminPersonnelView: React.FC = () => {
     setDepartment(handler.department);
     setAssignedFacilityIds(handler.assignedFacilityIds);
     setIsPrimary(handler.isPrimary);
-    setAccessCode('123456');
+    setAccessCode('');
+    setPinValidationError(null);
     setIsAddModalOpen(true);
   };
 
-  const handleSaveHandler = (e: React.FormEvent) => {
+  const handleSaveHandler = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) return;
 
+    const trimmedPin = accessCode.trim();
+    if (!editingHandler && trimmedPin.length < 4) {
+      setPinValidationError('Access PIN must be at least 4 characters.');
+      return;
+    }
+    if (editingHandler && trimmedPin.length > 0 && trimmedPin.length < 4) {
+      setPinValidationError('New access PIN must be at least 4 characters, or leave blank to keep the existing PIN.');
+      return;
+    }
+    setPinValidationError(null);
+
     if (editingHandler) {
-      updateFacilityHandler(editingHandler.id, {
+      await updateFacilityHandler(editingHandler.id, {
         name: name.trim(),
         email: email.trim().toLowerCase(),
         phone: phone.trim(),
         department: department.trim(),
         assignedFacilityIds,
         isPrimary,
-        hasAccessCode: true,
+        hasAccessCode: trimmedPin.length >= 4 ? true : editingHandler.hasAccessCode,
+        newAccessCode: trimmedPin || undefined,
       });
     } else {
-      addFacilityHandler({
+      await addFacilityHandler({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         phone: phone.trim(),
@@ -89,6 +104,7 @@ export const AdminPersonnelView: React.FC = () => {
         assignedFacilityIds,
         isPrimary,
         hasAccessCode: true,
+        initialAccessCode: trimmedPin,
       });
     }
 
@@ -326,21 +342,31 @@ export const AdminPersonnelView: React.FC = () => {
 
               <div>
                 <label htmlFor="personnel-access-pin" className="block text-xs font-bold text-slate-700 mb-1">
-                  Designated Facility Access PIN (Default: 123456)
+                  Designated Facility Access PIN {editingHandler ? '(Optional Update)' : '*'}
                 </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
                   <input
                     id="personnel-access-pin"
                     type="password"
-                    placeholder="6-digit PIN"
+                    required={!editingHandler}
+                    minLength={4}
+                    placeholder={editingHandler ? 'Leave blank to keep existing PIN' : 'Min. 4-character access PIN'}
                     value={accessCode}
-                    onChange={(e) => setAccessCode(e.target.value)}
+                    onChange={(e) => {
+                      setAccessCode(e.target.value);
+                      if (pinValidationError) setPinValidationError(null);
+                    }}
                     className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white"
                   />
                 </div>
+                {pinValidationError && (
+                  <p role="alert" className="text-[11px] font-semibold text-red-700 mt-1">
+                    {pinValidationError}
+                  </p>
+                )}
                 <p className="text-[10px] text-slate-600 mt-1">
-                  Required during reservation review to atomically attribute the approval permit.
+                  Stored as a salted SHA-256 hash and required during reservation review to attribute the approval permit.
                 </p>
               </div>
 

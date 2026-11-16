@@ -46,8 +46,6 @@ export const FacilityPersonnelManagementView: React.FC = () => {
     revokeFacilityAssignment,
     resetFacilityAccessCode,
     addToast,
-    loginAs,
-    setActiveView,
   } = useApp();
 
   // Search & Filter
@@ -475,23 +473,9 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                       onClick={() => openAssignModal(fac)}
                       className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold text-xs rounded-xl transition-colors cursor-pointer border border-purple-200 flex items-center gap-1.5"
                     >
-                      <UserCheck className="w-3.5 h-3.5" />
+                      <UserCheck className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>Configure</span>
                     </button>
-                    {primary && (
-                      <button
-                        onClick={() => {
-                          // Quick switch to this handler persona for testing
-                          loginAs('facility_handler', primary.handlerEmail, primary.handlerName);
-                          setActiveView('facility-handler-workspace');
-                        }}
-                        className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
-                        title={`Simulate sign-in as ${primary.handlerName}`}
-                      >
-                        <ArrowRight className="w-3.5 h-3.5" />
-                        <span>Test Workspace</span>
-                      </button>
-                    )}
                   </div>
                 </div>
               );
@@ -610,17 +594,6 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                             }`}
                           >
                             {handler.status === 'active' ? 'Suspend' : 'Activate'}
-                          </button>
-                          <span className="text-slate-300">·</span>
-                          <button
-                            onClick={() => {
-                              loginAs('facility_handler', handler.email, handler.fullName);
-                              setActiveView('facility-handler-workspace');
-                            }}
-                            className="font-bold text-slate-700 hover:text-slate-900 cursor-pointer flex items-center gap-0.5"
-                          >
-                            <span>Sign In</span>
-                            <ArrowRight className="w-3 h-3" />
                           </button>
                         </div>
                       </td>
@@ -837,7 +810,7 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                   <input
                     id="assign-access-code"
                     type={showAssignCode ? 'text' : 'password'}
-                    placeholder="e.g. CN-8421 or 8421"
+                    placeholder="Min. 4-character access code"
                     value={assignAccessCode}
                     onChange={(e) => setAssignAccessCode(e.target.value)}
                     className="w-full pl-9 pr-9 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600"
@@ -853,7 +826,7 @@ export const FacilityPersonnelManagementView: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-600 mt-1">
-                  Unique to this handler and venue. Code is hashed with HMAC-SHA256 and never stored in cleartext.
+                  Unique to this handler and venue. Code is hashed with SHA-256 and never stored in cleartext.
                 </p>
               </div>
 
@@ -1050,9 +1023,9 @@ export const FacilityPersonnelManagementView: React.FC = () => {
             </div>
 
             <div className="p-3 bg-purple-50 rounded-xl border border-purple-100 text-xs text-purple-900 space-y-1">
-              <p className="font-bold">Cryptographic Server Salting &amp; Lockout Protection</p>
+              <p className="font-bold">SHA-256 Credential Hashing &amp; Lockout Protection</p>
               <p className="text-[11px] text-purple-800">
-                Updating this credential immediately invalidates any existing active workspace sessions for this venue. Failed entries are capped at 5 attempts before a 5-minute lockout.
+                Updating this credential immediately invalidates any existing active workspace sessions for this venue. Failed entries are capped at 5 attempts before a 60-second lockout.
               </p>
             </div>
 

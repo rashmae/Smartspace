@@ -1,5 +1,6 @@
 # SmartSpace — Campus Facility Booking & Management SaaS (Pilot-stage prototype)
 
+> Website: https://smartspace-i7e5.vercel.app
 > Tagline: "Book It, Track It, Use It."
 > Stage: Pilot-stage prototype
 > Service Area: Higher-education institutions in Cebu City, Philippines
@@ -14,6 +15,9 @@ SmartSpace is a software-as-a-service platform for facility search, availability
 - **Multi-Campus Workflow Support**: Enables configured institutional workspaces to manage venue rules, advance notice settings, and clearance policies.
 - **Reservation Records & Utilization Reports**: Tracks booking history, check-in records, equipment summaries, and room usage reports.
 
+## Plans & Availability
+- Free during the pilot. Paid plans are planned. Contact us at smartspaceinquiries0@gmail.com.
+
 ## Target Audience & User Roles
 1. **Students & Student Organizations**: Browse available venues, submit reservation requests with event details, and receive digital gate passes.
 2. **Faculty & Department Chairs**: Review department requests and reserve academic spaces.
@@ -22,27 +26,27 @@ SmartSpace is a software-as-a-service platform for facility search, availability
 5. **Super Administrators**: Manage configured campus workspaces and platform settings.
 
 ## Key Routes
-- **Homepage & Public Portal**: /
-- **Campus Facility Catalog**: /#facilities-catalog
-- **Platform Features**: /#features
-- **How It Works**: /#how-it-works
-- **Universities**: /#universities
-- **About SmartSpace**: /#about
-- **Trust & Security**: /#trust-security
-- **Frequently Asked Questions**: /#faq
-- **Request Demo**: /request-demo
-- **Sign In**: /access
-- **Privacy Policy (RA 10173)**: /privacy
-- **Terms & Conditions**: /terms
-- **Cookie & Browser Storage Policy**: /cookies
-- **Refund & Cancellation Policy**: /refunds
-- **Accessibility Statement**: /accessibility
+- **Homepage & Public Portal**: https://smartspace-i7e5.vercel.app/
+- **Campus Facility Catalog**: https://smartspace-i7e5.vercel.app/#facilities-catalog
+- **Platform Features**: https://smartspace-i7e5.vercel.app/#features
+- **How It Works**: https://smartspace-i7e5.vercel.app/#how-it-works
+- **Universities**: https://smartspace-i7e5.vercel.app/#universities
+- **About SmartSpace**: https://smartspace-i7e5.vercel.app/#about
+- **Trust & Security**: https://smartspace-i7e5.vercel.app/#trust-security
+- **Frequently Asked Questions**: https://smartspace-i7e5.vercel.app/#faq
+- **Request Demo**: https://smartspace-i7e5.vercel.app/request-demo
+- **Sign In**: https://smartspace-i7e5.vercel.app/access
+- **Privacy Policy (RA 10173)**: https://smartspace-i7e5.vercel.app/privacy
+- **Terms & Conditions**: https://smartspace-i7e5.vercel.app/terms
+- **Cookie & Browser Storage Policy**: https://smartspace-i7e5.vercel.app/cookies
+- **Refund & Cancellation Policy**: https://smartspace-i7e5.vercel.app/refunds
+- **Accessibility Statement**: https://smartspace-i7e5.vercel.app/accessibility
 
 ## Organization & Contact Details
-- **Legal Entity**: [TO BE CONFIRMED: legal entity name]
-- **Business Registration**: [TO BE CONFIRMED: DTI / SEC registration number]
-- **Email**: [TO BE CONFIRMED: support email]
-- **Phone**: [TO BE CONFIRMED: support phone]
-- **Address**: [TO BE CONFIRMED: registered business address]
+- **Legal Entity**: SmartSpace (student pilot project, not yet a registered business)
+- **Business Registration**: Not yet registered. This will be updated once DTI/SEC registration is completed.
+- **Email**: smartspaceinquiries0@gmail.com
+- **Address**: Cebu City, Philippines. We currently handle all correspondence by email.
+- **Official Facebook Page**: https://www.facebook.com/profile.php?id=61596064600234
 - **Sector**: Higher-education facility booking and management software
 - **Service Area**: Higher-education institutions in Cebu City, Philippines

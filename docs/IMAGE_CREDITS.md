@@ -20,7 +20,6 @@ All external hotlinked images (`images.unsplash.com` and third-party CloudFront 
 | Asset Path | Usage | Source / License |
 |---|---|---|
 | `src/components/SmartSpaceLogo.tsx` | Inline SVG interlocking S-mark & wordmark | Original SmartSpace project artwork |
-| `public/smartspace-logo.svg` | Static SVG mark | Original SmartSpace project artwork |
-| `public/smartspace-og.png` | OpenGraph graphic asset | Original SmartSpace project artwork |
+| `public/smartspace-og.png` | OpenGraph graphic asset (`og:image`) | Original SmartSpace project artwork |
 | `public/assets/aistudio/Logo_w__Name_00c2f4c4.png`, `Logo_w_o_Name_07e7d282.png`, `3_3463e729.png`, `4_eae3ba44.png` | Favicon & project brand assets | Original SmartSpace project artwork |
 | `lucide-react` icons | Interface iconography | ISC License (see `THIRD_PARTY_NOTICES.md`) |

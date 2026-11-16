@@ -31,8 +31,6 @@ export const AdminRequestsView: React.FC = () => {
     currentInstitution,
     institutionHandlers,
     verifyAndExecuteHandlerApproval,
-    setCurrentRole,
-    setActiveView 
   } = useApp();
 
   const [rejectingBooking, setRejectingBooking] = useState<BookingRequest | null>(null);
@@ -300,7 +298,7 @@ export const AdminRequestsView: React.FC = () => {
                           h.assignedFacilityIds.includes(booking.facilityId)
                         ) || institutionHandlers[0];
                         setSelectedHandlerId(assignedHandler ? assignedHandler.id : '');
-                        setEnteredPin('123456');
+                        setEnteredPin('');
                         setPinError(null);
                       }}
                       disabled={conflict.hasConflict}
@@ -350,16 +348,15 @@ export const AdminRequestsView: React.FC = () => {
             <p className="text-xs text-slate-600 max-w-sm mx-auto">
               All submitted facility requests for {currentInstitution.shortName} have been reviewed.
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                setCurrentRole('student');
-                setActiveView('new-booking');
-              }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg cursor-pointer transition-colors"
-            >
-              Submit a Test Request as Student
-            </button>
+            {activeTab === 'pending' && allRequests.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('all')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg cursor-pointer transition-colors"
+              >
+                View All Actioned Requests
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -565,7 +562,7 @@ export const AdminRequestsView: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between text-[10px] text-slate-600 mt-1">
                   <span>Authorized custodian verification</span>
-                  <span className="text-purple-700 font-medium">Demo PIN: 123456</span>
+                  <span className="text-slate-600 font-medium">SHA-256 verified against assignment PIN</span>
                 </div>
               </div>
 

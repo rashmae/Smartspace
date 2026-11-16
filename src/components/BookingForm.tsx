@@ -20,7 +20,18 @@ import { TIME_OPTIONS, formatTo12Hour, formatTimeRange } from '../utils/timeForm
 const BOOKING_CONSENT_TEXT =
   'I acknowledge the Privacy Policy and Terms & Conditions and confirm that this reservation request contains accurate event information for campus administrative clearance.';
 
-export const BookingForm: React.FC = () => {
+export interface PrefilledBookingSlot {
+  facilityId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+}
+
+interface BookingFormProps {
+  prefilledSlot?: PrefilledBookingSlot | null;
+}
+
+export const BookingForm: React.FC<BookingFormProps> = ({ prefilledSlot }) => {
   const {
     allFacilities,
     institutionFacilities,
@@ -31,6 +42,7 @@ export const BookingForm: React.FC = () => {
     checkTimeConflict,
     setActiveView,
     currentRole,
+    currentUser,
     currentInstitution,
   } = useApp();
   const { recordFormConsent } = useConsent();
@@ -43,27 +55,25 @@ export const BookingForm: React.FC = () => {
 
   // Form State
   const [facilityId, setFacilityId] = useState<string>(
-    selectedFacility?.id || (institutionFacilities[0]?.id || (allFacilities[0]?.id || ''))
+    prefilledSlot?.facilityId ||
+      selectedFacility?.id ||
+      institutionFacilities[0]?.id ||
+      allFacilities[0]?.id ||
+      ''
   );
   const [eventName, setEventName] = useState('');
   const [purpose, setPurpose] = useState('Academic Presentation / Defense');
   const [customPurpose, setCustomPurpose] = useState('');
-  const [date, setDate] = useState<string>(getTomorrow());
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('11:00');
+  const [date, setDate] = useState<string>(prefilledSlot?.date || getTomorrow());
+  const [startTime, setStartTime] = useState(prefilledSlot?.startTime || '09:00');
+  const [endTime, setEndTime] = useState(prefilledSlot?.endTime || '11:00');
   const [attendees, setAttendees] = useState<number>(30);
-  const [requesterName, setRequesterName] = useState(
-    currentRole === 'faculty' ? 'Prof. Maria Santos' : 'Juan Dela Cruz'
-  );
+  const [requesterName, setRequesterName] = useState(currentUser?.name || '');
   const [requesterRole, setRequesterRole] = useState<'Student' | 'Faculty'>(
     currentRole === 'faculty' ? 'Faculty' : 'Student'
   );
-  const [requesterEmail, setRequesterEmail] = useState(
-    currentRole === 'faculty' ? 'maria.santos@ctu.edu.ph' : 'juan.delacruz@ctu.edu.ph'
-  );
-  const [organization, setOrganization] = useState(
-    currentRole === 'faculty' ? 'Department of Information Technology' : 'Supreme Student Government (SSG)'
-  );
+  const [requesterEmail, setRequesterEmail] = useState(currentUser?.email || '');
+  const [organization, setOrganization] = useState(currentUser?.organization || '');
   const [notes, setNotes] = useState('');
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
 
@@ -78,14 +88,19 @@ export const BookingForm: React.FC = () => {
   const requesterNameRef = useRef<HTMLInputElement>(null);
   const requesterEmailRef = useRef<HTMLInputElement>(null);
 
-  // Sync selected facility
+  // Sync selected facility and any prefilled schedule slot
   useEffect(() => {
-    if (selectedFacility) {
+    if (prefilledSlot) {
+      setFacilityId(prefilledSlot.facilityId);
+      setDate(prefilledSlot.date);
+      setStartTime(prefilledSlot.startTime);
+      setEndTime(prefilledSlot.endTime);
+    } else if (selectedFacility) {
       setFacilityId(selectedFacility.id);
     } else if (institutionFacilities.length > 0 && !facilityId) {
       setFacilityId(institutionFacilities[0].id);
     }
-  }, [selectedFacility, institutionFacilities]);
+  }, [prefilledSlot, selectedFacility, institutionFacilities]);
 
   const activeFacility = useMemo(() => {
     return (

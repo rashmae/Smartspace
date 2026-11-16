@@ -1,7 +1,7 @@
 import http from 'http';
 import crypto from 'crypto';
 import express from 'express';
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
@@ -21,45 +21,7 @@ const aiClient = process.env.GEMINI_API_KEY
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initial authorized Super Admin accounts per specification
-const SUPER_ADMIN_ALLOWLIST = [
-  'rashmae26@gmail.com',
-  'ansayrashmae05@gmail.com',
-  'krishapminoza@gmail.com',
-  'gonzalesangelmae279@gmail.com',
-  'karlhadrielc@gmail.com',
-  'superadmin@smartspace.ph', // platform root
-];
-
-// In-memory server store for persistent runtime security
-interface SuperAdminUser {
-  email: string;
-  name: string;
-  role: 'super_admin';
-  provisionedAt: string;
-  status: 'active' | 'suspended';
-}
-
-const provisionedSuperAdmins: Map<string, SuperAdminUser> = new Map(
-  SUPER_ADMIN_ALLOWLIST.map((email) => {
-    let name = 'Super Administrator';
-    if (email.includes('rashmae')) name = 'Rashmae';
-    else if (email.startsWith('krisha')) name = 'Krisha';
-    else if (email.startsWith('gonzales')) name = 'Angel Mae';
-    else if (email.startsWith('karl')) name = 'Karl Hadriel';
-
-    return [
-      email.toLowerCase(),
-      {
-        email: email.toLowerCase(),
-        name,
-        role: 'super_admin',
-        provisionedAt: '2026-10-30T00:00:00Z',
-        status: 'active',
-      },
-    ];
-  })
-);
+// Super Admin and role authorization is enforced via Firebase Authentication and Firestore rules.
 
 // Server-side audit log for sensitive administrative activities
 interface ServerAuditLog {
@@ -103,78 +65,7 @@ interface ServerLoginEvent {
   sessionActive: boolean;
 }
 
-const loginActivities: ServerLoginEvent[] = [
-  {
-    id: 'evt-101',
-    accountEmail: 'admin.facilities@ctu.edu.ph',
-    role: 'university_admin',
-    institutionId: 'ctu-main',
-    institutionName: 'Cebu Technological University',
-    timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-    formattedTime: '7:42 AM',
-    formattedDate: 'Oct 30, 2026',
-    status: 'success',
-    ipAddress: '120.28.16.84',
-    eventType: 'LOGIN_SUCCESS',
-    sessionActive: true,
-  },
-  {
-    id: 'evt-102',
-    accountEmail: 'juan.delacruz@ctu.edu.ph',
-    role: 'student',
-    institutionId: 'ctu-main',
-    institutionName: 'Cebu Technological University',
-    timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    formattedTime: '7:15 AM',
-    formattedDate: 'Oct 30, 2026',
-    status: 'success',
-    ipAddress: '112.198.112.19',
-    eventType: 'LOGIN_SUCCESS',
-    sessionActive: true,
-  },
-  {
-    id: 'evt-103',
-    accountEmail: 'unknown.intruder@external.net',
-    role: 'unknown',
-    institutionId: 'usc-tc',
-    institutionName: 'University of San Carlos',
-    timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-    formattedTime: '6:00 AM',
-    formattedDate: 'Oct 30, 2026',
-    status: 'failed',
-    ipAddress: '185.220.101.5',
-    eventType: 'INVALID_CREDENTIALS',
-    sessionActive: false,
-  },
-  {
-    id: 'evt-104',
-    accountEmail: 'facilities@usc.edu.ph',
-    role: 'university_admin',
-    institutionId: 'usc-tc',
-    institutionName: 'University of San Carlos',
-    timestamp: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-    formattedTime: '2:00 AM',
-    formattedDate: 'Oct 30, 2026',
-    status: 'success',
-    ipAddress: '119.92.238.10',
-    eventType: 'LOGIN_SUCCESS',
-    sessionActive: false,
-  },
-  {
-    id: 'evt-105',
-    accountEmail: 'maria.fernandez@ctu.edu.ph',
-    role: 'faculty',
-    institutionId: 'ctu-main',
-    institutionName: 'Cebu Technological University',
-    timestamp: new Date(Date.now() - 1000 * 60 * 600).toISOString(),
-    formattedTime: '9:30 PM',
-    formattedDate: 'Oct 29, 2026',
-    status: 'success',
-    ipAddress: '124.104.144.12',
-    eventType: 'LOGIN_SUCCESS',
-    sessionActive: false,
-  },
-];
+const loginActivities: ServerLoginEvent[] = [];
 
 function recordLoginEvent(
   accountEmail: string,
@@ -217,54 +108,77 @@ function recordLoginEvent(
 }
 
 async function startServer() {
+  const isProd = process.env.NODE_ENV === 'production';
   const app = express();
-  app.use(express.json());
+  app.disable('x-powered-by');
+
+  // -------------------------------------------------------------
+  // RUNTIME HTTP SECURITY HEADERS (RISK-14)
+  // -------------------------------------------------------------
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+
+    if (isProd) {
+      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+      res.setHeader(
+        'Content-Security-Policy',
+        [
+          "default-src 'self'",
+          "script-src 'self'",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: blob:",
+          "font-src 'self' data:",
+          "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com",
+          "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "frame-ancestors 'self'",
+        ].join('; ')
+      );
+      if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+      }
+    } else {
+      // Development preview: allow Vite inline module preambles while preserving resource restrictions
+      res.setHeader(
+        'Content-Security-Policy',
+        [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: blob:",
+          "font-src 'self' data:",
+          "connect-src 'self' ws: wss: https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com",
+          "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
+          "object-src 'none'",
+          "base-uri 'self'",
+        ].join('; ')
+      );
+    }
+
+    if (req.path.startsWith('/api/')) {
+      res.setHeader('Cache-Control', 'no-store');
+    }
+
+    next();
+  });
+
+  app.use(express.json({ limit: '1mb' }));
 
   // -------------------------------------------------------------
   // SECURE BACKEND API ENDPOINTS
   // -------------------------------------------------------------
 
-  // 1. Super Admin Authorization & Authentication Endpoint
+  // 1. Legacy Super Admin Passwordless Endpoint (Disabled in favor of Firebase Authentication)
   app.post('/api/auth/superadmin-login', (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    const cleanEmail = (email || '').trim().toLowerCase();
-
-    // Check against server allowlist
-    const adminRecord = provisionedSuperAdmins.get(cleanEmail);
-
-    if (!adminRecord || adminRecord.status !== 'active') {
-      recordAudit(cleanEmail || 'unknown', 'SUPERADMIN_LOGIN_ATTEMPT', '/api/auth/superadmin-login', 'denied', req.ip);
-      recordLoginEvent(cleanEmail || 'unregistered', 'super_admin', 'failed', 'INVALID_CREDENTIALS', req.ip || '127.0.0.1');
-      return res.status(401).json({
-        success: false,
-        error: 'Unable to sign in. Check your credentials or contact the platform administrator.',
-      });
-    }
-
-    // Passwords accepted: configured secure provisioning password, demo password, or any non-empty credential for authorized admins
-    const cleanPassword = (password || '').trim();
-    if (!cleanPassword) {
-      recordAudit(cleanEmail, 'SUPERADMIN_INVALID_CREDENTIALS', '/api/auth/superadmin-login', 'denied', req.ip);
-      recordLoginEvent(cleanEmail, 'super_admin', 'failed', 'INVALID_CREDENTIALS', req.ip || '127.0.0.1');
-      return res.status(401).json({
-        success: false,
-        error: 'Password is required to sign in.',
-      });
-    }
-
-    // Generate secure session token
-    const sessionToken = `tok_sa_${Date.now()}_${Buffer.from(cleanEmail).toString('base64').substring(0, 16)}`;
-    recordAudit(cleanEmail, 'SUPERADMIN_LOGIN_SUCCESS', '/api/auth/superadmin-login', 'success', req.ip);
-    recordLoginEvent(cleanEmail, 'super_admin', 'success', 'LOGIN_SUCCESS', req.ip || '127.0.0.1');
-
-    return res.json({
-      success: true,
-      token: sessionToken,
-      user: {
-        email: adminRecord.email,
-        name: adminRecord.name,
-        role: 'super_admin',
-      },
+    const cleanEmail = String(req.body?.email || '').trim().toLowerCase();
+    recordAudit(cleanEmail || 'unknown', 'LEGACY_SUPERADMIN_LOGIN_BLOCKED', '/api/auth/superadmin-login', 'denied', req.ip);
+    return res.status(410).json({
+      success: false,
+      error: 'Legacy passwordless login disabled. Authenticate using Firebase Authentication.',
     });
   });
 
@@ -283,13 +197,13 @@ async function startServer() {
     return res.json({ success: true });
   });
 
-  // 3. Super Admin Allowlist Audit Status (Non-sensitive summary for platform monitoring)
-  app.get('/api/superadmin/security-status', (req: Request, res: Response) => {
+  // 3. Super Admin Security Status Summary
+  app.get('/api/superadmin/security-status', (_req: Request, res: Response) => {
     const activeSessions = loginActivities.filter((a) => a.sessionActive).length;
     return res.json({
-      authorizedAccountsCount: SUPER_ADMIN_ALLOWLIST.length,
-      activeSessionsCount: Math.max(1, activeSessions),
-      enforcementMode: 'STRICT_SERVER_ALLOWLIST',
+      authorizedAccountsCount: 0,
+      activeSessionsCount: activeSessions,
+      enforcementMode: 'FIREBASE_AUTH_AND_FIRESTORE_RULES',
       auditEntriesCount: auditLogs.length,
       securityEventsCount: loginActivities.length,
     });
@@ -329,7 +243,6 @@ async function startServer() {
   const hashAccessCode = (code: string) =>
     crypto.createHash('sha256').update(`smartspace_pin_v1:${code.trim()}`).digest('hex');
 
-  const DEFAULT_HANDLER_PIN_HASH = hashAccessCode('123456');
   const handlerPinStore = new Map<string, string>(); // key: assignmentId or `${handlerId}:${facilityId}`
   const handlerLockoutStore = new Map<string, { attempts: number; lockedUntil: number }>();
   const handlerServerLogs: any[] = [];
@@ -366,8 +279,14 @@ async function startServer() {
     const storedHash =
       (assignmentId && handlerPinStore.get(String(assignmentId))) ||
       (handlerId && facilityId && handlerPinStore.get(`${handlerId}:${facilityId}`)) ||
-      (handlerId && handlerPinStore.get(`handler:${handlerId}`)) ||
-      DEFAULT_HANDLER_PIN_HASH;
+      (handlerId && handlerPinStore.get(`handler:${handlerId}`));
+
+    if (!storedHash) {
+      return res.status(404).json({
+        success: false,
+        error: 'No facility access PIN has been configured for this assignment.',
+      });
+    }
 
     const enteredHash = hashAccessCode(String(accessCode || ''));
     if (enteredHash !== storedHash) {
@@ -744,7 +663,6 @@ OUTPUT RULES:
   // -------------------------------------------------------------
   // VITE DEV MIDDLEWARE INTEGRATION
   // -------------------------------------------------------------
-  const isProd = process.env.NODE_ENV === 'production';
   const httpServer = http.createServer(app);
 
   if (!isProd) {

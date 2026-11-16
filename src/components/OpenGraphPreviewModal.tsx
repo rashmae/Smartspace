@@ -14,7 +14,7 @@ export const OpenGraphPreviewModal: React.FC<OpenGraphPreviewModalProps> = ({ is
   if (!isOpen) return null;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.origin);
+    navigator.clipboard.writeText(BUSINESS_CONFIG.domainOwnership);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -38,7 +38,7 @@ export const OpenGraphPreviewModal: React.FC<OpenGraphPreviewModalProps> = ({ is
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Official social banner rendered when sharing SmartSpace links on Twitter/X, LinkedIn, and Slack.
+                Official social preview card rendered when sharing SmartSpace links.
               </p>
             </div>
           </div>
@@ -98,7 +98,7 @@ export const OpenGraphPreviewModal: React.FC<OpenGraphPreviewModalProps> = ({ is
                   Digital QR Gate Passes
                 </span>
               </div>
-              <span className="font-mono text-purple-300">{BUSINESS_CONFIG.domainOwnership}</span>
+              <span className="font-mono text-purple-300">{BUSINESS_CONFIG.canonicalHost}</span>
             </div>
           </div>
         </div>
@@ -106,8 +106,8 @@ export const OpenGraphPreviewModal: React.FC<OpenGraphPreviewModalProps> = ({ is
         {/* Footer with share & copy button */}
         <div className="p-4 sm:p-6 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 text-slate-600">
-            <Globe className="w-4 h-4 text-purple-600" />
-            <span>Preview URL: <strong>{typeof window !== 'undefined' ? window.location.origin : BUSINESS_CONFIG.domainOwnership}</strong></span>
+            <Globe className="w-4 h-4 text-purple-600" aria-hidden="true" />
+            <span>Preview URL: <strong>{BUSINESS_CONFIG.domainOwnership}</strong></span>
           </div>
           <button
             onClick={handleCopyLink}

@@ -1,6 +1,7 @@
 import { transformSync } from 'esbuild';
 import * as espree from 'espree';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import firebaseRulesPlugin from '@firebase/eslint-plugin-security-rules';
 
 const tsxEspreeParser = {
   parseForESLint(code, options) {
@@ -23,6 +24,10 @@ const tsxEspreeParser = {
 };
 
 export default [
+  {
+    ignores: ['dist/**/*'],
+  },
+  firebaseRulesPlugin.configs['flat/recommended'],
   {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
