@@ -71,10 +71,19 @@
 
 @keyframes smartspace-logo-sway {
   0%, 100% {
-    transform: rotateX(4deg) rotateY(-6deg);
+    transform: rotateX(7deg) rotateY(-11deg) rotateZ(-1deg);
   }
   50% {
-    transform: rotateX(-3deg) rotateY(7deg);
+    transform: rotateX(-6deg) rotateY(12deg) rotateZ(1.5deg);
+  }
+}
+
+@keyframes smartspace-logo-sway-subtle {
+  0%, 100% {
+    transform: rotateX(4deg) rotateY(-7deg);
+  }
+  50% {
+    transform: rotateX(-4deg) rotateY(7deg);
   }
 }
 
@@ -84,7 +93,7 @@
     opacity: 0;
   }
   15% {
-    opacity: 0.55;
+    opacity: 0.6;
   }
   42% {
     transform: translateX(180%) skewX(-22deg);
@@ -116,19 +125,23 @@
 }
 
 .smartspace-logo-float {
-  animation: smartspace-logo-float 4.8s ease-in-out infinite;
+  animation: smartspace-logo-float 4.2s ease-in-out infinite;
 }
 
 .smartspace-logo-sway {
-  animation: smartspace-logo-sway 7.5s ease-in-out infinite;
+  animation: smartspace-logo-sway 5.6s ease-in-out infinite;
+}
+
+.smartspace-logo-sway-subtle {
+  animation: smartspace-logo-sway-subtle 6.2s ease-in-out infinite;
 }
 
 .smartspace-logo-shine {
-  animation: smartspace-logo-shine 5.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation: smartspace-logo-shine 4.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .smartspace-logo-glow {
-  animation: smartspace-glow-breathe 4.8s ease-in-out infinite;
+  animation: smartspace-glow-breathe 4.2s ease-in-out infinite;
 }
 
 .smartspace-conflict-shake {
@@ -192,6 +205,7 @@
 
   .smartspace-logo-float,
   .smartspace-logo-sway,
+  .smartspace-logo-sway-subtle,
   .smartspace-logo-shine,
   .smartspace-logo-glow,
   .smartspace-conflict-shake {

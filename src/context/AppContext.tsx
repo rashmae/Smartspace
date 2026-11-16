@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useRef, ReactNode } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, signInWithGooglePopup, signOutFromFirebase } from '../lib/firebase';
+import {
+  auth,
+  signInWithGooglePopup,
+  signOutFromFirebase,
+  formatFirebaseAuthError,
+  consumeGoogleRedirectResult,
+} from '../lib/firebase';
 import {
   UserRole,
   Institution,
@@ -751,6 +757,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const pinLockoutRef = useRef<Record<string, { attempts: number; lockedUntil: number }>>({});
 
   useEffect(() => {
+    consumeGoogleRedirectResult().catch(() => null);
     const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
       if (fbUser && fbUser.emailVerified) {
         syncWithFirestore();
@@ -1178,7 +1185,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return { success: true, role: 'facility_handler' };
       }
 
-      await signOutFromFirebase().catch(() => {});
       return {
         success: false,
         needsRegistration: true,
@@ -1188,17 +1194,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           'No SmartSpace user profile exists for this Google account yet. Complete your registration below to link your university.',
       };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Google Sign-In failed.';
-      if (msg.includes('popup-closed-by-user')) {
-        return { success: false, error: 'Google sign-in popup was closed before completing authentication.' };
-      }
-      if (msg.includes('popup-blocked')) {
-        return {
-          success: false,
-          error: 'Browser blocked the Google sign-in popup. Please allow popups for this site and try again.',
-        };
-      }
-      return { success: false, error: msg };
+      return { success: false, error: formatFirebaseAuthError(err) };
     }
   };
 
@@ -1594,7 +1590,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     try {
-      const fbUser = await signInWithGooglePopup();
+      const existingAuthUser = auth.currentUser;
+      const fbUser =
+        existingAuthUser && existingAuthUser.emailVerified && existingAuthUser.email
+          ? existingAuthUser
+          : await signInWithGooglePopup();
       const verifiedEmail = (fbUser.email || '').trim().toLowerCase();
       if (!verifiedEmail || !fbUser.emailVerified) {
         await signOutFromFirebase().catch(() => {});
@@ -1651,11 +1651,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addToast('success', 'Account Created', `Welcome to SmartSpace, ${newUser.fullName}!`);
       return { success: true, user: newUser };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Google verification failed.';
-      if (msg.includes('popup-closed-by-user')) {
-        return { success: false, error: 'Google verification popup was closed before finishing registration.' };
-      }
-      return { success: false, error: msg };
+      return { success: false, error: formatFirebaseAuthError(err) };
     }
   };
 

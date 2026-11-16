@@ -127,12 +127,12 @@ async function startServer() {
         'Content-Security-Policy',
         [
           "default-src 'self'",
-          "script-src 'self'",
+          "script-src 'self' https://apis.google.com https://accounts.google.com https://www.gstatic.com",
           "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: blob:",
+          "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.googleusercontent.com",
           "font-src 'self' data:",
-          "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com",
-          "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
+          "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://apis.google.com https://accounts.google.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com",
+          "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://apis.google.com",
           "object-src 'none'",
           "base-uri 'self'",
           "frame-ancestors 'self'",
@@ -142,17 +142,17 @@ async function startServer() {
         res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
       }
     } else {
-      // Development preview: allow Vite inline module preambles while preserving resource restrictions
+      // Development preview: allow Vite inline module preambles and Firebase Auth Google popup scripts
       res.setHeader(
         'Content-Security-Policy',
         [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com",
           "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: blob:",
+          "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.googleusercontent.com",
           "font-src 'self' data:",
-          "connect-src 'self' ws: wss: https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com",
-          "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
+          "connect-src 'self' ws: wss: https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://apis.google.com https://accounts.google.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com",
+          "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://apis.google.com",
           "object-src 'none'",
           "base-uri 'self'",
         ].join('; ')

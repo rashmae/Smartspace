@@ -24,14 +24,14 @@ interface MarkProps {
  * Once the user provides transparent PNGs in public/assets/brand/, toggle HAS_TRANSPARENT_BRAND_ASSETS = true.
  * Keeping verified /assets/aistudio/* paths prevents 404 console errors until those files exist on disk.
  */
-const HAS_TRANSPARENT_BRAND_ASSETS = false;
+const HAS_TRANSPARENT_BRAND_ASSETS = true;
 
 export const BRAND_LOGO_ASSETS = {
   mark: HAS_TRANSPARENT_BRAND_ASSETS
     ? '/assets/brand/smartspace-logo-mark-transparent.png'
     : '/assets/aistudio/Logo_w_o_Name_07e7d282.png',
   wordmark: HAS_TRANSPARENT_BRAND_ASSETS
-    ? '/assets/brand/smartspace-wordmark-transparent.png'
+    ? '/assets/brand/smartspace-logo-lockup-transparent.png'
     : '/assets/aistudio/Logo_w__Name_00c2f4c4.png',
   lockup: HAS_TRANSPARENT_BRAND_ASSETS
     ? '/assets/brand/smartspace-logo-lockup-transparent.png'
@@ -59,9 +59,10 @@ function usePrefersReducedMotion(): boolean {
 
 /**
  * Animated 3D Stacked SmartSpace Brand Mark
- * - Small sizes (size <= 40, e.g. header/sidebar): 6 layers, no float.
- * - Large sizes (size > 40 or prominent, e.g. login/landing): 22 layers, Z-depth extrusion,
- *   pointer-follow tilt, idle sway & gentle float, masked/surface shine sweep, and soft ambient glow.
+ * - Uses transparent PNG brand assets so no white background box appears on any surface.
+ * - Small sizes (size <= 40, e.g. header/sidebar): 6 extruded silhouette layers, gentle 3D sway & specular sheen.
+ * - Large sizes (size > 40 or prominent, e.g. login/landing): 18 extruded silhouette layers, Z-depth,
+ *   pointer-follow tilt, idle 3D sway & orbital float, masked specular shine sweep, and soft ambient glow.
  * - Strictly honours prefers-reduced-motion (renders completely static).
  */
 export const SmartSpaceMark: React.FC<MarkProps> = ({
@@ -82,9 +83,9 @@ export const SmartSpaceMark: React.FC<MarkProps> = ({
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const isLarge = prominent || size > 40;
-  const layerCount = isLarge ? 22 : 6;
-  const depthStep = isLarge ? 0.85 : 0.65;
-  const maxTiltDeg = isLarge ? 13 : 7;
+  const layerCount = isLarge ? 18 : 6;
+  const depthStep = isLarge ? 0.95 : 0.65;
+  const maxTiltDeg = isLarge ? 16 : 10;
 
   useEffect(() => {
     const el = imgRef.current;
@@ -159,7 +160,7 @@ export const SmartSpaceMark: React.FC<MarkProps> = ({
       style={{
         width: `${size}px`,
         height: `${size}px`,
-        perspective: isLarge ? '900px' : '600px',
+        perspective: isLarge ? '900px' : '550px',
       }}
     >
       {/* Soft ambient glow underneath large logo */}
@@ -179,7 +180,7 @@ export const SmartSpaceMark: React.FC<MarkProps> = ({
         />
       )}
 
-      {/* Float wrapper (only on large/prominent logos and when motion is allowed) */}
+      {/* Float wrapper (large/prominent floats vertically; compact stays centered) */}
       <div
         aria-hidden="true"
         className={`relative w-full h-full ${
@@ -187,121 +188,121 @@ export const SmartSpaceMark: React.FC<MarkProps> = ({
         }`}
         style={{ transformStyle: 'preserve-3d' }}
       >
-        {/* Idle sway wrapper (disabled while actively hovering or reduced motion) */}
+        {/* Idle 3D sway wrapper — kept separate from inline transform so CSS keyframes always run */}
         <div
           aria-hidden="true"
           className={`relative w-full h-full ${
-            isLarge && !prefersReducedMotion && !tilt.hovering ? 'smartspace-logo-sway' : ''
+            !prefersReducedMotion && !tilt.hovering
+              ? isLarge
+                ? 'smartspace-logo-sway'
+                : 'smartspace-logo-sway-subtle'
+              : ''
           }`}
-          style={{
-            transformStyle: 'preserve-3d',
-            transform: prefersReducedMotion
-              ? 'none'
-              : `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
-            transition: tilt.hovering
-              ? 'transform 110ms cubic-bezier(0.22, 1, 0.36, 1)'
-              : 'transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
-          }}
+          style={{ transformStyle: 'preserve-3d' }}
         >
-          {/* Extruded back depth slices (back-to-front) */}
-          {layers.slice(1).reverse().map((layerIndex) => {
-            const zOffset = -layerIndex * depthStep;
-            const ratio = layerIndex / Math.max(1, layerCount - 1);
-            const brightness = Math.max(0.42, 0.96 - ratio * 0.52);
+          {/* Interactive pointer-follow tilt wrapper */}
+          <div
+            aria-hidden="true"
+            className="relative w-full h-full"
+            style={{
+              transformStyle: 'preserve-3d',
+              transform: prefersReducedMotion
+                ? 'none'
+                : `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${tilt.hovering ? 1.04 : 1})`,
+              transition: tilt.hovering
+                ? 'transform 110ms cubic-bezier(0.22, 1, 0.36, 1)'
+                : 'transform 450ms cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
+            {/* Extruded back depth slices (back-to-front) */}
+            {layers.slice(1).reverse().map((layerIndex) => {
+              const zOffset = -layerIndex * depthStep;
+              const ratio = layerIndex / Math.max(1, layerCount - 1);
+              const brightness = Math.max(0.45, 0.94 - ratio * 0.48);
 
-            if (HAS_TRANSPARENT_BRAND_ASSETS) {
+              if (HAS_TRANSPARENT_BRAND_ASSETS) {
+                return (
+                  <img
+                    key={layerIndex}
+                    src={BRAND_LOGO_ASSETS.mark}
+                    alt=""
+                    aria-hidden="true"
+                    draggable={false}
+                    className="pointer-events-none absolute inset-0 w-full h-full object-contain"
+                    style={{
+                      transform: `translateZ(${zOffset.toFixed(2)}px)`,
+                      filter: `brightness(${brightness.toFixed(3)})`,
+                      opacity: ratio > 0.85 ? 0.6 : 0.9,
+                    }}
+                  />
+                );
+              }
+
               return (
-                <img
+                <div
                   key={layerIndex}
-                  src={BRAND_LOGO_ASSETS.mark}
-                  alt=""
                   aria-hidden="true"
-                  draggable={false}
-                  className="pointer-events-none absolute inset-0 w-full h-full object-contain"
+                  className="pointer-events-none absolute inset-0"
                   style={{
+                    borderRadius,
                     transform: `translateZ(${zOffset.toFixed(2)}px)`,
-                    filter: `brightness(${brightness.toFixed(3)})`,
-                    opacity: ratio > 0.85 ? 0.65 : 0.92,
+                    backgroundColor: isDarkSurface
+                      ? `rgba(${Math.round(30 * brightness + 11)}, ${Math.round(58 * brightness + 21)}, ${Math.round(108 * brightness + 40)}, 0.95)`
+                      : `rgb(${Math.round(226 * brightness)}, ${Math.round(232 * brightness)}, ${Math.round(240 * brightness)})`,
                   }}
                 />
               );
-            }
+            })}
 
-            // For opaque square logo source, extrude a smooth chamfered tile backing so no grey box appears
-            return (
-              <div
-                key={layerIndex}
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  borderRadius,
-                  transform: `translateZ(${zOffset.toFixed(2)}px)`,
-                  backgroundColor: isDarkSurface
-                    ? `rgba(${Math.round(30 * brightness + 11)}, ${Math.round(58 * brightness + 21)}, ${Math.round(108 * brightness + 40)}, 0.95)`
-                    : `rgb(${Math.round(226 * brightness)}, ${Math.round(232 * brightness)}, ${Math.round(240 * brightness)})`,
-                }}
-              />
-            );
-          })}
-
-          {/* Front artwork face at Z = 0 */}
-          <div
-            aria-hidden="true"
-            className={`relative w-full h-full overflow-hidden ${
-              HAS_TRANSPARENT_BRAND_ASSETS
-                ? ''
-                : isDarkSurface
-                ? 'bg-white ring-1 ring-white/25 shadow-md'
-                : 'bg-white ring-1 ring-slate-200/90 shadow-xs'
-            }`}
-            style={{
-              borderRadius: HAS_TRANSPARENT_BRAND_ASSETS ? undefined : borderRadius,
-              transform: 'translateZ(0px)',
-            }}
-          >
-            <img
-              ref={imgRef}
-              src={BRAND_LOGO_ASSETS.mark}
-              alt=""
+            {/* Front artwork face at Z = 0 (no white background box when transparent PNG is active) */}
+            <div
               aria-hidden="true"
-              width={size}
-              height={size}
-              draggable={false}
-              className={`w-full h-full object-contain select-none ${
-                HAS_TRANSPARENT_BRAND_ASSETS ? '' : 'p-[4%]'
-              }`}
-              loading="eager"
-            />
-
-            {/* Soft diagonal shine sweep masked to silhouette or front face */}
-            {!prefersReducedMotion && (
-              <div
+              className="relative w-full h-full"
+              style={{
+                transform: 'translateZ(0px)',
+                filter: isLarge
+                  ? 'drop-shadow(0 8px 14px rgba(11, 21, 40, 0.16))'
+                  : 'drop-shadow(0 2px 4px rgba(11, 21, 40, 0.12))',
+              }}
+            >
+              <img
+                ref={imgRef}
+                src={BRAND_LOGO_ASSETS.mark}
+                alt=""
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 overflow-hidden"
-                style={
-                  HAS_TRANSPARENT_BRAND_ASSETS
-                    ? {
-                        WebkitMaskImage: `url(${BRAND_LOGO_ASSETS.mark})`,
-                        maskImage: `url(${BRAND_LOGO_ASSETS.mark})`,
-                        WebkitMaskSize: 'contain',
-                        maskSize: 'contain',
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskRepeat: 'no-repeat',
-                        WebkitMaskPosition: 'center',
-                        maskPosition: 'center',
-                      }
-                    : { borderRadius }
-                }
-              >
+                width={size}
+                height={size}
+                draggable={false}
+                className="w-full h-full object-contain select-none"
+                loading="eager"
+              />
+
+              {/* Soft diagonal shine sweep masked strictly to the logo silhouette */}
+              {!prefersReducedMotion && (
                 <div
-                  className="smartspace-logo-shine absolute -inset-y-4 w-1/2"
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 overflow-hidden"
                   style={{
-                    background:
-                      'linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.68) 50%, rgba(255,255,255,0) 100%)',
+                    WebkitMaskImage: `url(${BRAND_LOGO_ASSETS.mark})`,
+                    maskImage: `url(${BRAND_LOGO_ASSETS.mark})`,
+                    WebkitMaskSize: 'contain',
+                    maskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                    maskPosition: 'center',
                   }}
-                />
-              </div>
-            )}
+                >
+                  <div
+                    className="smartspace-logo-shine absolute -inset-y-4 w-1/2"
+                    style={{
+                      background:
+                        'linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.72) 50%, rgba(255,255,255,0) 100%)',
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
