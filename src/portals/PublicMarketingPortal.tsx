@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useRouter } from '../router/RouterContext';
 import { useApp } from '../context/AppContext';
 import SmartSpaceLogo from '../components/SmartSpaceLogo';
+import { CustomCursor } from '../components/landing/CustomCursor';
+import { LandingNav } from '../components/landing/LandingNav';
+import { HeroCinema } from '../components/landing/HeroCinema';
+import { VenueCategoryChip } from '../components/landing/FloatingSearchBar';
 import { FacilityDetailModal } from '../components/FacilityDetailModal';
 import { ExecutiveDeckModal } from '../components/ExecutiveDeckModal';
 import { DemoRequestModal } from '../components/DemoRequestModal';
@@ -12,7 +16,6 @@ import { FACILITY_IMAGES } from '../data/facilityImages';
 import { useConsent } from '../context/ConsentContext';
 import {
   motion,
-  AnimatePresence,
   MotionConfig,
   useScroll,
   useTransform,
@@ -22,65 +25,30 @@ import {
 import {
   Building2,
   CalendarCheck,
-  Clock,
   ShieldCheck,
   Layers,
-  Users,
   ArrowRight,
   ChevronRight,
   CheckCircle2,
   BarChart3,
   FileCheck2,
   QrCode,
-  Zap,
   Search,
-  Check,
-  X,
-  Menu,
-  Sparkles,
   Lock,
   ChevronDown,
   ChevronUp,
   MapPin,
-  ExternalLink,
-  Presentation,
-  Filter,
-  ArrowDown,
-  CalendarDays,
-  ShieldAlert,
-  Flame,
-  FileSpreadsheet,
-  CheckCircle,
-  HelpCircle,
-  Laptop,
-  GraduationCap,
-  Award,
 } from 'lucide-react';
 
 export const PublicMarketingPortal: React.FC = () => {
   const { navigate } = useRouter();
-  const { setIsDemoModalOpen } = useApp();
+  const { allInstitutions } = useApp();
   const { openPreferences } = useConsent();
   const shouldReduceMotion = useReducedMotion();
 
-  // Scroll-linked storytelling refs (Apple-inspired scope: landing scroll story only)
+  // Scroll-linked storytelling refs (HeroCinema + #about scroll story)
   const heroRef = useRef<HTMLDivElement>(null);
   const storyRef = useRef<HTMLElement>(null);
-
-  const { scrollYProgress: heroScrollProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  });
-  const heroShowcaseScale = useTransform(
-    heroScrollProgress,
-    [0, 1],
-    [1, shouldReduceMotion ? 1 : 0.96]
-  );
-  const heroShowcaseY = useTransform(
-    heroScrollProgress,
-    [0, 1],
-    [0, shouldReduceMotion ? 0 : 28]
-  );
 
   const { scrollYProgress: storyScrollProgress } = useScroll({
     target: storyRef,
@@ -98,17 +66,17 @@ export const PublicMarketingPortal: React.FC = () => {
   );
   const storyProgressWidth = useTransform(smoothStoryProgress, [0, 1], ['0%', '100%']);
 
-  // Navigation & Drawer states
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [legalMenuOpen, setLegalMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  // Modal states
   const [isExecutiveDeckOpen, setIsExecutiveDeckOpen] = useState(false);
   const [selectedFacilityForModal, setSelectedFacilityForModal] = useState<Facility | null>(null);
 
-  // Hero interactive venue slider state
-  const [heroVenueIndex, setHeroVenueIndex] = useState(0);
+  // Hero floating search bar & catalog filter state
+  const [searchCampus, setSearchCampus] = useState<string>('all');
+  const [searchVenueType, setSearchVenueType] = useState<VenueCategoryChip>('All');
+  const [searchDateISO, setSearchDateISO] = useState<string>('');
+  const [searchPeopleCount, setSearchPeopleCount] = useState<number>(0);
 
-  // Facility discovery catalog states (curated preview only)
+  // Facility discovery catalog states
   const [selectedPreviewCategory, setSelectedPreviewCategory] = useState<string>('All');
 
   // Interactive Product Interface Showcase state
@@ -117,96 +85,6 @@ export const PublicMarketingPortal: React.FC = () => {
   // FAQ Accordion state
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // Interactive Live Conflict Engine Simulator (ClosePeak-style responsive micro-interaction)
-  const [simulatorSlot, setSimulatorSlot] = useState<'morning' | 'afternoon' | 'evening'>('morning');
-  const [isSimulatingConflictCheck, setIsSimulatingConflictCheck] = useState<boolean>(false);
-
-  const handleSelectSlot = (slot: 'morning' | 'afternoon' | 'evening') => {
-    setSimulatorSlot(slot);
-    setIsSimulatingConflictCheck(true);
-    setTimeout(() => {
-      setIsSimulatingConflictCheck(false);
-    }, 350);
-  };
-
-  // Scroll listener for translucent navbar transition
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 40) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Hero Venue Showcase items (illustrative sample spaces across Public and Private sectors)
-  const heroVenues = [
-    {
-      id: 'preview-fac-auditorium',
-      name: 'Sample Cultural Auditorium',
-      category: 'Auditorium & Theatre',
-      institution: 'Illustrative Public Higher Education Space',
-      capacity: 450,
-      equipment: 'Stage PA System · 4K Dual Stage Rig · Stage Spotlights · Central AC',
-      status: 'Sample Schedule · Conflict Check Active',
-      nextSlot: '2:00 PM – 5:00 PM (Sample)',
-      imageUrl: FACILITY_IMAGES.auditorium,
-      badgeColor: 'border-[#0077C8] text-[#0077C8] bg-blue-50',
-    },
-    {
-      id: 'preview-fac-gym',
-      name: 'Sample University Gymnasium',
-      category: 'Campus Gymnasium',
-      institution: 'Illustrative Public Higher Education Space',
-      capacity: 800,
-      equipment: 'Maple Hardwood Multi-Court · Digital LED Scoreboard · Retractable Bleachers',
-      status: 'Sample Schedule · Slot Checking',
-      nextSlot: '3:30 PM – 7:00 PM (Sample)',
-      imageUrl: FACILITY_IMAGES.sportsArena,
-      badgeColor: 'border-[#EE2726] text-[#EE2726] bg-red-50',
-    },
-    {
-      id: 'preview-fac-courts',
-      name: 'Sample Athletics Courts',
-      category: 'Open Athletics Court',
-      institution: 'Illustrative Private Higher Education Space',
-      capacity: 60,
-      equipment: 'Tournament Hardcourts · High-Lumen Night Floodlights · Umpire Chairs',
-      status: 'Sample Schedule · Evening Slots',
-      nextSlot: '4:00 PM – 6:30 PM (Sample)',
-      imageUrl: FACILITY_IMAGES.tennisCourts,
-      badgeColor: 'border-[#8CC63F] text-[#8CC63F] bg-lime-50',
-    },
-    {
-      id: 'preview-fac-commlab-1',
-      name: 'Sample Computer Laboratory',
-      category: 'STEM Laboratory',
-      institution: 'Illustrative Private Higher Education Space',
-      capacity: 30,
-      equipment: '30 Workstations · Interactive Laser Projector · Gigabit Fiber LAN',
-      status: 'Sample Schedule · Lab Session',
-      nextSlot: '1:00 PM – 4:00 PM (Sample)',
-      imageUrl: FACILITY_IMAGES.computingLab,
-      badgeColor: 'border-[#FDB813] text-amber-700 bg-amber-50',
-    },
-    {
-      id: 'preview-fac-lecture-a',
-      name: 'Sample Academic Lecture Hall',
-      category: 'Lecture Hall',
-      institution: 'Illustrative Public Higher Education Space',
-      capacity: 40,
-      equipment: 'Overhead HD Projector · Magnetic Whiteboard · Faculty HDMI Lectern',
-      status: 'Sample Schedule · Seminar Block',
-      nextSlot: '10:00 AM – 1:00 PM (Sample)',
-      imageUrl: FACILITY_IMAGES.lectureHall,
-      badgeColor: 'border-[#0077C8] text-[#0077C8] bg-blue-50',
-    },
-  ];
-
-  const currentHeroVenue = heroVenues[heroVenueIndex];
 
   // Curated Sample Facility Previews (Representative preview venues with Elo One aesthetic metadata)
   const samplePreviewFacilities: (Facility & {
@@ -403,11 +281,22 @@ export const PublicMarketingPortal: React.FC = () => {
   }, [samplePreviewFacilities, selectedPreviewCategory]);
 
   const scrollToSection = (id: string) => {
-    setMobileMenuOpen(false);
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleHeroSearch = () => {
+    if (searchVenueType === 'Auditorium') setSelectedPreviewCategory('Auditoriums');
+    else if (searchVenueType === 'Gymnasium' || searchVenueType === 'Courts')
+      setSelectedPreviewCategory('Gyms & Courts');
+    else if (searchVenueType === 'Laboratory') setSelectedPreviewCategory('Laboratories');
+    else if (searchVenueType === 'Lecture Hall' || searchVenueType === 'Conference Room')
+      setSelectedPreviewCategory('Lecture & Conference');
+    else setSelectedPreviewCategory('All');
+
+    scrollToSection('facilities-catalog');
   };
 
   const faqs = [
@@ -435,591 +324,209 @@ export const PublicMarketingPortal: React.FC = () => {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
+      <div className="min-h-screen smartspace-landing-canvas font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
+        <CustomCursor />
+
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2.5 focus:rounded-xl focus:bg-[#0077C8] focus:text-white focus:font-bold focus:text-xs focus:shadow-xl"
         >
           Skip to main content
         </a>
-        {/* ------------------------------------------------------------- */}
-        {/* 0. BRAND TAGLINE ANNOUNCEMENT BAR                             */}
-        {/* ------------------------------------------------------------- */}
-        <div className="bg-[#0B1528] text-white text-xs py-2 px-4 border-b border-slate-800 flex items-center justify-between sm:justify-center gap-3 text-center">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse" aria-hidden="true" />
-            <span className="font-extrabold uppercase tracking-wider text-[#FDB813] text-[10px] sm:text-[11px]">
-              SMARTSPACE SAAS
-            </span>
-          </div>
-          <span className="hidden sm:inline text-slate-400" aria-hidden="true">•</span>
-          <span className="font-black tracking-wider text-white italic text-[11px] sm:text-xs">
-            “BOOK IT, TRACK IT, USE IT.”
-          </span>
-          <span className="hidden md:inline text-slate-400" aria-hidden="true">•</span>
-          <span className="hidden md:inline text-slate-300 text-[11px]">
-            Multi-University Facility Booking &amp; Governance Platform
-          </span>
-        </div>
+
+        {/* 1. FIXED TRANSPARENT-TO-GLASS NAVIGATION */}
+        <LandingNav
+          onNavigate={navigate}
+          onScrollToSection={scrollToSection}
+        />
+
+        <main id="main-content" tabIndex={-1} className="focus:outline-none">
+        {/* 2. CINEMATIC FULL-BLEED PHOTO HERO + FLOATING SEARCH BAR */}
+        <HeroCinema
+          heroRef={heroRef}
+          institutions={allInstitutions}
+          campus={searchCampus}
+          onCampusChange={setSearchCampus}
+          venueType={searchVenueType}
+          onVenueTypeChange={setSearchVenueType}
+          dateISO={searchDateISO}
+          onDateChange={setSearchDateISO}
+          peopleCount={searchPeopleCount}
+          onPeopleCountChange={setSearchPeopleCount}
+          onSearch={handleHeroSearch}
+          onRequestDemo={() => navigate('/request-demo')}
+          onExploreFacilities={() => scrollToSection('facilities-catalog')}
+          onOpenExecutiveDeck={() => setIsExecutiveDeckOpen(true)}
+        />
 
         {/* ------------------------------------------------------------- */}
-        {/* 1. PREMIUM RESPONSIVE NAVIGATION BAR                           */}
+        {/* 3. FACILITIES CATALOG (#facilities-catalog)                   */}
         {/* ------------------------------------------------------------- */}
-        <header
-          className={`sticky top-0 z-50 transition-all duration-300 ${
-            scrolled
-              ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200/90 py-3'
-              : 'bg-white/95 backdrop-blur-xs border-b border-slate-200 py-4'
-          }`}
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between gap-4">
-              {/* Left: Official SmartSpace Brand */}
-              <div className="flex items-center gap-6">
-                <button
-                  type="button"
-                  onClick={() => navigate('/')}
-                  className="cursor-pointer hover:opacity-95 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0077C8] rounded-xl transition-opacity"
-                  aria-label="SmartSpace Home"
-                >
-                  <SmartSpaceLogo size={38} showTagline={true} />
-                </button>
-              </div>
-
-              {/* Center: Desktop Navigation Links */}
-              <nav aria-label="Primary navigation" className="hidden lg:flex items-center gap-7 text-xs font-bold text-slate-700">
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('about')}
-                  className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
-                >
-                  <span>Overview</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('features')}
-                  className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
-                >
-                  <span>Features</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('how-it-works')}
-                  className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
-                >
-                  <span>How It Works</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('facilities-catalog')}
-                  className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
-                >
-                  <span>Facilities</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('universities')}
-                  className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
-                >
-                  <span>Universities</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('pricing')}
-                  className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 relative group"
-                >
-                  <span>Pricing</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0077C8] transition-all duration-300 group-hover:w-full" />
-                </button>
-                <div className="relative">
-                  <button
-                    type="button"
-                    aria-expanded={legalMenuOpen}
-                    aria-haspopup="true"
-                    onClick={() => setLegalMenuOpen((prev) => !prev)}
-                    className="hover:text-[#0077C8] transition-colors cursor-pointer py-1 flex items-center gap-1"
-                  >
-                    <span>Legal</span>
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${legalMenuOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {legalMenuOpen && (
-                    <div
-                      role="menu"
-                      aria-label="Legal and governance pages"
-                      className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-slate-200 shadow-xl py-2 z-50"
-                    >
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          setLegalMenuOpen(false);
-                          navigate(BUSINESS_CONFIG.legalRoutes.privacy);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0077C8] cursor-pointer"
-                      >
-                        Privacy Policy (RA 10173)
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          setLegalMenuOpen(false);
-                          navigate(BUSINESS_CONFIG.legalRoutes.terms);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0077C8] cursor-pointer"
-                      >
-                        Terms &amp; Conditions
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          setLegalMenuOpen(false);
-                          navigate(BUSINESS_CONFIG.legalRoutes.cookies);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0077C8] cursor-pointer"
-                      >
-                        Cookie &amp; Storage Policy
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          setLegalMenuOpen(false);
-                          navigate(BUSINESS_CONFIG.legalRoutes.refunds);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0077C8] cursor-pointer"
-                      >
-                        Refund &amp; Cancellation Policy
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          setLegalMenuOpen(false);
-                          navigate(BUSINESS_CONFIG.legalRoutes.accessibility);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0077C8] cursor-pointer"
-                      >
-                        Accessibility Statement
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </nav>
-
-              {/* Right: Actions (Log In + Request Demo) */}
-              <div className="hidden sm:flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate('/access')}
-                  className="px-4 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all cursor-pointer shadow-xs"
-                >
-                  Log In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/request-demo')}
-                  className="px-5 py-2.5 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs font-bold shadow-md shadow-blue-900/15 transition-all flex items-center gap-2 cursor-pointer active:scale-98"
-                >
-                  <span>Request Demo</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Mobile Menu Button */}
-              <div className="flex sm:hidden items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => navigate('/access')}
-                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-800"
-                >
-                  Log In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  aria-expanded={mobileMenuOpen}
-                  className="p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                  aria-label="Toggle navigation"
-                >
-                  {mobileMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
-                </button>
-              </div>
+        <section id="facilities-catalog" className="py-24 lg:py-32 bg-white border-b border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            {/* Section Header */}
+            <div className="text-center max-w-3xl mx-auto space-y-4">
+              <p className="text-xs font-extrabold uppercase tracking-widest text-[#0077C8]">
+                Facility Directory Preview
+              </p>
+              <h2 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight">
+                Preview Campus Facilities
+              </h2>
+              <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+                Browse illustrative sample facility previews below. Live campus venue catalogs and 12-hour reservation calendars are available after signing into your campus account.
+              </p>
             </div>
-          </div>
 
-          {/* Mobile Navigation Drawer with AnimatePresence */}
-          <AnimatePresence>
-            {mobileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25, ease: 'easeInOut' }}
-                className="sm:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-3 overflow-hidden shadow-xl"
-              >
+            {/* Category Filter Tabs */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {[
+                { id: 'All', label: 'All Sample Previews' },
+                { id: 'Auditoriums', label: 'Auditoriums & Event Halls' },
+                { id: 'Gyms & Courts', label: 'Sports & Gymnasiums' },
+                { id: 'Laboratories', label: 'STEM Laboratories' },
+                { id: 'Lecture & Conference', label: 'Lecture & Conference Halls' },
+              ].map((cat) => (
                 <button
-                  onClick={() => scrollToSection('about')}
-                  className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedPreviewCategory(cat.id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    selectedPreviewCategory === cat.id
+                      ? 'bg-[#0077C8] text-white shadow-sm'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                  }`}
                 >
-                  Overview
+                  {cat.label}
                 </button>
-                <button
-                  onClick={() => scrollToSection('features')}
-                  className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
+              ))}
+            </div>
+
+            {/* Curated Preview Cards Grid (SmartSpace Identity) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPreviewFacilities.map((facility) => (
+                <div
+                  key={facility.id}
+                  className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between group"
                 >
-                  Features
-                </button>
-                <button
-                  onClick={() => scrollToSection('how-it-works')}
-                  className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
-                >
-                  How It Works
-                </button>
-                <button
-                  onClick={() => scrollToSection('facilities-catalog')}
-                  className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
-                >
-                  Facilities
-                </button>
-                <button
-                  onClick={() => scrollToSection('universities')}
-                  className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
-                >
-                  Universities
-                </button>
-                <button
-                  onClick={() => scrollToSection('pricing')}
-                  className="block w-full text-left py-2 text-sm font-bold text-slate-700 hover:text-[#0077C8]"
-                >
-                  Pricing
-                </button>
-                <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                  <span className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                    Legal &amp; Governance
-                  </span>
-                  <div className="grid grid-cols-2 gap-1.5 text-xs font-semibold text-slate-700">
+                  <div>
+                    {/* 4:3 Image Frame */}
+                    <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+                      <img
+                        src={facility.imageUrl}
+                        alt={`${facility.name} — illustrative sample campus venue`}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#FDB813] text-[#0B1528] shadow-xs">
+                          Illustrative Image · Sample
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/95 text-slate-900 shadow-xs">
+                          {facility.type}
+                        </span>
+                      </div>
+                      <div className="absolute bottom-3 right-3">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#0B1528]/90 text-white flex items-center gap-1 shadow-xs">
+                          <Lock className="w-3 h-3 text-[#FDB813]" aria-hidden="true" />
+                          <span>Login to Reserve</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6 space-y-3">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#005A9C]">
+                          {facility.sector}
+                        </span>
+                        <h3 className="text-lg font-black text-slate-950 line-clamp-1 group-hover:text-[#0077C8] transition-colors">
+                          {facility.name}
+                        </h3>
+                        <p className="text-xs text-slate-600 flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-slate-600 shrink-0" aria-hidden="true" />
+                          <span className="line-clamp-1">{facility.building} · {facility.floor}</span>
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
+                        <div>
+                          <span className="text-[10px] text-slate-600 block font-medium">Capacity</span>
+                          <span className="font-bold text-slate-800">{facility.capacity} seats</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-600 block font-medium">Operating Hours</span>
+                          <span className="font-bold text-slate-800 font-mono text-[11px]">
+                            {facility.operatingHours.open} – {facility.operatingHours.close}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-[11px] text-slate-600 line-clamp-1">
+                        {facility.equipment.slice(0, 3).join(' · ')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Card Actions */}
+                  <div className="p-6 pt-0 flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        navigate(BUSINESS_CONFIG.legalRoutes.privacy);
-                      }}
-                      className="text-left py-1.5 hover:text-[#0077C8]"
+                      onClick={() => setSelectedFacilityForModal(facility)}
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer text-center"
                     >
-                      Privacy Policy
+                      Quick Specs
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        navigate(BUSINESS_CONFIG.legalRoutes.terms);
-                      }}
-                      className="text-left py-1.5 hover:text-[#0077C8]"
+                      onClick={() => navigate('/access')}
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs font-bold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-xs"
                     >
-                      Terms &amp; Conditions
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        navigate(BUSINESS_CONFIG.legalRoutes.cookies);
-                      }}
-                      className="text-left py-1.5 hover:text-[#0077C8]"
-                    >
-                      Cookie Policy
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        navigate(BUSINESS_CONFIG.legalRoutes.refunds);
-                      }}
-                      className="text-left py-1.5 hover:text-[#0077C8]"
-                    >
-                      Refund Policy
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        navigate(BUSINESS_CONFIG.legalRoutes.accessibility);
-                      }}
-                      className="text-left py-1.5 hover:text-[#0077C8]"
-                    >
-                      Accessibility
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Sign In</span>
                     </button>
                   </div>
                 </div>
-                <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      navigate('/access');
-                    }}
-                    className="w-full py-2.5 rounded-xl border border-slate-300 text-center font-bold text-xs text-slate-800"
-                  >
-                    Log In to SmartSpace Portal
-                  </button>
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      navigate('/request-demo');
-                    }}
-                    className="w-full py-2.5 rounded-xl bg-[#0077C8] text-center font-bold text-xs text-white"
-                  >
-                    Request Demo
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </header>
+              ))}
+            </div>
 
-        <main id="main-content" tabIndex={-1} className="focus:outline-none">
-        {/* ------------------------------------------------------------- */}
-        {/* 2. CINEMATIC EDITORIAL HERO (Framed Deep Navy SaaS Hero)      */}
-        {/* ------------------------------------------------------------- */}
-        <div ref={heroRef} className="p-2 sm:p-4 max-w-[1920px] mx-auto">
-          <section className="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-[#0B1528] text-white pt-14 pb-16 sm:pt-20 sm:pb-24 shadow-2xl border border-slate-800">
-            {/* Subtle Atmospheric Campus Lighting Accents */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-[#0077C8]/15 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#8CC63F]/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
-              {/* Headline & Value Proposition */}
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-                className="text-center max-w-4xl mx-auto space-y-6"
-              >
-                {/* Official Tagline Indicator */}
-                <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/90 border border-slate-700 text-xs shadow-inner">
-                  <span className="w-2 h-2 rounded-full bg-[#8CC63F] animate-pulse" />
-                  <span className="font-extrabold italic tracking-wider text-[#FDB813] text-[11px] sm:text-xs">
-                    BOOK IT, TRACK IT, USE IT.
-                  </span>
-                  <span className="text-slate-600">|</span>
-                  <span className="text-slate-300 font-medium text-[11px] sm:text-xs">
-                    Unified Campus Resource Platform
-                  </span>
+            {/* Authenticated Access Gateway Callout */}
+            <div className="relative overflow-hidden rounded-3xl bg-[#0B1528] text-white p-8 sm:p-10 border border-slate-800 shadow-xl space-y-6">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                <div className="space-y-2 max-w-2xl">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#FDB813] flex items-center gap-2">
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Authenticated Campus Access Required</span>
+                  </p>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    Sign In to Access Your Institutional Facility Catalog
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                    To protect campus venues and verify institutional credentials, live 12-hour conflict calendars and digital booking requests require signing in.
+                  </p>
                 </div>
 
-                {/* Official Hero Headline */}
-                <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] font-sans">
-                  EVERY CAMPUS SPACE. <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0077C8] via-[#FDB813] to-[#8CC63F]">
-                    ONE SMARTER WAY TO BOOK.
-                  </span>
-                </h1>
-
-                {/* Official Supporting Text */}
-                <p className="text-sm sm:text-lg lg:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto font-normal">
-                  Discover, reserve, and manage university facilities across participating campuses through one intelligent booking platform.
-                </p>
-
-                {/* Two Calls-to-Action Max: Request Demo (primary, blue) & Explore facilities (secondary) */}
-                <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
+                <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
                   <button
                     type="button"
-                    onClick={() => navigate('/request-demo')}
-                    className="px-7 py-3.5 rounded-2xl bg-[#0077C8] hover:bg-[#0060a3] text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-blue-900/40 transition-all flex items-center gap-2.5 cursor-pointer active:scale-98"
+                    onClick={() => navigate('/access')}
+                    className="px-6 py-3.5 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                   >
-                    <span>Request Demo</span>
+                    <Lock className="w-4 h-4" />
+                    <span>Log In to View All Facilities</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => scrollToSection('facilities-catalog')}
-                    className="px-7 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs sm:text-sm shadow-lg transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+                    onClick={() => navigate('/user/register')}
+                    className="px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/20 text-xs sm:text-sm font-bold transition-all text-center cursor-pointer"
                   >
-                    <Search className="w-4 h-4 text-[#0077C8]" />
-                    <span>Explore facilities</span>
-                    <ArrowDown className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Create Campus Account</span>
                   </button>
                 </div>
-              </motion.div>
-
-              {/* Dynamic Campus Facility Showcase Composition (Scroll-linked depth) */}
-              <motion.div
-                initial={{ opacity: 0, y: 32 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                style={{ scale: heroShowcaseScale, y: heroShowcaseY }}
-                className="max-w-5xl mx-auto space-y-4 will-change-transform"
-              >
-                <div className="bg-slate-900/95 rounded-3xl p-4 sm:p-6 shadow-2xl border border-slate-800 backdrop-blur-md">
-                  {/* Control bar */}
-                  <div className="flex items-center justify-between pb-4 border-b border-slate-800 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-[#EE2726]" />
-                      <span className="w-3 h-3 rounded-full bg-[#FDB813]" />
-                      <span className="w-3 h-3 rounded-full bg-[#8CC63F]" />
-                      <span className="ml-3 font-mono text-[11px] text-slate-400 hidden sm:inline">
-                        {BUSINESS_CONFIG.canonicalHost}/facilities/{currentHeroVenue.id}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setIsExecutiveDeckOpen(true)}
-                        className="text-[11px] font-semibold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Presentation className="w-3.5 h-3.5 text-[#FDB813]" />
-                        <span className="hidden sm:inline">Executive Deck</span>
-                      </button>
-                      <span className="text-[11px] font-bold text-[#8CC63F] flex items-center gap-1.5 bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-1 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#8CC63F] animate-pulse" />
-                        Interactive Slot Conflict Demo
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Showcase Venue Display */}
-                  <div className="pt-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                    {/* Left: Venue Image & Category */}
-                    <div className="md:col-span-7 relative rounded-2xl overflow-hidden aspect-[16/10] bg-slate-950 border border-slate-800 group">
-                      <img
-                        src={currentHeroVenue.imageUrl}
-                        alt={`${currentHeroVenue.name} — illustrative sample campus venue photograph`}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
-                      <div className="absolute top-3 left-3 flex gap-2">
-                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-950/90 text-white border border-slate-700 backdrop-blur-sm">
-                          {currentHeroVenue.category} · Illustrative Image
-                        </span>
-                      </div>
-                      <div className="absolute bottom-3 left-3 right-3 text-white space-y-1">
-                        <p className="text-xs text-[#FDB813] font-bold">{currentHeroVenue.institution}</p>
-                        <h3 className="text-lg sm:text-xl font-black">{currentHeroVenue.name}</h3>
-                      </div>
-                    </div>
-
-                    {/* Right: Live Data & Selector */}
-                    <div className="md:col-span-5 space-y-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                          Live Capacity &amp; Amenities
-                        </span>
-                        <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                          <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                            <span className="text-[10px] text-slate-400 block font-medium">Max Capacity</span>
-                            <strong className="text-white text-sm">{currentHeroVenue.capacity} Attendees</strong>
-                          </div>
-                          <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                            <span className="text-[10px] text-slate-400 block font-medium">Next Slot</span>
-                            <strong className="text-[#8CC63F] text-xs font-mono">{currentHeroVenue.nextSlot}</strong>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-slate-950/90 border border-slate-800 text-xs space-y-1">
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold block">
-                          Equipped With:
-                        </span>
-                        <p className="text-xs text-slate-300">{currentHeroVenue.equipment}</p>
-                      </div>
-
-                      {/* Venue Switcher buttons */}
-                      <div className="space-y-1.5 pt-1">
-                        <div className="flex items-center justify-between text-[10px]">
-                          <span className="font-bold text-slate-400 uppercase tracking-wider">
-                            Switch Campus Venue Preview:
-                          </span>
-                          <span className="text-slate-500 font-mono">
-                            {heroVenueIndex + 1} of {heroVenues.length}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-5 gap-1.5">
-                          {heroVenues.map((v, idx) => (
-                            <button
-                              key={v.id}
-                              type="button"
-                              onClick={() => setHeroVenueIndex(idx)}
-                              className={`p-1.5 rounded-lg text-[10px] font-bold transition-all border text-center cursor-pointer ${
-                                heroVenueIndex === idx
-                                  ? 'bg-[#0077C8] border-blue-400 text-white shadow-xs'
-                                  : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
-                              }`}
-                            >
-                              #{idx + 1}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Interactive Real-Time Conflict Checker */}
-                      <div className="p-3 rounded-2xl bg-slate-950/90 border border-slate-800/90 space-y-2 shadow-inner">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <Zap className="w-3 h-3 text-[#FDB813]" />
-                            <span>Simulate Slot Lock:</span>
-                          </span>
-                          <span className="text-[10px] font-bold text-[#8CC63F] flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#8CC63F] animate-pulse" />
-                            Live Engine
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1.5 text-[10px]">
-                          {[
-                            { id: 'morning', label: '8 AM – 12 PM' },
-                            { id: 'afternoon', label: '1 PM – 5 PM' },
-                            { id: 'evening', label: '6 PM – 9 PM' },
-                          ].map((slot) => (
-                            <button
-                              key={slot.id}
-                              type="button"
-                              onClick={() => handleSelectSlot(slot.id as 'morning' | 'afternoon' | 'evening')}
-                              className={`py-1.5 px-2 rounded-lg font-bold border transition-all cursor-pointer text-center ${
-                                simulatorSlot === slot.id
-                                  ? 'bg-blue-600/20 border-blue-400/80 text-blue-200 shadow-[0_0_12px_rgba(0,119,200,0.25)]'
-                                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                              }`}
-                            >
-                              {slot.label}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="pt-1 flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800/80">
-                          {isSimulatingConflictCheck ? (
-                            <span className="text-[#FDB813] flex items-center gap-1.5 animate-pulse">
-                              <Clock className="w-3 h-3 animate-spin" />
-                              Checking multi-campus schedule...
-                            </span>
-                          ) : (
-                            <span className="text-[#8CC63F] flex items-center gap-1.5 font-semibold">
-                              <CheckCircle2 className="w-3 h-3 text-[#8CC63F]" />
-                              0 Conflicts Detected · Verified Available
-                            </span>
-                          )}
-                          <span className="font-mono text-[9px] text-slate-500">Sub-second lock</span>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => navigate('/access')}
-                        className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <span>Check Full Schedule for This Venue</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+              </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
 
         {/* ------------------------------------------------------------- */}
         {/* 3. SCROLL STORY: BOOK SMARTER. MANAGE BETTER. (Apple-inspired)*/}
@@ -1469,174 +976,7 @@ export const PublicMarketingPortal: React.FC = () => {
           </div>
         </section>
 
-        {/* ------------------------------------------------------------- */}
-        {/* 7. FACILITIES CATALOG (#facilities-catalog)                   */}
-        {/* ------------------------------------------------------------- */}
-        <section id="facilities-catalog" className="py-24 lg:py-32 bg-white border-b border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            {/* Section Header */}
-            <div className="text-center max-w-3xl mx-auto space-y-4">
-              <p className="text-xs font-extrabold uppercase tracking-widest text-[#0077C8]">
-                Facility Directory Preview
-              </p>
-              <h2 className="text-3xl sm:text-5xl font-black text-slate-950 tracking-tight">
-                Preview Campus Facilities
-              </h2>
-              <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-                Browse illustrative sample facility previews below. Live campus venue catalogs and 12-hour reservation calendars are available after signing into your campus account.
-              </p>
-            </div>
 
-            {/* Category Filter Tabs */}
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {[
-                { id: 'All', label: 'All Sample Previews' },
-                { id: 'Auditoriums', label: 'Auditoriums & Event Halls' },
-                { id: 'Gyms & Courts', label: 'Sports & Gymnasiums' },
-                { id: 'Laboratories', label: 'STEM Laboratories' },
-                { id: 'Lecture & Conference', label: 'Lecture & Conference Halls' },
-              ].map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedPreviewCategory(cat.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    selectedPreviewCategory === cat.id
-                      ? 'bg-[#0077C8] text-white shadow-sm'
-                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Curated Preview Cards Grid (SmartSpace Identity) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPreviewFacilities.map((facility) => (
-                <div
-                  key={facility.id}
-                  className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between group"
-                >
-                  <div>
-                    {/* 4:3 Image Frame */}
-                    <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
-                      <img
-                        src={facility.imageUrl}
-                        alt={`${facility.name} — illustrative sample campus venue`}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                      <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#FDB813] text-[#0B1528] shadow-xs">
-                          Illustrative Image · Sample
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/95 text-slate-900 shadow-xs">
-                          {facility.type}
-                        </span>
-                      </div>
-                      <div className="absolute bottom-3 right-3">
-                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#0B1528]/90 text-white flex items-center gap-1 shadow-xs">
-                          <Lock className="w-3 h-3 text-[#FDB813]" aria-hidden="true" />
-                          <span>Login to Reserve</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6 space-y-3">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#005A9C]">
-                          {facility.sector}
-                        </span>
-                        <h3 className="text-lg font-black text-slate-950 line-clamp-1 group-hover:text-[#0077C8] transition-colors">
-                          {facility.name}
-                        </h3>
-                        <p className="text-xs text-slate-600 flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-slate-600 shrink-0" aria-hidden="true" />
-                          <span className="line-clamp-1">{facility.building} · {facility.floor}</span>
-                        </p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
-                        <div>
-                          <span className="text-[10px] text-slate-600 block font-medium">Capacity</span>
-                          <span className="font-bold text-slate-800">{facility.capacity} seats</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-600 block font-medium">Operating Hours</span>
-                          <span className="font-bold text-slate-800 font-mono text-[11px]">
-                            {facility.operatingHours.open} – {facility.operatingHours.close}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-[11px] text-slate-600 line-clamp-1">
-                        {facility.equipment.slice(0, 3).join(' · ')}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Card Actions */}
-                  <div className="p-6 pt-0 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFacilityForModal(facility)}
-                      className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer text-center"
-                    >
-                      Quick Specs
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/access')}
-                      className="flex-1 py-2.5 px-3 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs font-bold transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-xs"
-                    >
-                      <Lock className="w-3.5 h-3.5" />
-                      <span>Sign In</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Authenticated Access Gateway Callout */}
-            <div className="relative overflow-hidden rounded-3xl bg-[#0B1528] text-white p-8 sm:p-10 border border-slate-800 shadow-xl space-y-6">
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                <div className="space-y-2 max-w-2xl">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#FDB813] flex items-center gap-2">
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>Authenticated Campus Access Required</span>
-                  </p>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                    Sign In to Access Your Institutional Facility Catalog
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                    To protect campus venues and verify institutional credentials, live 12-hour conflict calendars and digital booking requests require signing in.
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/access')}
-                    className="px-6 py-3.5 rounded-xl bg-[#0077C8] hover:bg-[#0060a3] text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-                  >
-                    <Lock className="w-4 h-4" />
-                    <span>Log In to View All Facilities</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/user/register')}
-                    className="px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/20 text-xs sm:text-sm font-bold transition-all text-center cursor-pointer"
-                  >
-                    <span>Create Campus Account</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* ------------------------------------------------------------- */}
         {/* 8. PARTICIPATING HIGHER EDUCATION INSTITUTIONS (#universities) */}

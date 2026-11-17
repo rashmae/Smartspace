@@ -17,6 +17,13 @@
     --surface-notion-sidebar: #FBFBFA;
     --hairline-border: rgba(15, 23, 42, 0.08);
     --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease: cubic-bezier(0.65, 0, 0.35, 1);
+    --out: cubic-bezier(0.16, 1, 0.3, 1);
+    --landing-ink: #0B1528;
+    --landing-muted: #4a5a73;
+    --landing-warm-top: #f6e6d8;
+    --landing-warm-mid: #f8f1ea;
+    --landing-warm-base: #fbf8f4;
   }
 
   html {
@@ -208,8 +215,72 @@
   .smartspace-logo-sway-subtle,
   .smartspace-logo-shine,
   .smartspace-logo-glow,
-  .smartspace-conflict-shake {
+  .smartspace-conflict-shake,
+  .smartspace-cloud-drift-front,
+  .smartspace-cloud-drift-back {
     animation: none !important;
     transform: none !important;
   }
+}
+
+/* SmartSpace Landing Experience Surface & Motion */
+.smartspace-landing-canvas {
+  background: linear-gradient(
+    to bottom,
+    #f6e6d8 0px,
+    #f6e6d8 115vh,
+    #f8f1ea 175vh,
+    #fbf8f4 235vh,
+    #fbf8f4 100%
+  );
+  color: #0B1528;
+}
+
+.smartspace-nav-padding {
+  padding-left: clamp(20px, 9.5vw, 170px);
+  padding-right: clamp(20px, 9.5vw, 170px);
+}
+
+.smartspace-hero-title-fill {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 255, 255, 0.86) 36%,
+    rgba(255, 255, 255, 0.16) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+@keyframes smartspace-cloud-drift-front {
+  0%, 100% {
+    transform: translate3d(-2.5%, 0, 0);
+  }
+  50% {
+    transform: translate3d(2.5%, 0, 0);
+  }
+}
+
+@keyframes smartspace-cloud-drift-back {
+  0%, 100% {
+    transform: scaleX(-1) translate3d(-3%, 0, 0);
+  }
+  50% {
+    transform: scaleX(-1) translate3d(3%, 0, 0);
+  }
+}
+
+.smartspace-cloud-drift-front {
+  animation: smartspace-cloud-drift-front 26s ease-in-out infinite;
+}
+
+.smartspace-cloud-drift-back {
+  animation: smartspace-cloud-drift-back 34s ease-in-out infinite;
+}
+
+.smartspace-hero-focus :where(a, button, input, select):focus-visible {
+  outline: 2px solid #FDB813;
+  outline-offset: 3px;
 }
